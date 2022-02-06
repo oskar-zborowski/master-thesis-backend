@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Responses\JsonResponse;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -61,10 +62,19 @@ class Handler extends ExceptionHandler
                 );
                 break;
 
+            case ThrottleRequestsException::class:
+                /** @var ThrottleRequestsException $throwable */
+
+                JsonResponse::sendError(
+                    DefaultErrorCode::LIMIT_EXCEEDED(),
+                    $throwable->getMessage()
+                );
+                break;
+
             default:
                 JsonResponse::sendError(
                     DefaultErrorCode::INTERNAL_SERVER_ERROR(),
-                    env('APP_DEBUG') ?? $class
+                    env('APP_DEBUG') ? $class : null
                 );
                 break;
         }
