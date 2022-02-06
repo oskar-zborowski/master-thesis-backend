@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 
 /**
- * Klasa odpowiedzialna za komunikację z serwisem GitHub
+ * Klasa umożliwiająca komunikację z serwisem GitHub
  */
 class GitHubController extends Controller
 {
@@ -16,6 +16,6 @@ class GitHubController extends Controller
      * @return void
      */
     public function pull(): void {
-        echo shell_exec('git pull https://BolleyVall7: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@github.com/BolleyVall7/master-thesis-beckend.git master 2>&1');
+        echo shell_exec('git pull https://BolleyVall7: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@github.com/BolleyVall7/master-thesis-beckend.git master 2>&1');
     }
 }

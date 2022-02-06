@@ -21,6 +21,24 @@ trait Encryptable
     }
 
     /**
+     * Zaszyfrowanie pola, jeżeli jest taka możliwość
+     * 
+     * @param string $key nazwa pola do zaszyfrowania
+     * @param string $value wartość do zaszyfrowania
+     * 
+     * @return string|null
+     */
+    public function setAttribute($key, $value): ?string {
+
+        if ($this->encryptable($key)) {
+            $encrypter = new Encrypter;
+            $value = $encrypter->encrypt($value, $this->encryptable[$key]);
+        }
+
+        return parent::setAttribute($key, $value);
+    }
+
+    /**
      * Odszyfrowanie pola, jeżeli jest taka możliwość
      * 
      * @param string $key nazwa pola do odszyfrowania
@@ -37,24 +55,6 @@ trait Encryptable
         }
 
         return $value;
-    }
-
-    /**
-     * Zaszyfrowanie pola, jeżeli jest taka możliwość
-     * 
-     * @param string $key nazwa pola do zaszyfrowania
-     * @param string $value wartość do zaszyfrowania
-     * 
-     * @return string|null
-     */
-    public function setAttribute($key, $value): ?string {
-
-        if ($this->encryptable($key)) {
-            $encrypter = new Encrypter;
-            $value = $encrypter->encrypt($value, $this->encryptable[$key]);
-        }
-
-        return parent::setAttribute($key, $value);
     }
 
     /**

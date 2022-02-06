@@ -7,26 +7,26 @@ use App\Http\Libraries\FieldConversion\FieldConversion;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Klasa obsługująca wysyłanie odpowiedzi do klienta
+ * Klasa wysyłająca odpowiedzi zwrotne do klienta
  */
 class JsonResponse
 {
     /**
      * Wysłanie pomyślnej odpowiedzi
      * 
-     * @param $data podstawowe informacje zwrotne
-     * @param $metadata dodatkowe informacje
+     * @param mixed $data podstawowe informacje
+     * @param mixed $meta dodatkowe informacje
      * 
      * @return void
      */
-    public static function sendSuccess($data = null, $metadata = null): void {
+    public static function sendSuccess($data = null, $meta = null): void {
 
         header('Content-Type: application/json');
         http_response_code(Response::HTTP_OK);
 
         $response = FieldConversion::convertToCamelCase([
             'data' => $data,
-            'metadata' => $metadata
+            'metadata' => $meta,
         ]);
 
         echo json_encode($response);
@@ -37,12 +37,11 @@ class JsonResponse
      * Wysłanie odpowiedzi z błędem
      * 
      * @param ErrorCode $errorCode obiekt kodu błędu
-     * @param $data podstawowe informacje zwrotne
-     * @param $metadata dodatkowe informacje
+     * @param mixed $data podstawowe informacje
      * 
      * @return void
      */
-    public static function sendError(ErrorCode $errorCode, $data = null, $metadata = null): void {
+    public static function sendError(ErrorCode $errorCode, $data = null): void {
 
         header('Content-Type: application/json');
         http_response_code($errorCode->getHttpStatus());
@@ -56,7 +55,6 @@ class JsonResponse
         $response += [
             'error_code' => $errorCode->getCode(),
             'data' => $data,
-            'metadata' => $metadata
         ];
 
         $response = FieldConversion::convertToCamelCase($response);

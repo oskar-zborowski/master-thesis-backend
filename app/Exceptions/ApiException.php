@@ -6,7 +6,7 @@ use App\Http\ErrorCodes\ErrorCode;
 use Exception;
 
 /**
- * Klasa przechowująca strukturę zwracanego wyjątku
+ * Klasa definiująca strukturę własnych wyjątków
  */
 class ApiException extends Exception
 {
@@ -14,10 +14,10 @@ class ApiException extends Exception
     private $data;
 
     /**
-     * Ustawienie obiektu błędu oraz zwracanych informacji
+     * Przypisanie obiektu błędu oraz szczegółowej informacji
      * 
-     * @param ErrorCode $errorCode obiekt zwracanego błędu
-     * @param array|string|null $data zwracane informacje
+     * @param ErrorCode $errorCode obiekt błędu
+     * @param array|string|null $data informacja o napotkanym błędzie
      */
     public function __construct(ErrorCode $errorCode, $data = null) {
         parent::__construct();

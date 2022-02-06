@@ -3,15 +3,14 @@
 namespace App\Http\Libraries\Encrypter;
 
 use App\Http\Libraries\Validation\Validation;
-use Illuminate\Support\Facades\Hash;
 
 /**
- * Klasa umożliwiająca przeprowadzanie procesów szyfrowania danych
+ * Klasa przeprowadzająca procesy szyfrowania danych
  */
 class Encrypter
 {
     /**
-     * Zaszyfrowanie tekstu
+     * Szyfrowanie tekstu
      * 
      * @param string|null $text tekst do zaszyfrowania
      * @param int $maxSize maksymalny rozmiar pola w bazie danych
@@ -20,7 +19,7 @@ class Encrypter
      */
     public function encrypt(?string $text, int $maxSize = null): ?string {
 
-        if ($text !== null && strlen($text) > 0) {
+        if ($text && strlen($text) > 0) {
             $text = $this->fillWithRandomCharacters($text, $maxSize);
             $text = openssl_encrypt($text, env('OPENSSL_ALGORITHM'), env('OPENSSL_PASSPHRASE'), 0, env('OPENSSL_IV'));
         } else {
@@ -39,7 +38,7 @@ class Encrypter
      */
     public function decrypt(?string $text): ?string {
 
-        if ($text !== null && strlen($text) > 0) {
+        if ($text && strlen($text) > 0) {
             $text = openssl_decrypt($text, env('OPENSSL_ALGORITHM'), env('OPENSSL_PASSPHRASE'), 0, env('OPENSSL_IV'));
             $text = $this->removeRandomCharacters($text);
         } else {
@@ -53,9 +52,9 @@ class Encrypter
      * Generowanie tokenu
      * 
      * @param int $maxSize maksymalny rozmiar pola w bazie danych
-     * @param mixed $entity encja w której będzie następowało przeszukiwanie pod kątem już występującego tokena
-     * @param string $field pole po którym będzie następowało przeszukiwanie w bazie danych
-     * @param string $addition dodatkowy tekst który ma być uwzględniony przy generowaniu tokena (dopisany na końcu), np. .jpeg
+     * @param mixed $entity encja w której będzie następowało przeszukiwanie
+     * @param string $field pole po którym będzie następowało przeszukiwanie
+     * @param string $addition dodatkowy tekst który ma być uwzględniony przy generowaniu tokena (dopisany na końcu), np. ".jpeg"
      * 
      * @return string|null
      */
@@ -89,20 +88,16 @@ class Encrypter
      */
     private function fillWithRandomCharacters(string $text = '', int $maxSize = null, bool $rand = false): string {
 
-        $characters = 'ZmyU4RcJwPONKM38dtgG7HYVhqszTpFxovjWCELk1Qn6ufDbB2Xa9Ir0S5eAil';
-        $charactersLength = strlen($characters);
+        if ($maxSize) {
 
-        if (!isset($maxSize)) {
-            $maxSize = strlen($text);
-        }
+            $characters = 'ZmyU4RcJwPONKM38dtgG7HYVhqszTpFxovjWCELk1Qn6ufDbB2Xa9Ir0S5eAil';
+            $charactersLength = strlen($characters);
 
-        $length = $maxSize - strlen($text);
-
-        if ($length) {
+            $length = $maxSize - strlen($text);
 
             if (!$rand) {
 
-                $esc = chr(27); // ESC
+                $esc = chr(27);
                 $temp = '';
 
                 for ($i=0; $i<$length-1; $i++) {
@@ -110,7 +105,9 @@ class Encrypter
                     $temp .= $characters[$characterIndex];
                 }
 
-                $text = $temp . $esc . $text;
+                if ($length) {
+                    $text = $temp . $esc . $text;
+                }
 
             } else {
                 for ($i=0; $i<$length; $i++) {

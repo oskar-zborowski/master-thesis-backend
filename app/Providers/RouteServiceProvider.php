@@ -56,8 +56,18 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function configureRateLimiting()
     {
+        RateLimiter::for('web', function (Request $request) {
+            return Limit::perMinute(0)->by($request->ip());
+        });
+
         RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+            return $request->device_id
+                ? Limit::perMinute(env('API_DEVICE_RATE_LIMIT_PER_MINUTE'))->by($request->device_id)
+                : Limit::perMinute(env('API_IP_RATE_LIMIT_PER_MINUTE'))->by($request->ip());
+        });
+
+        RateLimiter::for('githubLimit', function (Request $request) {
+            return Limit::perMinute(env('API_GITHUB_RATE_LIMIT_PER_MINUTE'))->by($request->ip());
         });
     }
 }

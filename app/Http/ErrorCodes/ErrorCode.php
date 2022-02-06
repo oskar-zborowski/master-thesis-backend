@@ -3,7 +3,7 @@
 namespace App\Http\ErrorCodes;
 
 /**
- * Klasa przechowująca strukturę zwracanych błędów
+ * Klasa definiująca strukturę własnych błędów
  */
 class ErrorCode
 {
@@ -12,11 +12,11 @@ class ErrorCode
     private int $httpStatus;
 
     /**
-     * Ustawienie kodu, wiadomości (widocznej tylko w trybie debugowania) oraz statusu HTTP
+     * Przypisanie kodu rozpoznania, szczegółowej informacji o błędzie (widocznej wyłącznie w trybie debugowania) oraz statusu HTTP
      * 
      * @param string $code unikatowy kod dla rozpoznania błędu po stronie klienta
-     * @param string $message wiadomość z informacją o błędzie (dla trybu debugowania)
-     * @param int $httpStatus kod odpowiedzi HTTP
+     * @param string $message szczegółowa informacja o błędzie (widoczna wyłącznie w trybie debugowania)
+     * @param int $httpStatus kod statusu HTTP
      */
     public function __construct(string $code, string $message, int $httpStatus) {
         $this->code = $code;

@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use App\Http\ErrorCodes\DefaultErrorCode;
+use App\Http\Responses\JsonResponse;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
@@ -23,9 +24,7 @@ class Handler extends ExceptionHandler
      * @var array<int, string>
      */
     protected $dontFlash = [
-        'current_password',
-        'password',
-        'password_confirmation',
+        //
     ];
 
     /**
@@ -41,7 +40,7 @@ class Handler extends ExceptionHandler
     }
 
     /**
-     * Metoda przechwytująca wszystkie napotkane wyjątki i odpowiednio je parsująca przed wysłaniem odpowiedzi zwrotnej.
+     * Metoda przechwytująca wszystkie napotkane wyjątki i kierująca je w stronę klienta
      * 
      * @param \Illuminate\Http\Request $request
      * @param Throwable $throwable
@@ -65,7 +64,7 @@ class Handler extends ExceptionHandler
             default:
                 JsonResponse::sendError(
                     DefaultErrorCode::INTERNAL_SERVER_ERROR(),
-                    env('APP_DEBUG') ? $class : null
+                    env('APP_DEBUG') ?? $class
                 );
                 break;
         }

@@ -48,6 +48,7 @@ return [
     */
 
     'channels' => [
+
         'stack' => [
             'driver' => 'stack',
             'channels' => ['single'],
@@ -114,5 +115,4 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
     ],
-
 ];

@@ -20,8 +20,4 @@ class DefaultErrorCode
     public static function PERMISSION_DENIED(): ErrorCode {
         return new ErrorCode('DEF3', 'PERMISSION DENIED', Response::HTTP_FORBIDDEN);
     }
-
-    public static function LIMIT_EXCEEDED(): ErrorCode {
-        return new ErrorCode('DEF4', 'LIMIT EXCEEDED', Response::HTTP_FORBIDDEN);
-    }
 }

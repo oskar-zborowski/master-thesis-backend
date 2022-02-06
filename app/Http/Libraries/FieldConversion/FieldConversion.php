@@ -5,7 +5,7 @@ namespace App\Http\Libraries\FieldConversion;
 use Illuminate\Support\Str;
 
 /**
- * Klasa umożliwiająca konwersję pomiędzy formatami CamelCase, a snake_case
+ * Klasa przeprowadzająca konwersję pomiędzy formatami CamelCase, a snake_case
  */
 class FieldConversion
 {
@@ -19,7 +19,7 @@ class FieldConversion
      * @return array
      */
     public static function convertToCamelCase(array $data, int $from = 0, int $to = null): array {
-        return self::convertByDefault('camel', $data, $from, $to, 0);
+        return self::convertByDefault('camel', $data, $from, $to);
     }
 
     /**
@@ -32,7 +32,7 @@ class FieldConversion
      * @return array|string|null
      */
     public static function convertToSnakeCase($data, int $from = 0, int $to = null) {
-        return self::convertByDefault('snake', $data, $from, $to, 0);
+        return self::convertByDefault('snake', $data, $from, $to);
     }
 
     /**
@@ -46,13 +46,13 @@ class FieldConversion
      * 
      * @return array|string|null
      */
-    private static function convertByDefault(string $conversionType, $data, int $from = 0, int $to = null, int $current) {
+    private static function convertByDefault(string $conversionType, $data, int $from = 0, int $to = null, int $current = 0) {
 
         if (is_array($data) || $current > 0) {
 
             $fieldNames = null;
 
-            if ($data && ($to !== null && $from <= $to || $to === null)) {
+            if ($data && (isset($to) && $from <= $to || !isset($to))) {
     
                 if ($current == 0) {
                     $data = json_encode($data);
@@ -63,7 +63,7 @@ class FieldConversion
 
                     if (is_array($value)) {
 
-                        if ($current >= $from && ($to !== null && $current <= $to || $to === null)) {
+                        if ($current >= $from && (isset($to) && $current <= $to || !isset($to))) {
                             $fieldNames[Str::$conversionType($key)] = self::convertByDefault($conversionType, $value, $from, $to, $current+1);
                         } else if ($current < $from) {
 
@@ -78,7 +78,7 @@ class FieldConversion
 
                         if ($current >= $from) {
 
-                            if ($to !== null && $current <= $to || $to === null) {
+                            if (isset($to) && $current <= $to || !isset($to)) {
                                 $fieldNames[Str::$conversionType($key)] = $value;
                             } else {
                                 $fieldNames = null;
@@ -91,7 +91,7 @@ class FieldConversion
                 }
             }
 
-            if ($current == 0 && $fieldNames !== null) {
+            if ($current == 0 && isset($fieldNames)) {
 
                 $fN = null;
 
