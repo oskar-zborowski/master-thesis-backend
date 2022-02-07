@@ -24,4 +24,8 @@ class DefaultErrorCode
     public static function LIMIT_EXCEEDED(): ErrorCode {
         return new ErrorCode('DEF4', 'LIMIT EXCEEDED', Response::HTTP_FORBIDDEN);
     }
+
+    public static function UNAUTHORIZED(): ErrorCode {
+        return new ErrorCode('DEF5', 'UNAUTHORIZED', Response::HTTP_UNAUTHORIZED);
+    }
 }
