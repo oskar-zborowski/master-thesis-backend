@@ -13,14 +13,19 @@ class CreateDevicesTable extends Migration
      */
     public function up() {
         Schema::create('devices', function (Blueprint $table) {
-            $table->integerIncrements('id');
-            $table->char('uuid', 64)->unique(); // Kodowane natywnie
-            $table->char('ip', 20); // Kodowane natywnie
-            $table->char('name', 40); // Kodowane natywnie
-            $table->char('avatar', 64); // Kodowane natywnie
-            $table->char('os_name', 40); // Kodowane natywnie
-            $table->char('os_version', 40); // Kodowane natywnie
-            $table->char('app_version', 40); // Kodowane natywnie
+            $table->id();
+            $table->char('name', 20); // Kodowane automatycznie
+            $table->tinyInteger('default_avatar');
+            $table->string('model', 50);
+            $table->string('os_name', 10);
+            $table->string('os_version', 10);
+            $table->string('app_version', 10);
+            $table->char('uuid', 60); // Kodowane automatycznie
+            $table->char('ip_address', 60); // Kodowane automatycznie
+            $table->char('token', 32)->unique(); // Kodowane automatycznie
+            $table->char('refresh_token', 32)->unique(); // Kodowane automatycznie
+            $table->unsignedBigInteger('request_counter')->default(0);
+            $table->timestamp('last_request_at')->nullable();
             $table->timestamps();
         });
     }
