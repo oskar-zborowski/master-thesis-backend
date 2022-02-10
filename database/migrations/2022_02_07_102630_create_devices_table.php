@@ -16,6 +16,7 @@ class CreateDevicesTable extends Migration
             $table->id();
             $table->char('name', 20); // Kodowane automatycznie
             $table->tinyInteger('default_avatar');
+            $table->string('producer', 30);
             $table->string('model', 50);
             $table->string('os_name', 10);
             $table->string('os_version', 10);
