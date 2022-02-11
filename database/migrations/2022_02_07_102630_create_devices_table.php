@@ -15,12 +15,12 @@ class CreateDevicesTable extends Migration
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
             $table->char('name', 20); // Kodowane automatycznie
-            $table->tinyInteger('default_avatar');
+            $table->enum('default_avatar', ['Avatar 1', 'Avatar 2', 'Avatar 3', 'Avatar 4', 'Avatar 5']);
             $table->string('producer', 30);
             $table->string('model', 50);
-            $table->string('os_name', 10);
+            $table->enum('os_name', ['Android', 'iOS']);
             $table->string('os_version', 10);
-            $table->string('app_version', 10);
+            $table->enum('app_version', ['1.0.0']);
             $table->char('uuid', 60); // Kodowane automatycznie
             $table->char('token', 32)->unique(); // Kodowane automatycznie
             $table->char('refresh_token', 32)->unique(); // Kodowane automatycznie
