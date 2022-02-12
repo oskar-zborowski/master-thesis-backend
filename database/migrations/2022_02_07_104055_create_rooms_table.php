@@ -26,7 +26,7 @@ class CreateRoomsTable extends Migration
             $table->unsignedTinyInteger('thieves_number')->default(1);
             $table->unsignedSmallInteger('catchers_number')->default(2);
             $table->unsignedSmallInteger('catch_radius')->default(50); // dystans w metrach
-            $table->unsignedSmallInteger('catch_time')->default(3); // czas w sekundach
+            $table->unsignedSmallInteger('catch_time')->default(5); // czas w sekundach
             $table->unsignedTinyInteger('missions_number')->default(5);
             $table->multiPoint('mission_centers')->nullable();
             $table->unsignedSmallInteger('mission_radius')->default(50); // dystans w metrach
