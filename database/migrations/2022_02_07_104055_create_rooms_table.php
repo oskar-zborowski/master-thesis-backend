@@ -28,13 +28,14 @@ class CreateRoomsTable extends Migration
             $table->unsignedSmallInteger('catch_radius')->default(50); // dystans w metrach
             $table->unsignedSmallInteger('catch_time')->default(3); // czas w sekundach
             $table->unsignedTinyInteger('missions_number')->default(5);
+            $table->multiPoint('mission_centers')->nullable();
             $table->unsignedSmallInteger('mission_radius')->default(50); // dystans w metrach
             $table->unsignedSmallInteger('mission_time')->default(10); // czas w sekundach
             $table->unsignedTinyInteger('monitorings_number')->default(0);
+            $table->multiPoint('monitoring_centers')->nullable();
             $table->unsignedSmallInteger('monitoring_radius')->default(50); // dystans w metrach
             $table->polygon('boundary')->nullable();
-            $table->multiPoint('mission_centers')->nullable();
-            $table->multiPoint('monitoring_centers')->nullable();
+            $table->boolean('is_role_random')->default(true);
             $table->boolean('is_direction_visible')->default(true);
             $table->boolean('is_thief_disclosure_visible')->default(true);
             $table->boolean('is_catching_visible')->default(true);
