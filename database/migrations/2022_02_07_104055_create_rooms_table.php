@@ -40,6 +40,7 @@ class CreateRoomsTable extends Migration
             $table->boolean('is_thief_disclosure_visible')->default(true);
             $table->boolean('is_catching_visible')->default(true);
             $table->unsignedTinyInteger('black_tickets_number')->default(0);
+            $table->unsignedTinyInteger('white_tickets_number')->default(0);
             $table->unsignedTinyInteger('agents_number')->default(0);
             $table->enum('status', ['WAITING IN ROOM', 'GAME IN PROGRESS', 'GAME PAUSED', 'GAME OVER'])->default('WAITING IN ROOM');
             $table->timestamps();
