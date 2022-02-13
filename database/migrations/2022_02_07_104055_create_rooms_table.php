@@ -23,10 +23,10 @@ class CreateRoomsTable extends Migration
             $table->timestamp('game_started_at')->nullable();
             $table->timestamp('game_ended_at')->nullable();
             $table->timestamp('game_paused_at')->nullable();
-            $table->enum('pausing_reason', ['BUTTON', 'DISCONNECTION', 'BORDER CROSSING'])->nullable();
-            $table->foreignId('pausing_player_id')->references('id')->on('players')->nullable()->nullOnDelete();
             $table->unsignedSmallInteger('escape_time')->default(300); // czas w sekundach
             $table->unsignedSmallInteger('disclosures_interval')->default(180); // czas w sekundach
+            $table->unsignedSmallInteger('disclosure_time')->default(30); // czas w sekundach
+            $table->unsignedSmallInteger('remaining_disclosure_time')->default(30); // czas w sekundach
             $table->unsignedTinyInteger('policemen_number')->default(5);
             $table->unsignedTinyInteger('agents_number')->default(0);
             $table->unsignedTinyInteger('saboteurs_number')->default(0);
@@ -52,6 +52,7 @@ class CreateRoomsTable extends Migration
             $table->boolean('is_position_shown_after_crossing_border')->default(false);
             $table->boolean('with_monitoring_central')->default(false);
             $table->boolean('is_role_random')->default(true);
+            $table->boolean('is_disclosure_interval')->default(true);
             $table->boolean('is_thief_direction_visible')->default(true);
             $table->boolean('is_thief_disclosure_visible')->default(true);
             $table->boolean('is_catching_visible')->default(true);
@@ -59,7 +60,7 @@ class CreateRoomsTable extends Migration
             $table->unsignedTinyInteger('black_tickets_number')->default(0);
             $table->unsignedTinyInteger('black_tickets_used_number')->default(0); // przenieść do tabeli players
             $table->unsignedTinyInteger('white_tickets_number')->default(0);
-            $table->unsignedTinyInteger('white_tickets_used_number')->default(0); // przenieść do tabeli players
+            $table->unsignedTinyInteger('white_tickets_used_number')->default(0);
             $table->unsignedTinyInteger('fake_positions_number')->default(0);
             $table->unsignedTinyInteger('fake_positions_used_number')->default(0); // przenieść do tabeli players
             $table->unsignedSmallInteger('fake_position_radius')->default(250); // dystans w metrach
