@@ -20,11 +20,11 @@ class CreateDevicesTable extends Migration
             $table->string('model', 50);
             $table->enum('os_name', ['Android', 'iOS']);
             $table->string('os_version', 10);
-            $table->enum('app_version', ['1.0.0']);
+            $table->enum('app_version', ['1.0.0'])->default('1.0.0');
             $table->char('uuid', 60); // Kodowane automatycznie
             $table->char('token', 32)->unique(); // Kodowane automatycznie
             $table->char('refresh_token', 32)->unique(); // Kodowane automatycznie
-            $table->timestamp('tokens_generated_at')->nullable();
+            $table->timestamp('token_expires_at')->nullable();
             $table->timestamps();
         });
     }
