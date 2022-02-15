@@ -18,15 +18,12 @@ class CreateRoomsTable extends Migration
             $table->char('code', 8); // Kodowane automatycznie
             $table->unsignedTinyInteger('game_counter');
             $table->enum('game_mode', ['Scotland Yard', 'Mission: Impossible'])->default('Scotland Yard');
-            $table->unsignedMediumInteger('scheduled_game_duration')->default(1800); // czas w sekundach
-            $table->unsignedMediumInteger('actual_game_duration')->nullable(); // czas w sekundach
+            $table->json('game_config');
             $table->timestamp('game_started_at')->nullable();
-            $table->timestamp('game_ended_at')->nullable();
             $table->timestamp('game_paused_at')->nullable();
-            $table->unsignedSmallInteger('escape_time')->default(300); // czas w sekundach
-            $table->unsignedSmallInteger('disclosures_interval')->default(180); // czas w sekundach
-            $table->unsignedSmallInteger('disclosure_time')->default(30); // czas w sekundach
-            $table->unsignedSmallInteger('remaining_disclosure_time')->default(30); // czas w sekundach
+            $table->timestamp('game_ended_at')->nullable();
+            $table->timestamp('disclosure_at')->nullable();
+            $table->unsignedSmallInteger('remaining_disclosure_impulses_number')->default(10);
             $table->unsignedTinyInteger('policemen_number')->default(5);
             $table->unsignedTinyInteger('agents_number')->default(0);
             $table->unsignedTinyInteger('saboteurs_number')->default(0);
@@ -79,3 +76,15 @@ class CreateRoomsTable extends Migration
         Schema::dropIfExists('rooms');
     }
 }
+
+// {
+//     "game_duration": {
+//         "scheduled": 1800,
+//         "real": null
+//     },
+//     "escape_time": 300,
+//     "disclosure": {
+//         "interval": 180,
+//         "impulses_number": 10
+//     }
+// }
