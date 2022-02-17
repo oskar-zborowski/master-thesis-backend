@@ -107,9 +107,10 @@ class CreateRoomsTable extends Migration
 //     "other": {
 //         "is_role_random": true,
 //         "is_thief_direction_visible": true,
-//         "is_thief_disclosure_visible": true,
-//         "is_catching_visible": true,
-//         "is_agent_visible": true,
+//         "thief_knows_about_disclosure": true,
+//         "is_thief_visible_from_short_distance": true,
+//         "is_agent_disclosure": true,
+//         "thief_knows_who_is_saboteur": true,
 //         "is_game_paused_when_disconnected": true,
 //         "is_game_paused_after_crossing_border": true,
 //         "is_position_shown_after_crossing_border": false
