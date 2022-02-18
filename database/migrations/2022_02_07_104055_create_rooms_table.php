@@ -16,6 +16,10 @@ class CreateRoomsTable extends Migration
             $table->id();
             $table->foreignId('host_id')->references('id')->on('devices')->nullable()->nullOnDelete();
             $table->char('code', 8); // Kodowane automatycznie
+            $table->string('street', 80)->nullable();
+            $table->string('city', 40)->nullable();
+            $table->string('voivodeship', 20)->nullable();
+            $table->string('country', 30)->nullable();
             $table->unsignedSmallInteger('game_counter');
             $table->enum('game_mode', ['Scotland Yard', 'Mission: Impossible'])->default('Scotland Yard');
             $table->json('game_config');
@@ -44,42 +48,52 @@ class CreateRoomsTable extends Migration
     }
 }
 
-// Struktura JSONa pola "game_config"
+// Struktura JSONa z domyślnymi wartościami dla pola "game_config"
 // {
+//     "actor": {
+//         "policeman" : {
+//             "number": 5,
+//             "probability": 1
+//         },
+//         "thief": {
+//             "number": 1,
+//             "probability": 1
+//         },
+//         "agent": {
+//             "number": 0,
+//             "probability": 1
+//         },
+//         "saboteur": {
+//             "number": 0,
+//             "probability": 0.5
+//         }
+//     },
+//     "bot": {
+//         "maximum_speed": 2.5,
+//         "physical_endurance": 0.8
+//     },
 //     "game_duration": {
 //         "scheduled": 1800,
 //         "real": 0
 //     },
-//     "escape_time": 300,
-//     "actor": {
-//         "policeman" : {
-//             "number": 5
-//         },
-//         "thief": {
-//             "number": 1
-//         },
-//         "agent": {
-//             "number": 0
-//         },
-//         "saboteur": {
-//             "number": 0,
-//             "probability": 0
-//         }
-//     },
-//     "disclosure": {
-//         "interval": 180,
-//         "impulses_number": 10,
-//         "remaining_impulses_number": 10
+//     "escape": {
+//         "time": 300
 //     },
 //     "catching": {
 //         "catchers_number": 2,
 //         "radius": 50,
 //         "time": 5
 //     },
-//     "mission": {
-//         "number": 5,
-//         "radius": 50,
-//         "time": 10
+//     "disclosure": {
+//         "interval": 180,
+//         "impulses_number": 10,
+//         "remaining_impulses_number": 10,
+//         "after_starting": false,
+//         "thief_direction": true,
+//         "short_distance": true,
+//         "thief_knows_when": true,
+//         "agent": true,
+//         "after_crossing_border": false
 //     },
 //     "monitoring": {
 //         "number": 0,
@@ -88,6 +102,11 @@ class CreateRoomsTable extends Migration
 //             "number": 0,
 //             "radius": 50
 //         }
+//     },
+//     "mission": {
+//         "number": 5,
+//         "radius": 50,
+//         "time": 10
 //     },
 //     "ticket": {
 //         "black": {
@@ -104,15 +123,12 @@ class CreateRoomsTable extends Migration
 //         "used_number": 0,
 //         "radius": 250
 //     },
+//     "game_pause": {
+//         "after_disconnecting": true,
+//         "after_crossing_border": true
+//     },
 //     "other": {
-//         "is_role_random": true,
-//         "is_thief_direction_visible": true,
-//         "thief_knows_about_disclosure": true,
-//         "is_thief_visible_from_short_distance": true,
-//         "is_agent_disclosure": true,
-//         "thief_knows_who_is_saboteur": true,
-//         "is_game_paused_when_disconnected": true,
-//         "is_game_paused_after_crossing_border": true,
-//         "is_position_shown_after_crossing_border": false
+//         "role_random": true,
+//         "thief_knows_who_is_saboteur": true
 //     }
 // }
