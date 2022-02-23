@@ -15,6 +15,7 @@ class CreateRoomsTable extends Migration
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
             $table->foreignId('host_id')->references('id')->on('devices')->nullable()->nullOnDelete();
+            $table->foreignId('supervisor_id')->references('id')->on('devices')->nullable()->nullOnDelete();
             $table->char('code', 8); // Kodowane automatycznie
             $table->string('street', 80)->nullable();
             $table->string('city', 40)->nullable();
@@ -31,7 +32,8 @@ class CreateRoomsTable extends Migration
             $table->timestamp('game_started_at')->nullable();
             $table->timestamp('game_paused_at')->nullable();
             $table->timestamp('game_ended_at')->nullable();
-            $table->timestamp('disclosure_at')->nullable();
+            $table->timestamp('next_disclosure_at')->nullable();
+            $table->timestamp('last_calculation_at')->nullable();
             $table->enum('status', ['WAITING IN ROOM', 'GAME IN PROGRESS', 'GAME PAUSED', 'GAME OVER'])->default('WAITING IN ROOM');
             $table->enum('game_result', ['THIEVES WON ON TIME', 'POLICEMEN WON ON TIME', 'POLICEMEN WON BY CATCHING', 'THIEVES WON BY COMPLETING MISSIONS'])->nullable();
             $table->timestamps();
@@ -69,8 +71,26 @@ class CreateRoomsTable extends Migration
 //         }
 //     },
 //     "bot": {
-//         "maximum_speed": 2.5,
-//         "physical_endurance": 0.8
+//         "policeman": {
+//             "maximum_speed": 2.5,
+//             "physical_endurance": 0.8,
+//             "level": 2
+//         },
+//         "thief": {
+//             "maximum_speed": 2.5,
+//             "physical_endurance": 0.8,
+//             "level": 2
+//         },
+//         "agent": {
+//             "maximum_speed": 2.5,
+//             "physical_endurance": 0.8,
+//             "level": 2
+//         },
+//         "saboteur": {
+//             "maximum_speed": 2.5,
+//             "physical_endurance": 0.8,
+//             "level": 2
+//         }
 //     },
 //     "game_duration": {
 //         "scheduled": 1800,
@@ -86,8 +106,8 @@ class CreateRoomsTable extends Migration
 //     },
 //     "disclosure": {
 //         "interval": 180,
-//         "impulses_number": 10,
-//         "remaining_impulses_number": 10,
+//         "impulses_number": 3,
+//         "remaining_impulses_number": 3,
 //         "after_starting": false,
 //         "thief_direction": true,
 //         "short_distance": true,
@@ -111,16 +131,17 @@ class CreateRoomsTable extends Migration
 //     "ticket": {
 //         "black": {
 //             "number": 0,
-//             "used_number": 0
+//             "used_number": 0 // przenieść do migracji player
 //         },
 //         "white": {
 //             "number": 0,
-//             "used_number": 0
+//             "used_number": 0 // przenieść do migracji player
 //         }
 //     },
 //     "fake_position": {
 //         "number": 0,
-//         "used_number": 0,
+//         "probability": 0.5,
+//         "used_number": 0, // przenieść do migracji player
 //         "radius": 250
 //     },
 //     "game_pause": {
@@ -130,5 +151,6 @@ class CreateRoomsTable extends Migration
 //     "other": {
 //         "role_random": true,
 //         "thief_knows_who_is_saboteur": true
+//         "saboteur_sees_thief": true
 //     }
 // }
