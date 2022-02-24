@@ -15,7 +15,6 @@ class CreateDevicesTable extends Migration
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
             $table->char('name', 20); // Kodowane automatycznie
-            $table->enum('default_avatar', ['Avatar 1', 'Avatar 2', 'Avatar 3', 'Avatar 4', 'Avatar 5']);
             $table->string('producer', 30)->nullable();
             $table->string('model', 50)->nullable();
             $table->enum('os_name', ['Android', 'iOS'])->nullable();
