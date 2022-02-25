@@ -15,7 +15,6 @@ class CreateRoomsTable extends Migration
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
             $table->foreignId('host_id')->references('id')->on('devices')->nullable()->nullOnDelete();
-            $table->foreignId('supervisor_id')->references('id')->on('devices')->nullable()->nullOnDelete();
             $table->char('code', 8); // Kodowane automatycznie
             $table->string('street', 80)->nullable();
             $table->string('city', 40)->nullable();
@@ -26,14 +25,12 @@ class CreateRoomsTable extends Migration
             $table->json('game_config');
             $table->polygon('boundary')->nullable();
             $table->multiPoint('mission_centers')->nullable();
-            $table->multiPoint('missions_completed')->nullable();
             $table->multiPoint('monitoring_centers')->nullable();
             $table->multiPoint('monitoring_centrals')->nullable();
             $table->timestamp('game_started_at')->nullable();
             $table->timestamp('game_paused_at')->nullable();
             $table->timestamp('game_ended_at')->nullable();
             $table->timestamp('next_disclosure_at')->nullable();
-            $table->timestamp('last_calculation_at')->nullable();
             $table->enum('status', ['WAITING IN ROOM', 'GAME IN PROGRESS', 'GAME PAUSED', 'GAME OVER'])->default('WAITING IN ROOM');
             $table->enum('game_result', ['THIEVES WON ON TIME', 'POLICEMEN WON ON TIME', 'POLICEMEN WON BY CATCHING', 'THIEVES WON BY COMPLETING MISSIONS'])->nullable();
             $table->timestamps();

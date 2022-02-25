@@ -26,7 +26,9 @@ class CreatePlayersTable extends Migration
             $table->unsignedTinyInteger('white_ticket_used_number')->default(0);
             $table->timestamp('catching_finished_at')->nullable();
             $table->timestamp('mission_finished_at')->nullable();
+            $table->timestamp('last_calculation_at')->nullable();
             $table->enum('status', ['IN GAME', 'CAUGHT'])->default('IN GAME');
+            $table->boolean('is_supervisor')->default(0);
             $table->timestamps();
         });
     }
