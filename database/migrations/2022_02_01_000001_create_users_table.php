@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateDevicesTable extends Migration
+class CreateUsersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,7 +12,7 @@ class CreateDevicesTable extends Migration
      * @return void
      */
     public function up() {
-        Schema::create('devices', function (Blueprint $table) {
+        Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->char('name', 20); // Kodowane automatycznie
             $table->enum('default_avatar', ['AVATAR_1', 'AVATAR_2', 'AVATAR_3', 'AVATAR_4', 'AVATAR_5']);
@@ -22,9 +22,7 @@ class CreateDevicesTable extends Migration
             $table->string('os_version', 10)->nullable();
             $table->enum('app_version', ['1.0.0'])->default('1.0.0');
             $table->char('uuid', 60)->nullable(); // Kodowane automatycznie
-            $table->char('token', 32)->unique(); // Kodowane automatycznie
-            $table->char('refresh_token', 32)->unique(); // Kodowane automatycznie
-            $table->timestamp('token_expires_at')->nullable();
+            $table->timestamp('blocked_at')->nullable();
             $table->timestamps();
         });
     }
@@ -35,6 +33,6 @@ class CreateDevicesTable extends Migration
      * @return void
      */
     public function down() {
-        Schema::dropIfExists('devices');
+        Schema::dropIfExists('users');
     }
 }

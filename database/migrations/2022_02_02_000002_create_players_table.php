@@ -15,7 +15,7 @@ class CreatePlayersTable extends Migration
         Schema::create('players', function (Blueprint $table) {
             $table->id();
             $table->foreignId('room_id')->references('id')->on('rooms')->cascadeOnDelete();
-            $table->foreignId('device_id')->references('id')->on('devices')->nullable()->nullOnDelete();
+            $table->foreignId('user_id')->references('id')->on('users')->nullable()->nullOnDelete();
             $table->enum('avatar', ['AVATAR_1', 'AVATAR_2', 'AVATAR_3', 'AVATAR_4', 'AVATAR_5']);
             $table->enum('role', ['POLICEMAN', 'THIEF', 'AGENT', 'SABOTEUR'])->nullable();
             $table->json('player_config');
@@ -26,7 +26,8 @@ class CreatePlayersTable extends Migration
             $table->unsignedTinyInteger('hide_stock')->default(0);
             $table->boolean('is_bot')->default(false);
             $table->unsignedFloat('bot_physical_endurance')->default(1);
-            $table->enum('status', ['PLAYING', 'CAUGHT', 'DISCONNECTED', 'BORDER_CROSSED'])->default('PLAYING');
+            $table->enum('status', ['DISCONNECTED', 'BORDER_CROSSED', 'BLOCKED'])->nullable();
+            $table->enum('game_result', ['PLAYING', 'CAUGHT'])->default('PLAYING');
             $table->timestamp('catching_finished_at')->nullable();
             $table->timestamp('mission_finished_at')->nullable();
             $table->timestamps();

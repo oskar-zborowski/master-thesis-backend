@@ -14,7 +14,7 @@ class CreateRoomsTable extends Migration
     public function up() {
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('host_id')->references('id')->on('devices')->nullable()->nullOnDelete();
+            $table->foreignId('host_id')->references('id')->on('users')->nullable()->nullOnDelete();
             $table->char('code', 8); // Kodowane automatycznie
             $table->string('street', 80)->nullable();
             $table->string('city', 40)->nullable();

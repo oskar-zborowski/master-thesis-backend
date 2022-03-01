@@ -14,9 +14,10 @@ class CreateIpAddressesTable extends Migration
     public function up() {
         Schema::create('ip_addresses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('device_id')->references('id')->on('devices')->nullable()->nullOnDelete();
+            $table->foreignId('user_id')->references('id')->on('users')->nullable()->nullOnDelete();
             $table->char('ip_address', 60); // Kodowane automatycznie
             $table->unsignedBigInteger('request_counter')->default(1);
+            $table->timestamp('blocked_at')->nullable();
             $table->timestamps();
         });
     }
