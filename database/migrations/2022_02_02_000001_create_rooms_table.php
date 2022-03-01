@@ -21,18 +21,18 @@ class CreateRoomsTable extends Migration
             $table->string('voivodeship', 20)->nullable();
             $table->string('country', 30)->nullable();
             $table->unsignedSmallInteger('game_counter');
-            $table->enum('game_mode', ['Scotland Yard', 'Mission: Impossible'])->default('Scotland Yard');
+            $table->enum('game_mode', ['SCOTLAND_YARD', 'MISSION_IMPOSSIBLE'])->default('SCOTLAND_YARD');
             $table->json('game_config');
             $table->polygon('boundary')->nullable();
             $table->multiPoint('mission_centers')->nullable();
             $table->multiPoint('monitoring_centers')->nullable();
             $table->multiPoint('monitoring_centrals')->nullable();
+            $table->enum('status', ['WAITING_IN_ROOM', 'GAME_IN_PROGRESS', 'GAME_PAUSED', 'GAME_OVER'])->default('WAITING_IN_ROOM');
+            $table->enum('game_result', ['POLICEMEN_WON_BY_CATCHING', 'POLICEMEN_WON_ON_TIME', 'THIEVES_WON_BY_COMPLETING_MISSIONS', 'THIEVES_WON_ON_TIME'])->nullable();
             $table->timestamp('game_started_at')->nullable();
             $table->timestamp('game_paused_at')->nullable();
             $table->timestamp('game_ended_at')->nullable();
             $table->timestamp('next_disclosure_at')->nullable();
-            $table->enum('status', ['WAITING IN ROOM', 'GAME IN PROGRESS', 'GAME PAUSED', 'GAME OVER'])->default('WAITING IN ROOM');
-            $table->enum('game_result', ['THIEVES WON ON TIME', 'POLICEMEN WON ON TIME', 'POLICEMEN WON BY CATCHING', 'THIEVES WON BY COMPLETING MISSIONS'])->nullable();
             $table->timestamps();
         });
     }

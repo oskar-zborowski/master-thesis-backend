@@ -14,20 +14,21 @@ class CreatePlayersTable extends Migration
     public function up() {
         Schema::create('players', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('device_id')->references('id')->on('devices')->nullable()->nullOnDelete();
             $table->foreignId('room_id')->references('id')->on('rooms')->cascadeOnDelete();
-            $table->enum('avatar', ['Avatar 1', 'Avatar 2', 'Avatar 3', 'Avatar 4', 'Avatar 5']);
-            $table->enum('role', ['policeman', 'thief', 'agent', 'saboteur']);
-            $table->float('bot_physical_endurance')->default(1);
-            $table->enum('direction', ['North-South', 'East-West'])->nullable();
+            $table->foreignId('device_id')->references('id')->on('devices')->nullable()->nullOnDelete();
+            $table->enum('avatar', ['AVATAR_1', 'AVATAR_2', 'AVATAR_3', 'AVATAR_4', 'AVATAR_5']);
+            $table->enum('role', ['POLICEMAN', 'THIEF', 'AGENT', 'SABOTEUR'])->nullable();
+            $table->json('player_config');
             $table->multiLineString('track')->nullable();
             $table->multiLineString('disclosure_track')->nullable();
-            $table->json('player_config');
             $table->multiPoint('missions_completed')->nullable();
+            $table->float('direction')->default(0);
+            $table->unsignedTinyInteger('hide_stock')->default(0);
+            $table->boolean('is_bot')->default(false);
+            $table->unsignedFloat('bot_physical_endurance')->default(1);
+            $table->enum('status', ['PLAYING', 'CAUGHT', 'DISCONNECTED', 'BORDER_CROSSED'])->default('PLAYING');
             $table->timestamp('catching_finished_at')->nullable();
             $table->timestamp('mission_finished_at')->nullable();
-            $table->enum('status', ['IN ROOM', 'IN GAME', 'CAUGHT', 'DISCONNECTED', 'BORDER_CROSSED'])->default('IN ROOM');
-            $table->boolean('is_disclosed')->default(1);
             $table->timestamps();
         });
     }
