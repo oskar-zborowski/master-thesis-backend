@@ -34,7 +34,6 @@ return [
     */
 
     'mailers' => [
-
         'smtp' => [
             'transport' => 'smtp',
             'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
@@ -43,7 +42,6 @@ return [
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
-            'auth_mode' => null,
         ],
 
         'ses' => [
@@ -110,8 +108,10 @@ return [
 
     'markdown' => [
         'theme' => 'default',
+
         'paths' => [
             resource_path('views/vendor/mail'),
         ],
     ],
+
 ];
