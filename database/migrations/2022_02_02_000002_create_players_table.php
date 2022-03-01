@@ -18,17 +18,16 @@ class CreatePlayersTable extends Migration
             $table->foreignId('room_id')->references('id')->on('rooms')->cascadeOnDelete();
             $table->enum('avatar', ['Avatar 1', 'Avatar 2', 'Avatar 3', 'Avatar 4', 'Avatar 5']);
             $table->enum('role', ['policeman', 'thief', 'agent', 'saboteur']);
+            $table->float('bot_physical_endurance')->default(1);
             $table->enum('direction', ['North-South', 'East-West'])->nullable();
             $table->multiLineString('track')->nullable();
+            $table->multiLineString('disclosure_track')->nullable();
+            $table->json('player_config');
             $table->multiPoint('missions_completed')->nullable();
-            $table->unsignedTinyInteger('fake_position_used_number')->default(0);
-            $table->unsignedTinyInteger('black_ticket_used_number')->default(0);
-            $table->unsignedTinyInteger('white_ticket_used_number')->default(0);
             $table->timestamp('catching_finished_at')->nullable();
             $table->timestamp('mission_finished_at')->nullable();
-            $table->timestamp('last_calculation_at')->nullable();
-            $table->enum('status', ['IN GAME', 'CAUGHT'])->default('IN GAME');
-            $table->boolean('is_supervisor')->default(0);
+            $table->enum('status', ['IN ROOM', 'IN GAME', 'CAUGHT', 'DISCONNECTED', 'BORDER_CROSSED'])->default('IN ROOM');
+            $table->boolean('is_disclosed')->default(1);
             $table->timestamps();
         });
     }
@@ -42,3 +41,27 @@ class CreatePlayersTable extends Migration
         Schema::dropIfExists('players');
     }
 }
+
+// Struktura JSONa z domyślnymi wartościami dla pola "player_config"
+//     "ticket": {
+//         "black": {
+//             "number": 0,
+//             "used_number": 0
+//         },
+//         "white": {
+//             "number": 0,
+//             "used_number": 0
+//         },
+//         "gold": {
+//             "number": 0,
+//             "used_number": 0
+//         },
+//         "silver": {
+//             "number": 0,
+//             "used_number": 0
+//         }
+//     },
+//     "fake_position": {
+//         "number": 0,
+//         "used_number": 0
+//     }

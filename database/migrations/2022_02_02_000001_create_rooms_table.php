@@ -50,17 +50,14 @@ class CreateRoomsTable extends Migration
 // Struktura JSONa z domyślnymi wartościami dla pola "game_config"
 // {
 //     "actor": {
-//         "policeman" : {
-//             "number": 5,
-//             "probability": 1
+//         "policeman": {
+//             "number": 5
 //         },
 //         "thief": {
-//             "number": 1,
-//             "probability": 1
+//             "number": 1
 //         },
 //         "agent": {
-//             "number": 0,
-//             "probability": 1
+//             "number": 0
 //         },
 //         "saboteur": {
 //             "number": 0,
@@ -69,22 +66,22 @@ class CreateRoomsTable extends Migration
 //     },
 //     "bot": {
 //         "policeman": {
-//             "maximum_speed": 2.5,
+//             "maximum_speed": 4,
 //             "physical_endurance": 0.8,
 //             "level": 2
 //         },
 //         "thief": {
-//             "maximum_speed": 2.5,
+//             "maximum_speed": 4,
 //             "physical_endurance": 0.8,
 //             "level": 2
 //         },
 //         "agent": {
-//             "maximum_speed": 2.5,
+//             "maximum_speed": 4,
 //             "physical_endurance": 0.8,
 //             "level": 2
 //         },
 //         "saboteur": {
-//             "maximum_speed": 2.5,
+//             "maximum_speed": 4,
 //             "physical_endurance": 0.8,
 //             "level": 2
 //         }
@@ -103,13 +100,12 @@ class CreateRoomsTable extends Migration
 //     },
 //     "disclosure": {
 //         "interval": 180,
-//         "impulses_number": 3,
-//         "remaining_impulses_number": 3,
 //         "after_starting": false,
 //         "thief_direction": true,
 //         "short_distance": true,
 //         "thief_knows_when": true,
 //         "agent": true,
+//         "agent_knows_when": true,
 //         "after_crossing_border": false
 //     },
 //     "monitoring": {
@@ -128,17 +124,24 @@ class CreateRoomsTable extends Migration
 //     "ticket": {
 //         "black": {
 //             "number": 0,
-//             "used_number": 0 // przenieść do migracji player
+//             "probability": 0.5
 //         },
 //         "white": {
 //             "number": 0,
-//             "used_number": 0 // przenieść do migracji player
+//             "probability": 0.5
+//         },
+//         "gold": {
+//             "number": 0,
+//             "probability": 0.5
+//         },
+//         "silver": {
+//             "number": 0,
+//             "probability": 0.5
 //         }
 //     },
 //     "fake_position": {
 //         "number": 0,
 //         "probability": 0.5,
-//         "used_number": 0, // przenieść do migracji player
 //         "radius": 250
 //     },
 //     "game_pause": {
@@ -147,7 +150,7 @@ class CreateRoomsTable extends Migration
 //     },
 //     "other": {
 //         "role_random": true,
-//         "thief_knows_who_is_saboteur": true
+//         "thief_knows_who_is_saboteur": true,
 //         "saboteur_sees_thief": true
 //     }
 // }
