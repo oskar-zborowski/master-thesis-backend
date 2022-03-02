@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePlayersTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -27,8 +27,8 @@ class CreatePlayersTable extends Migration
             $table->boolean('is_bot')->default(false);
             $table->unsignedFloat('bot_physical_endurance')->default(1);
             $table->enum('status', ['DISCONNECTED', 'BORDER_CROSSED', 'BLOCKED'])->nullable();
-            $table->enum('game_result', ['PLAYING', 'CAUGHT'])->default('PLAYING');
             $table->timestamp('catching_finished_at')->nullable();
+            $table->timestamp('caught_at')->nullable();
             $table->timestamp('mission_finished_at')->nullable();
             $table->timestamps();
         });
@@ -42,7 +42,7 @@ class CreatePlayersTable extends Migration
     public function down() {
         Schema::dropIfExists('players');
     }
-}
+};
 
 // Struktura JSONa z domyślnymi wartościami dla pola "player_config"
 //     "ticket": {

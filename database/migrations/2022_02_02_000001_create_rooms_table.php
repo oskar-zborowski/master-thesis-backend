@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateRoomsTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -45,7 +45,7 @@ class CreateRoomsTable extends Migration
     public function down() {
         Schema::dropIfExists('rooms');
     }
-}
+};
 
 // Struktura JSONa z domyślnymi wartościami dla pola "game_config"
 // {
@@ -94,7 +94,7 @@ class CreateRoomsTable extends Migration
 //         "time": 300
 //     },
 //     "catching": {
-//         "catchers_number": 2,
+//         "number": 2,
 //         "radius": 50,
 //         "time": 5
 //     },
@@ -150,7 +150,7 @@ class CreateRoomsTable extends Migration
 //     },
 //     "other": {
 //         "role_random": true,
-//         "thief_knows_who_is_saboteur": true,
+//         "thief_knows_saboteur": true,
 //         "saboteur_sees_thief": true
 //     }
 // }
