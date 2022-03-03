@@ -4,33 +4,36 @@ namespace App\Models;
 
 class Player extends BaseModel
 {
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'id',
+        'room_id',
+        'user_id',
+        'avatar',
+        'role',
+        'player_config',
+        'track',
+        'disclosure_track',
+        'missions_completed',
+        'direction',
+        'hide_stock',
+        'is_bot',
+        'bot_physical_endurance',
+        'status',
+        'catching_finished_at',
+        'caught_at',
+        'mission_finished_at',
+        'created_at',
+        'updated_at',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        'id' => 'integer',
+        'player_config' => 'array',
+        'direction' => 'float',
+        'hide_stock' => 'integer',
+        'is_bot' => 'boolean',
+        'bot_physical_endurance' => 'float',
+        'catching_finished_at' => 'string',
+        'mission_finished_at' => 'string',
     ];
 }

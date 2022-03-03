@@ -14,12 +14,12 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
-        'default_avatar',
         'os_version',
         'app_version',
     ];
 
     protected $hidden = [
+        'default_avatar',
         'producer',
         'model',
         'os_name',
