@@ -4,9 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 
-/**
- * Klasa umożliwiająca komunikację z serwisem GitHub
- */
 class GitHubController extends Controller
 {
     /**

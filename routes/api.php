@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\GitHubController;
+use App\Http\Controllers\Api\PlayerController;
+use App\Http\Controllers\Api\RoomController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
