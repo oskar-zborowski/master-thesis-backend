@@ -14,10 +14,8 @@ class ApiException extends Exception
     private $data;
 
     /**
-     * Przypisanie obiektu błędu oraz szczegółowej informacji
-     * 
-     * @param ErrorCode $errorCode obiekt błędu
-     * @param array|string|null $data informacja o napotkanym błędzie
+     * @param ErrorCode $errorCode
+     * @param mixed $data
      */
     public function __construct(ErrorCode $errorCode, $data = null) {
         parent::__construct();

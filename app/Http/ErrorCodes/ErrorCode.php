@@ -12,8 +12,6 @@ class ErrorCode
     private int $httpStatus;
 
     /**
-     * Przypisanie kodu rozpoznania, szczegółowej informacji o błędzie (widocznej wyłącznie w trybie debugowania) oraz statusu HTTP
-     * 
      * @param string $code unikatowy kod dla rozpoznania błędu po stronie klienta
      * @param string $message szczegółowa informacja o błędzie (widoczna wyłącznie w trybie debugowania)
      * @param int $httpStatus kod statusu HTTP

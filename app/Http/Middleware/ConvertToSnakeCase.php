@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Middleware\FieldNamesConversion;
+namespace App\Http\Middleware;
 
 use App\Http\Libraries\FieldConversion\FieldConversion;
 use Closure;

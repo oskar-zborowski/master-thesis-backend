@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Middleware\Authentication;
+namespace App\Http\Middleware;
 
 use App\Http\Libraries\Encrypter\Encrypter;
 use App\Http\Responses\JsonResponse;

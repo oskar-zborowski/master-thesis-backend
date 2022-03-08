@@ -6,6 +6,7 @@ use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Responses\JsonResponse;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -30,11 +31,8 @@ class Handler extends ExceptionHandler
 
     /**
      * Register the exception handling callbacks for the application.
-     *
-     * @return void
      */
-    public function register()
-    {
+    public function register(): void {
         $this->reportable(function (Throwable $e) {
             //
         });
@@ -45,8 +43,6 @@ class Handler extends ExceptionHandler
      * 
      * @param \Illuminate\Http\Request $request
      * @param Throwable $throwable
-     * 
-     * @return void
      */
     public function render($request, Throwable $throwable): void {
 
@@ -62,12 +58,19 @@ class Handler extends ExceptionHandler
                 );
                 break;
 
+            case NotFoundHttpException::class:
+                /** @var NotFoundHttpException $throwable */
+
+                JsonResponse::sendError(
+                    DefaultErrorCode::PERMISSION_DENIED()
+                );
+                break;
+
             case ThrottleRequestsException::class:
                 /** @var ThrottleRequestsException $throwable */
 
                 JsonResponse::sendError(
-                    DefaultErrorCode::LIMIT_EXCEEDED(),
-                    $throwable->getMessage()
+                    DefaultErrorCode::LIMIT_EXCEEDED()
                 );
                 break;
 

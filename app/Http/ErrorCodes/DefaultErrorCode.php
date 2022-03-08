@@ -21,11 +21,11 @@ class DefaultErrorCode
         return new ErrorCode('DEF3', 'PERMISSION DENIED', Response::HTTP_FORBIDDEN);
     }
 
-    public static function LIMIT_EXCEEDED(): ErrorCode {
-        return new ErrorCode('DEF4', 'LIMIT EXCEEDED', Response::HTTP_FORBIDDEN);
+    public static function UNAUTHORIZED(): ErrorCode {
+        return new ErrorCode('DEF4', 'UNAUTHORIZED', Response::HTTP_UNAUTHORIZED);
     }
 
-    public static function UNAUTHORIZED(): ErrorCode {
-        return new ErrorCode('DEF5', 'UNAUTHORIZED', Response::HTTP_UNAUTHORIZED);
+    public static function LIMIT_EXCEEDED(): ErrorCode {
+        return new ErrorCode('DEF5', 'LIMIT EXCEEDED', Response::HTTP_FORBIDDEN);
     }
 }
