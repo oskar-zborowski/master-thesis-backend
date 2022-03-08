@@ -19,6 +19,10 @@ class Player extends BaseModel
         'is_bot',
         'bot_physical_endurance',
         'status',
+        'average_ping',
+        'standard_deviation',
+        'samples_number',
+        'expected_time',
         'catching_finished_at',
         'caught_at',
         'mission_finished_at',
@@ -33,7 +37,12 @@ class Player extends BaseModel
         'hide_stock' => 'integer',
         'is_bot' => 'boolean',
         'bot_physical_endurance' => 'float',
+        'average_ping' => 'integer',
+        'standard_deviation' => 'integer',
+        'samples_number' => 'integer',
+        'expected_time' => 'integer',
         'catching_finished_at' => 'string',
         'mission_finished_at' => 'string',
+        'updated_at' => 'string',
     ];
 }

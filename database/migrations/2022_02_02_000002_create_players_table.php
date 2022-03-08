@@ -27,6 +27,10 @@ return new class extends Migration
             $table->boolean('is_bot')->default(false);
             $table->unsignedFloat('bot_physical_endurance')->default(1);
             $table->enum('status', ['DISCONNECTED', 'BORDER_CROSSED', 'BLOCKED'])->nullable();
+            $table->unsignedSmallInteger('average_ping')->default(0); // wyrażony w [ms]
+            $table->unsignedSmallInteger('standard_deviation')->default(0); // wyrażony w [ms]
+            $table->unsignedMediumInteger('samples_number')->default(0);
+            $table->unsignedSmallInteger('expected_time')->default(0); // wyrażony w [ms]
             $table->timestamp('catching_finished_at')->nullable();
             $table->timestamp('caught_at')->nullable();
             $table->timestamp('mission_finished_at')->nullable();
