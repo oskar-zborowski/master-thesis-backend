@@ -9,11 +9,11 @@ use App\Http\Libraries\Validation;
  */
 class Encrypter
 {
-    public function encrypt(?string $text, ?int $maxSize = null) {
+    public static function encrypt(?string $text, ?int $maxSize = null) {
 
         if ($text && strlen($text) > 0) {
-            $iv = $this->generateToken(16);
-            $text = $this->fillWithRandomCharacters($text, $maxSize);
+            $iv = self::generateToken(16);
+            $text = self::fillWithRandomCharacters($text, $maxSize);
             $text = openssl_encrypt($text, env('OPENSSL_ALGORITHM'), env('OPENSSL_PASSPHRASE'), 0, $iv) . $iv;
         } else {
             $text = null;
@@ -22,13 +22,13 @@ class Encrypter
         return $text;
     }
 
-    public function decrypt(?string $text) {
+    public static function decrypt(?string $text) {
 
         if ($text) {
             $iv = substr($text, -16);
             $text = substr($text, 0, -16);
             $text = openssl_decrypt($text, env('OPENSSL_ALGORITHM'), env('OPENSSL_PASSPHRASE'), 0, $iv);
-            $text = $this->removeRandomCharacters($text);
+            $text = self::removeRandomCharacters($text);
         } else {
             $text = null;
         }
@@ -36,14 +36,14 @@ class Encrypter
         return $text;
     }
 
-    public function generateToken(int $maxSize = 36, $entity = null, ?string $field = null, string $addition = '') {
+    public static function generateToken(int $maxSize = 36, $entity = null, ?string $field = null, string $addition = '') {
 
         $maxSize -= strlen($addition);
 
         if ($maxSize > 0) {
             do {
-                $token = $this->fillWithRandomCharacters('', $maxSize, true) . $addition;
-                $encryptedToken = $this->encrypt($token);
+                $token = self::fillWithRandomCharacters('', $maxSize, true) . $addition;
+                $encryptedToken = self::encrypt($token);
             } while ($entity && $field && !Validation::checkUniqueness($encryptedToken, $entity, $field));
         } else {
             $token = null;
@@ -52,7 +52,7 @@ class Encrypter
         return $token;
     }
 
-    private function fillWithRandomCharacters(string $text = '', ?int $maxSize, bool $rand = false, bool $onlyCapitalLetters = false) {
+    private static function fillWithRandomCharacters(string $text = '', ?int $maxSize, bool $rand = false, bool $onlyCapitalLetters = false) {
 
         if ($maxSize) {
 
@@ -89,7 +89,7 @@ class Encrypter
         return $text;
     }
 
-    private function removeRandomCharacters(string $text) {
+    private static function removeRandomCharacters(string $text) {
 
         $length = strlen($text);
 

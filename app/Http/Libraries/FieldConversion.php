@@ -9,44 +9,15 @@ use Illuminate\Support\Str;
  */
 class FieldConversion
 {
-    /**
-     * Konwersja nazw pól na formę camelCase
-     * 
-     * @param array $data dane wychodzące
-     * @param int $from rząd wielkości od którego pola mają być przetwarzane dane
-     * @param int $to rząd wielkości do którego pola mają być przetwarzane dane
-     * 
-     * @return array
-     */
-    public static function convertToCamelCase(array $data, int $from = 0, int $to = null): array {
+    public static function convertToCamelCase($data, int $from = 0, ?int $to = null) {
         return self::convertByDefault('camel', $data, $from, $to);
     }
 
-    /**
-     * Konwersja nazw pól na formę snake_case
-     * 
-     * @param mixed $data dane przychodzące
-     * @param int $from rząd wielkości od którego pola mają być przetwarzane dane
-     * @param int $to rząd wielkości do którego pola mają być przetwarzane dane
-     * 
-     * @return array|string|null
-     */
-    public static function convertToSnakeCase($data, int $from = 0, int $to = null) {
+    public static function convertToSnakeCase($data, int $from = 0, ?int $to = null) {
         return self::convertByDefault('snake', $data, $from, $to);
     }
 
-    /**
-     * Uniwersalna konwersja nazw pól
-     * 
-     * @param string $conversionType informacja o typie konwersji (camel, snake)
-     * @param mixed $data dane podlegające konwersji
-     * @param int $from rząd wielkości od którego pola mają być przetwarzane dane
-     * @param int $to rząd wielkości do którego pola mają być przetwarzane dane
-     * @param int $current bieżący rząd wielkości
-     * 
-     * @return array|string|null
-     */
-    private static function convertByDefault(string $conversionType, $data, int $from = 0, int $to = null, int $current = 0) {
+    private static function convertByDefault(string $conversionType, $data, int $from, ?int $to, int $current = 0) {
 
         if (is_array($data) || $current > 0) {
 

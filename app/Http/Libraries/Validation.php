@@ -7,16 +7,7 @@ namespace App\Http\Libraries;
  */
 class Validation
 {
-    /**
-     * Sprawdzenie czy dana wartość jest unikatowa w bazie danych
-     * 
-     * @param string $value wartość do sprawdzenia
-     * @param mixed $entity encja w której będzie następowało przeszukiwanie
-     * @param string $field pole po którym będzie następowało przeszukiwanie
-     * 
-     * @return bool
-     */
-    public static function checkUniqueness(string $value, $entity, string $field): bool {
+    public static function checkUniqueness(string $value, $entity, string $field) {
         return empty($entity::where($field, $value)->first());
     }
 
@@ -27,10 +18,8 @@ class Validation
      * @param int $timeMarker wartość znacznika czasu przez jak długo jest ważny
      * @param string $comparator jeden z symboli <, >, == lub ich kombinacja, liczone względem bieżącego czasu
      * @param string $unit jednostka w jakiej wyrażony jest $timeMarker
-     * 
-     * @return bool
      */
-    public static function timeComparison(string $timeReferencePoint, int $timeMarker, string $comparator, string $unit = 'minutes'): bool {
+    public static function timeComparison(string $timeReferencePoint, int $timeMarker, string $comparator, string $unit = 'minutes') {
 
         $now = date('Y-m-d H:i:s');
         $expirationDate = date('Y-m-d H:i:s', strtotime('+' . $timeMarker . ' ' . $unit, strtotime($timeReferencePoint)));
