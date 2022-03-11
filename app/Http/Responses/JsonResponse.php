@@ -3,26 +3,17 @@
 namespace App\Http\Responses;
 
 use App\Http\ErrorCodes\ErrorCode;
-use App\Http\Libraries\FieldConversion\FieldConversion;
-use Symfony\Component\HttpFoundation\Response;
+use App\Http\Libraries\FieldConversion;
 
 /**
  * Klasa wysyłająca odpowiedzi zwrotne do klienta
  */
 class JsonResponse
 {
-    /**
-     * Wysłanie pomyślnej odpowiedzi
-     * 
-     * @param mixed $data podstawowe informacje
-     * @param mixed $meta dodatkowe informacje
-     * 
-     * @return void
-     */
-    public static function sendSuccess($data = null, $meta = null): void {
+    public static function sendSuccess($data = null, $meta = null, int $code = 200) {
 
         header('Content-Type: application/json');
-        http_response_code(Response::HTTP_OK);
+        http_response_code($code);
 
         $response = FieldConversion::convertToCamelCase([
             'data' => $data,
@@ -33,15 +24,7 @@ class JsonResponse
         die;
     }
 
-    /**
-     * Wysłanie odpowiedzi z błędem
-     * 
-     * @param ErrorCode $errorCode obiekt kodu błędu
-     * @param mixed $data podstawowe informacje
-     * 
-     * @return void
-     */
-    public static function sendError(ErrorCode $errorCode, $data = null): void {
+    public static function sendError(ErrorCode $errorCode, $data = null) {
 
         header('Content-Type: application/json');
         http_response_code($errorCode->getHttpStatus());

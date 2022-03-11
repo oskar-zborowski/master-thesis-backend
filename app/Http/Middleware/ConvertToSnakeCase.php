@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Http\Libraries\FieldConversion\FieldConversion;
+use App\Http\Libraries\FieldConversion;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -11,10 +11,6 @@ use Illuminate\Http\Request;
  */
 class ConvertToSnakeCase
 {
-    /**
-     * @param Request $request
-     * @param Closure $next
-     */
     public function handle(Request $request, Closure $next) {
 
         $fieldNames = FieldConversion::convertToSnakeCase($request->all());
