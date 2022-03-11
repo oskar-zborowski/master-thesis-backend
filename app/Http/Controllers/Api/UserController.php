@@ -11,21 +11,16 @@ class UserController extends Controller
     /**
      * #### `POST` `/api/v1/users`
      * Stworzenie nowego użytkownika
-     * 
-     * @param UserRequest $request
      */
-    public function createUser(UserRequest $request): void {
+    public function createUser(UserRequest $request) {
         //
     }
 
     /**
      * #### `PATCH` `/api/v1/users/{user}`
      * Edycja użytkownika
-     * 
-     * @param User $user
-     * @param UserRequest $request
      */
-    public function updateUser(User $user, UserRequest $request): void {
+    public function updateUser(User $user, UserRequest $request) {
         //
     }
 }

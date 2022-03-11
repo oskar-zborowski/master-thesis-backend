@@ -11,21 +11,16 @@ class PlayerController extends Controller
     /**
      * #### `POST` `/api/v1/players`
      * Stworzenie nowego gracza (dołączenie do pokoju)
-     * 
-     * @param PlayerRequest $request
      */
-    public function createPlayer(PlayerRequest $request): void {
+    public function createPlayer(PlayerRequest $request) {
         //
     }
 
     /**
      * #### `PATCH` `/api/v1/players/{player}`
-     * Edycja gracza
-     * 
-     * @param Player $player
-     * @param PlayerRequest $request
+     * Edycja gracza (zmiana parametrów w trakcie gry)
      */
-    public function updatePlayer(Player $player, PlayerRequest $request): void {
+    public function updatePlayer(Player $player, PlayerRequest $request) {
         //
     }
 }

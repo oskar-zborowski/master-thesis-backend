@@ -13,17 +13,13 @@ class ApiException extends Exception
     private ErrorCode $errorCode;
     private $data;
 
-    /**
-     * @param ErrorCode $errorCode
-     * @param mixed $data
-     */
     public function __construct(ErrorCode $errorCode, $data = null) {
         parent::__construct();
         $this->errorCode = $errorCode;
         $this->data = $data;
     }
 
-    public function getErrorCode(): ErrorCode {
+    public function getErrorCode() {
         return $this->errorCode;
     }
 

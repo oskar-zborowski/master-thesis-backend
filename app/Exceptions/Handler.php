@@ -32,7 +32,7 @@ class Handler extends ExceptionHandler
     /**
      * Register the exception handling callbacks for the application.
      */
-    public function register(): void {
+    public function register() {
         $this->reportable(function (Throwable $e) {
             //
         });
@@ -40,11 +40,8 @@ class Handler extends ExceptionHandler
 
     /**
      * Metoda przechwytująca wszystkie napotkane wyjątki i kierująca je w stronę klienta
-     * 
-     * @param \Illuminate\Http\Request $request
-     * @param Throwable $throwable
      */
-    public function render($request, Throwable $throwable): void {
+    public function render($request, Throwable $throwable) {
 
         $class = get_class($throwable);
 
@@ -59,16 +56,12 @@ class Handler extends ExceptionHandler
                 break;
 
             case NotFoundHttpException::class:
-                /** @var NotFoundHttpException $throwable */
-
                 JsonResponse::sendError(
                     DefaultErrorCode::PERMISSION_DENIED()
                 );
                 break;
 
             case ThrottleRequestsException::class:
-                /** @var ThrottleRequestsException $throwable */
-
                 JsonResponse::sendError(
                     DefaultErrorCode::LIMIT_EXCEEDED()
                 );

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Libraries\FieldConversion;
+namespace App\Http\Libraries;
 
 use Illuminate\Support\Str;
 

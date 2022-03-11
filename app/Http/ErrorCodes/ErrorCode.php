@@ -11,26 +11,21 @@ class ErrorCode
     private string $message;
     private int $httpStatus;
 
-    /**
-     * @param string $code unikatowy kod dla rozpoznania błędu po stronie klienta
-     * @param string $message szczegółowa informacja o błędzie (widoczna wyłącznie w trybie debugowania)
-     * @param int $httpStatus kod statusu HTTP
-     */
     public function __construct(string $code, string $message, int $httpStatus) {
         $this->code = $code;
         $this->message = $message;
         $this->httpStatus = $httpStatus;
     }
 
-    public function getCode(): string {
+    public function getCode() {
         return $this->code;
     }
 
-    public function getMessage(): string {
+    public function getMessage() {
         return $this->message;
     }
 
-    public function getHttpStatus(): int {
+    public function getHttpStatus() {
         return $this->httpStatus;
     }
 }

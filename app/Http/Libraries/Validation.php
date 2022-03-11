@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Libraries\Validation;
+namespace App\Http\Libraries;
 
 /**
  * Klasa przeprowadzająca procesy walidacji danych
