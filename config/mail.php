@@ -43,33 +43,26 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
         ],
-
         'ses' => [
             'transport' => 'ses',
         ],
-
         'mailgun' => [
             'transport' => 'mailgun',
         ],
-
         'postmark' => [
             'transport' => 'postmark',
         ],
-
         'sendmail' => [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -t -i'),
         ],
-
         'log' => [
             'transport' => 'log',
             'channel' => env('MAIL_LOG_CHANNEL'),
         ],
-
         'array' => [
             'transport' => 'array',
         ],
-
         'failover' => [
             'transport' => 'failover',
             'mailers' => [
@@ -108,10 +101,8 @@ return [
 
     'markdown' => [
         'theme' => 'default',
-
         'paths' => [
             resource_path('views/vendor/mail'),
         ],
     ],
-
 ];

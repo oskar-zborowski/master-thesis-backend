@@ -55,7 +55,6 @@ return [
     */
 
     'url' => env('APP_URL', 'http://localhost'),
-
     'asset_url' => env('ASSET_URL'),
 
     /*
@@ -69,7 +68,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Europe/Warsaw',
 
     /*
     |--------------------------------------------------------------------------
@@ -82,7 +81,7 @@ return [
     |
     */
 
-    'locale' => 'en',
+    'locale' => 'pl',
 
     /*
     |--------------------------------------------------------------------------
@@ -108,7 +107,7 @@ return [
     |
     */
 
-    'faker_locale' => 'en_US',
+    'faker_locale' => 'pl_PL',
 
     /*
     |--------------------------------------------------------------------------
@@ -122,7 +121,6 @@ return [
     */
 
     'key' => env('APP_KEY'),
-
     'cipher' => 'AES-256-CBC',
 
     /*
@@ -173,10 +171,8 @@ return [
          */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-
     ],
 
     /*
@@ -193,5 +189,4 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         // ...
     ])->toArray(),
-
 ];
