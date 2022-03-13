@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Responses\JsonResponse;
 use BadMethodCallException;
+use ErrorException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
@@ -72,6 +73,15 @@ class Handler extends ExceptionHandler
             case NotFoundHttpException::class:
                 JsonResponse::sendError(
                     DefaultErrorCode::FAILED_VALIDATION(),
+                    env('APP_DEBUG') ? $throwable->getMessage() : null
+                );
+                break;
+
+             case ErrorException::class:
+                /** @var ErrorException $throwable */
+
+                JsonResponse::sendError(
+                    DefaultErrorCode::INTERNAL_SERVER_ERROR(),
                     env('APP_DEBUG') ? $throwable->getMessage() : null
                 );
                 break;

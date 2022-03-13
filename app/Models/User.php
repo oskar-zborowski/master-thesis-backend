@@ -39,4 +39,8 @@ class User extends Authenticatable
         'name' => 15,
         'uuid' => 45,
     ];
+
+    public function tokenable() {
+        return $this->morphOne(PersonalAccessToken::class, 'tokenable');
+    }
 }

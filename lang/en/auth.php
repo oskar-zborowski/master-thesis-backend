@@ -16,4 +16,9 @@ return [
     'failed' => 'These credentials do not match our records.',
     'password' => 'The provided password is incorrect.',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+    'double-token-given' => 'It is not possible to send token and refresh-token at the same time.',
+    'no-token-provided' => 'None of the tokens were given.',
+    'invalid-token' => 'Invalid token.',
+    'invalid-refresh-token' => 'Invalid refresh-token.',
+    'token-expired' => 'The token has expired.',
 ];

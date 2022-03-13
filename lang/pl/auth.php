@@ -16,4 +16,9 @@ return [
     'failed' => 'Błędny login lub hasło.',
     'password' => 'Podane hasło jest nieprawidłowe.',
     'throttle' => 'Za dużo nieudanych prób logowania. Proszę spróbować za :seconds sekund.',
+    'double-token-given' => 'Nie można przesłać jendocześnie tokena i refresh-tokena.',
+    'no-token-provided' => 'Nie podano żadnego z tokenów.',
+    'invalid-token' => 'Nieprawidłowy token.',
+    'invalid-refresh-token' => 'Nieprawidłowy refresh-token.',
+    'token-expired' => 'Token wygasł.',
 ];
