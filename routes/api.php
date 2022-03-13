@@ -29,13 +29,11 @@ Route::post('/v1/users', [UserController::class, 'createUser'])->name('user-crea
 |-------------------------------------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::patch('/v1/users/{user}', [UserController::class, 'updateUser'])->name('user-updateUser');
-    Route::post('/v1/rooms', [RoomController::class, 'createRoom'])->name('room-createRoom');
-    Route::patch('/v1/rooms/{room}', [RoomController::class, 'updateRoom'])->name('room-updateRoom');
-    Route::post('/v1/players', [PlayerController::class, 'createPlayer'])->name('player-createPlayer');
-    Route::patch('/v1/players/{player}', [PlayerController::class, 'updatePlayer'])->name('player-updatePlayer');
-});
+Route::patch('/v1/users/{user}', [UserController::class, 'updateUser'])->name('user-updateUser');
+Route::post('/v1/rooms', [RoomController::class, 'createRoom'])->name('room-createRoom');
+Route::patch('/v1/rooms/{room}', [RoomController::class, 'updateRoom'])->name('room-updateRoom');
+Route::post('/v1/players', [PlayerController::class, 'createPlayer'])->name('player-createPlayer');
+Route::patch('/v1/players/{player}', [PlayerController::class, 'updatePlayer'])->name('player-updatePlayer');
 
 
 

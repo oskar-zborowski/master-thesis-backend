@@ -4,8 +4,12 @@ namespace App\Exceptions;
 
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Responses\JsonResponse;
+use BadMethodCallException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
@@ -55,15 +59,35 @@ class Handler extends ExceptionHandler
                 );
                 break;
 
+            case AuthenticationException::class:
+                /** @var AuthenticationException $throwable */
+
+                JsonResponse::sendError(
+                    DefaultErrorCode::UNAUTHORIZED()
+                );
+                break;
+
+            case BadMethodCallException::class:
+            case MethodNotAllowedHttpException::class:
             case NotFoundHttpException::class:
                 JsonResponse::sendError(
-                    DefaultErrorCode::PERMISSION_DENIED()
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    env('APP_DEBUG') ? $throwable->getMessage() : null
                 );
                 break;
 
             case ThrottleRequestsException::class:
                 JsonResponse::sendError(
                     DefaultErrorCode::LIMIT_EXCEEDED()
+                );
+                break;
+
+            case ValidationException::class:
+                /** @var ValidationException $throwable */
+
+                JsonResponse::sendError(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    $throwable->errors()
                 );
                 break;
 
