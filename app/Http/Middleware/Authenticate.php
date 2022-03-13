@@ -102,7 +102,40 @@ class Authenticate extends Middleware
 
                 Auth::loginUsingId($personalAccessToken->tokenable_id);
                 $personalAccessToken->delete();
+
+                // Dodanie tworzenia nowych tokenów i doczepianie ich do requesta
             }
+
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+
+            if ($user->blocked_at) {
+                throw new ApiException(
+                    DefaultErrorCode::UNAUTHORIZED(),
+                    __('auth.user-blocked')
+                );
+            }
+
+            $encryptedIpAddress = Encrypter::encrypt($request->ip());
+
+            /** @var \App\Models\IpAddress $ipAddress */
+            $ipAddress = $user->ipAddresses()->where('ip_address', $encryptedIpAddress)->first();
+
+            if ($ipAddress->blocked_at) {
+                throw new ApiException(
+                    DefaultErrorCode::UNAUTHORIZED(),
+                    __('auth.ip-blocked')
+                );
+            }
+
+            $ipAddress->request_counter = $ipAddress->request_counter + 1;
+            $ipAddress->save();
+
+        } else if ($token || $refreshToken) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('auth.tokens-not-allowed')
+            );
         }
 
         return $next($request);

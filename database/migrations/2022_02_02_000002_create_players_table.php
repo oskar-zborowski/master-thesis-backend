@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('players', function (Blueprint $table) {
             $table->id();
             $table->foreignId('room_id')->references('id')->on('rooms')->cascadeOnDelete();
-            $table->foreignId('user_id')->references('id')->on('users')->nullable()->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->references('id')->on('users')->nullOnDelete();
             $table->enum('avatar', ['AVATAR_1', 'AVATAR_2', 'AVATAR_3', 'AVATAR_4', 'AVATAR_5']);
             $table->enum('role', ['POLICEMAN', 'THIEF', 'AGENT', 'SABOTEUR'])->nullable();
             $table->json('player_config');
