@@ -12,6 +12,7 @@ use Closure;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 class Authenticate extends Middleware
@@ -34,11 +35,11 @@ class Authenticate extends Middleware
      */
     public function handle($request, Closure $next, ...$guards) {
 
-        $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address');
         $encryptedIpAddress = Encrypter::encrypt($request->ip(), 45, false);
+        $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address', $encryptedIpAddress);
 
         /** @var IpAddress $ipAddress */
-        $ipAddress = IpAddress::where($aesDecrypt, $encryptedIpAddress)->whereNotNull('blocked_at')->first();
+        $ipAddress = DB::table('ip_addresses')->whereRaw($aesDecrypt)->whereNotNull('blocked_at')->first();
 
         if ($ipAddress) {
             throw new ApiException(
@@ -118,15 +119,14 @@ class Authenticate extends Middleware
 
             } else {
 
-                // TODO Trzeba inaczej dokonać sprawdzenia z uwagi na iv
-
-                $encryptedRefreshToken = Encrypter::encrypt($refreshToken);
+                // $aesDecrypt = Encrypter::prepareAesDecrypt('refresh_token');
+                $encryptedRefreshToken = Encrypter::encrypt($refreshToken, null, false);
 
                 /** @var PersonalAccessToken $personalAccessToken */
                 $personalAccessToken = PersonalAccessToken::where([
                     'tokenable_type' => 'App\Models\User',
                     'name' => 'JWT',
-                    'refresh_token' => $encryptedRefreshToken,
+                    $aesDecrypt => $encryptedRefreshToken,
                 ])->first();
 
                 if (!$personalAccessToken) {
@@ -139,9 +139,7 @@ class Authenticate extends Middleware
                 Auth::loginUsingId($personalAccessToken->tokenable_id);
                 $personalAccessToken->delete();
 
-                // TODO Dobrać odpowiednią długość tokena
-
-                $refreshToken = Encrypter::generateToken(32, PersonalAccessToken::class, 'refresh_token');
+                $refreshToken = Encrypter::generateToken(47, PersonalAccessToken::class, 'refresh_token');
                 $encryptedRefreshToken = Encrypter::encrypt($refreshToken);
 
                 /** @var \App\Models\User $user */

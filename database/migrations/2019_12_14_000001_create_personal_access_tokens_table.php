@@ -17,7 +17,7 @@ return new class extends Migration
             $table->morphs('tokenable');
             $table->string('name', 30);
             $table->char('token', 64)->unique(); // Kodowane przez dostawcę
-            $table->char('refresh_token', 64)->unique()->nullable(); // Kodowane podczas przetwarzania
+            $table->char('refresh_token', 80)->unique()->nullable(); // Kodowane podczas przetwarzania
             $table->text('abilities')->nullable();
             $table->timestamp('expiry_alert_at')->nullable();
             $table->timestamp('last_used_at')->nullable();

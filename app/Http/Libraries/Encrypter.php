@@ -56,9 +56,9 @@ class Encrypter
         return $token;
     }
 
-    public static function prepareAesDecrypt(string $field) {
+    public static function prepareAesDecrypt(string $field, string $value) {
         $passphrase = env('OPENSSL_PASSPHRASE');
-        return "AES_DECRYPT(SUBSTRING($field, 17), $passphrase, SUBSTRING($field, 1, 16))";
+        return "AES_DECRYPT(SUBSTRING($field, 17), \"$passphrase\", SUBSTRING($field, 1, 16)) = \"$value\"";
     }
 
     private static function fillWithRandomCharacters(string $text = '', ?int $maxSize, bool $rand = false, bool $onlyCapitalLetters = false) {

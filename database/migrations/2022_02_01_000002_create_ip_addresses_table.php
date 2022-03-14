@@ -14,7 +14,7 @@ return new class extends Migration
     public function up() {
         Schema::create('ip_addresses', function (Blueprint $table) {
             $table->id();
-            $table->char('ip_address', 76); // Kodowane automatycznie
+            $table->char('ip_address', 80); // Kodowane automatycznie
             $table->timestamp('blocked_at')->nullable();
             $table->timestamps();
         });

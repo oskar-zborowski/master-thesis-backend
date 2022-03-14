@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
             $table->foreignId('host_id')->nullable()->references('id')->on('users')->nullOnDelete();
-            $table->char('code', 24); // Kodowane automatycznie
+            $table->char('code', 40); // Kodowane automatycznie
             $table->string('street', 80)->nullable();
             $table->string('city', 40)->nullable();
             $table->string('voivodeship', 20)->nullable();
