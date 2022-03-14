@@ -19,6 +19,7 @@ return new class extends Migration
             $table->char('token', 64)->unique(); // Kodowane przez dostawcę
             $table->char('refresh_token', 64)->unique()->nullable(); // Kodowane podczas przetwarzania
             $table->text('abilities')->nullable();
+            $table->timestamp('expiry_alert_at')->nullable();
             $table->timestamp('last_used_at')->nullable();
             $table->timestamps();
         });

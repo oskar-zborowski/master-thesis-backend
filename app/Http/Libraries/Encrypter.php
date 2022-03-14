@@ -43,8 +43,7 @@ class Encrypter
         if ($maxSize > 0) {
             do {
                 $token = self::fillWithRandomCharacters('', $maxSize, true) . $addition;
-                $encryptedToken = self::encrypt($token);
-            } while ($entity && $field && !Validation::checkUniqueness($encryptedToken, $entity, $field));
+            } while ($entity && $field && !Validation::checkUniqueness($token, $entity, $field));
         } else {
             $token = null;
         }

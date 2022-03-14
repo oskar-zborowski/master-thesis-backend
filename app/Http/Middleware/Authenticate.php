@@ -6,6 +6,7 @@ use App\Exceptions\ApiException;
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Libraries\Encrypter;
 use App\Http\Libraries\Validation;
+use App\Models\IpAddress;
 use App\Models\PersonalAccessToken;
 use Closure;
 use Illuminate\Auth\AuthenticationException;
@@ -33,12 +34,33 @@ class Authenticate extends Middleware
      */
     public function handle($request, Closure $next, ...$guards) {
 
+        // TODO Trzeba inaczej dokonać sprawdzenia z uwagi na iv
+
+        $encryptedIpAddress = Encrypter::encrypt($request->ip());
+
+        /** @var IpAddress $ipAddress */
+        $ipAddress = IpAddress::where('ip_address', $encryptedIpAddress)->whereNotNull('blocked_at')->first();
+
+        if ($ipAddress) {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(true),
+                __('auth.ip-blocked')
+            );
+        }
+
+        if ($request->token || $request->refresh_token) {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(true),
+                __('auth.wrong-token-format')
+            );
+        }
+
         $token = $request->header('token');
-        $refreshToken = $request->header('refresh-token');
+        $refreshToken = $request->header('refreshToken');
 
         if ($token && $refreshToken) {
             throw new ApiException(
-                DefaultErrorCode::UNAUTHORIZED(),
+                DefaultErrorCode::PERMISSION_DENIED(true),
                 __('auth.double-token-given')
             );
         }
@@ -53,7 +75,7 @@ class Authenticate extends Middleware
 
             if (!$token && !$refreshToken) {
                 throw new ApiException(
-                    DefaultErrorCode::UNAUTHORIZED(),
+                    DefaultErrorCode::PERMISSION_DENIED(true),
                     __('auth.no-token-provided')
                 );
             }
@@ -64,7 +86,7 @@ class Authenticate extends Middleware
                     $this->authenticate($request, $guards);
                 } catch (AuthenticationException $e) {
                     throw new ApiException(
-                        DefaultErrorCode::UNAUTHORIZED(),
+                        DefaultErrorCode::UNAUTHORIZED(true),
                         __('auth.invalid-token')
                     );
                 }
@@ -76,13 +98,28 @@ class Authenticate extends Middleware
                 $personalAccessToken = $user->tokenable()->first();
 
                 if (Validation::timeComparison($personalAccessToken->created_at, env('JWT_LIFETIME'), '>')) {
-                    throw new ApiException(
-                        DefaultErrorCode::UNAUTHORIZED(),
-                        __('auth.token-expired')
-                    );
+
+                    if (!$personalAccessToken->expiry_alert_at) {
+
+                        $personalAccessToken->expiry_alert_at = now();
+                        $personalAccessToken->save();
+    
+                        throw new ApiException(
+                            DefaultErrorCode::UNAUTHORIZED(),
+                            __('auth.token-expired')
+                        );
+
+                    } else {
+                        throw new ApiException(
+                            DefaultErrorCode::UNAUTHORIZED(true),
+                            __('auth.token-expired')
+                        );
+                    }
                 }
 
             } else {
+
+                // TODO Trzeba inaczej dokonać sprawdzenia z uwagi na iv
 
                 $encryptedRefreshToken = Encrypter::encrypt($refreshToken);
 
@@ -95,7 +132,7 @@ class Authenticate extends Middleware
 
                 if (!$personalAccessToken) {
                     throw new ApiException(
-                        DefaultErrorCode::UNAUTHORIZED(),
+                        DefaultErrorCode::UNAUTHORIZED(true),
                         __('auth.invalid-refresh-token')
                     );
                 }
@@ -103,37 +140,36 @@ class Authenticate extends Middleware
                 Auth::loginUsingId($personalAccessToken->tokenable_id);
                 $personalAccessToken->delete();
 
-                // Dodanie tworzenia nowych tokenów i doczepianie ich do requesta
-            }
+                // TODO Dobrać odpowiednią długość tokena
 
-            /** @var \App\Models\User $user */
-            $user = Auth::user();
+                $refreshToken = Encrypter::generateToken(32, PersonalAccessToken::class, 'refresh_token');
+                $encryptedRefreshToken = Encrypter::encrypt($refreshToken);
+
+                /** @var \App\Models\User $user */
+                $user = Auth::user();
+
+                $jwt = $user->createToken('JWT');
+                $jwtToken = $jwt->plainTextToken;
+                $jwtId = $jwt->accessToken->getKey();
+
+                $personalAccessToken = $user->tokenable()->where('id', $jwtId)->first();
+                $personalAccessToken->refresh_token = $encryptedRefreshToken;
+                $personalAccessToken->save();
+
+                $request->merge(['token' => $jwtToken]);
+                $request->merge(['refresh_token' => $refreshToken]);
+            }
 
             if ($user->blocked_at) {
                 throw new ApiException(
-                    DefaultErrorCode::UNAUTHORIZED(),
+                    DefaultErrorCode::PERMISSION_DENIED(true),
                     __('auth.user-blocked')
                 );
             }
 
-            $encryptedIpAddress = Encrypter::encrypt($request->ip());
-
-            /** @var \App\Models\IpAddress $ipAddress */
-            $ipAddress = $user->ipAddresses()->where('ip_address', $encryptedIpAddress)->first();
-
-            if ($ipAddress->blocked_at) {
-                throw new ApiException(
-                    DefaultErrorCode::UNAUTHORIZED(),
-                    __('auth.ip-blocked')
-                );
-            }
-
-            $ipAddress->request_counter = $ipAddress->request_counter + 1;
-            $ipAddress->save();
-
         } else if ($token || $refreshToken) {
             throw new ApiException(
-                DefaultErrorCode::FAILED_VALIDATION(),
+                DefaultErrorCode::PERMISSION_DENIED(true),
                 __('auth.tokens-not-allowed')
             );
         }

@@ -12,6 +12,7 @@ class PersonalAccessToken extends BaseModel
         'token',
         'refresh_token',
         'abilities',
+        'expiry_alert_at',
         'last_used_at',
         'created_at',
         'updated_at',
