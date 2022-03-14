@@ -9,12 +9,17 @@ use App\Http\Libraries\Validation;
  */
 class Encrypter
 {
-    public static function encrypt(?string $text, ?int $maxSize = null) {
+    public static function encrypt(?string $text, ?int $maxSize = null, bool $withEncryption = true) {
 
         if ($text && strlen($text) > 0) {
-            $iv = self::generateToken(16);
+
             $text = self::fillWithRandomCharacters($text, $maxSize);
-            $text = openssl_encrypt($text, env('OPENSSL_ALGORITHM'), env('OPENSSL_PASSPHRASE'), 0, $iv) . $iv;
+
+            if ($withEncryption) {
+                $iv = self::generateToken(16);
+                $text = $iv . openssl_encrypt($text, env('OPENSSL_ALGORITHM'), env('OPENSSL_PASSPHRASE'), 0, $iv);
+            }
+
         } else {
             $text = null;
         }
@@ -25,8 +30,8 @@ class Encrypter
     public static function decrypt(?string $text) {
 
         if ($text) {
-            $iv = substr($text, -16);
-            $text = substr($text, 0, -16);
+            $iv = substr($text, 0, 16);
+            $text = substr($text, 16);
             $text = openssl_decrypt($text, env('OPENSSL_ALGORITHM'), env('OPENSSL_PASSPHRASE'), 0, $iv);
             $text = self::removeRandomCharacters($text);
         } else {
@@ -43,7 +48,7 @@ class Encrypter
         if ($maxSize > 0) {
             do {
                 $token = self::fillWithRandomCharacters('', $maxSize, true) . $addition;
-            } while ($entity && $field && !Validation::checkUniqueness($token, $entity, $field));
+            } while ($entity && $field && !Validation::checkUniqueness($token, $entity, $field, true));
         } else {
             $token = null;
         }

@@ -7,9 +7,15 @@ namespace App\Http\Libraries;
  */
 class Validation
 {
-    public static function checkUniqueness(string $value, $entity, string $field) {
-        // TODO Trzeba wymyślić jak można sprawdzić rekord mając na uwadze iv
-        return empty($entity::where($field, $value)->first());
+    public static function checkUniqueness(string $value, $entity, string $field, bool $isEncrypted = false) {
+
+        $aesDecrypt = Encrypter::prepareAesDecrypt($field);
+
+        if ($isEncrypted) {
+            return empty($entity::where($aesDecrypt, $value)->first());
+        } else {
+            return empty($entity::where($field, $value)->first());
+        }
     }
 
     /**

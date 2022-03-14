@@ -34,12 +34,11 @@ class Authenticate extends Middleware
      */
     public function handle($request, Closure $next, ...$guards) {
 
-        // TODO Trzeba inaczej dokonać sprawdzenia z uwagi na iv
-
-        $encryptedIpAddress = Encrypter::encrypt($request->ip());
+        $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address');
+        $encryptedIpAddress = Encrypter::encrypt($request->ip(), 45, false);
 
         /** @var IpAddress $ipAddress */
-        $ipAddress = IpAddress::where('ip_address', $encryptedIpAddress)->whereNotNull('blocked_at')->first();
+        $ipAddress = IpAddress::where($aesDecrypt, $encryptedIpAddress)->whereNotNull('blocked_at')->first();
 
         if ($ipAddress) {
             throw new ApiException(
