@@ -17,7 +17,8 @@ class Encrypter
 
             if ($withEncryption) {
                 $iv = self::generateToken(16);
-                $text = $iv . openssl_encrypt($text, env('OPENSSL_ALGORITHM'), env('OPENSSL_PASSPHRASE'), 0, $iv);
+                $text = openssl_encrypt($text, env('OPENSSL_ALGORITHM'), env('OPENSSL_PASSPHRASE'), 0, $iv);
+                $text = $iv . bin2hex(base64_decode($text));
             }
 
         } else {
@@ -32,6 +33,7 @@ class Encrypter
         if ($text) {
             $iv = substr($text, 0, 16);
             $text = substr($text, 16);
+            $text = base64_encode(hex2bin($text));
             $text = openssl_decrypt($text, env('OPENSSL_ALGORITHM'), env('OPENSSL_PASSPHRASE'), 0, $iv);
             $text = self::removeRandomCharacters($text);
         } else {
@@ -56,9 +58,17 @@ class Encrypter
         return $token;
     }
 
-    public static function prepareAesDecrypt(string $field, string $value) {
+    public static function prepareAesDecrypt(string $field, string $semiEncrypted, string $search = '=') {
+
         $passphrase = env('OPENSSL_PASSPHRASE');
-        return "AES_DECRYPT(SUBSTRING($field, 17), \"$passphrase\", SUBSTRING($field, 1, 16)) = \"$value\"";
+
+        if (strtolower($search) == 'like') {
+            $semiEncrypted = "LIKE \"%$semiEncrypted%\"";
+        } else if ($search == '=' || $search == '==') {
+            $semiEncrypted = "= \"$semiEncrypted\"";
+        }
+
+        return "AES_DECRYPT(UNHEX(SUBSTRING($field, 17)), \"$passphrase\", SUBSTRING($field, 1, 16)) $semiEncrypted";
     }
 
     private static function fillWithRandomCharacters(string $text = '', ?int $maxSize, bool $rand = false, bool $onlyCapitalLetters = false) {

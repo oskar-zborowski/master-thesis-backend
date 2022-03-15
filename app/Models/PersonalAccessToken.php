@@ -23,6 +23,6 @@ class PersonalAccessToken extends BaseModel
     ];
 
     protected $encryptable = [
-        'refresh_token' => 47,
+        'refresh_token' => 31,
     ];
 }

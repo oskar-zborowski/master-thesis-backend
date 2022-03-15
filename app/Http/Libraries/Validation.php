@@ -9,13 +9,14 @@ class Validation
 {
     public static function checkUniqueness(string $value, $entity, string $field, bool $isEncrypted = false) {
 
-        $aesDecrypt = Encrypter::prepareAesDecrypt($field);
-
         if ($isEncrypted) {
-            return empty($entity::where($aesDecrypt, $value)->first());
+            $aesDecrypt = Encrypter::prepareAesDecrypt($field, $value);
+            $result = empty($entity::whereRaw($aesDecrypt)->first());
         } else {
-            return empty($entity::where($field, $value)->first());
+            $result = empty($entity::where($field, $value)->first());
         }
+
+        return $result;
     }
 
     /**
