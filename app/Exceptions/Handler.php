@@ -64,7 +64,7 @@ class Handler extends ExceptionHandler
                 /** @var AuthenticationException $throwable */
 
                 JsonResponse::sendError(
-                    DefaultErrorCode::UNAUTHORIZED()
+                    DefaultErrorCode::UNAUTHORIZED(true)
                 );
                 break;
 
@@ -72,7 +72,7 @@ class Handler extends ExceptionHandler
             case MethodNotAllowedHttpException::class:
             case NotFoundHttpException::class:
                 JsonResponse::sendError(
-                    DefaultErrorCode::FAILED_VALIDATION(),
+                    DefaultErrorCode::FAILED_VALIDATION(true),
                     env('APP_DEBUG') ? $throwable->getMessage() : null
                 );
                 break;
@@ -81,7 +81,7 @@ class Handler extends ExceptionHandler
                 /** @var ErrorException $throwable */
 
                 JsonResponse::sendError(
-                    DefaultErrorCode::INTERNAL_SERVER_ERROR(),
+                    DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
                     env('APP_DEBUG') ? $throwable->getMessage() : null
                 );
                 break;
@@ -103,7 +103,7 @@ class Handler extends ExceptionHandler
 
             default:
                 JsonResponse::sendError(
-                    DefaultErrorCode::INTERNAL_SERVER_ERROR(),
+                    DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
                     env('APP_DEBUG') ? $class : null
                 );
                 break;

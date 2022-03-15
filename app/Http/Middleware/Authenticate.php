@@ -14,6 +14,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Session;
 
 class Authenticate extends Middleware
 {
@@ -181,8 +182,8 @@ class Authenticate extends Middleware
                 $personalAccessToken->refresh_token = $refreshToken;
                 $personalAccessToken->save();
 
-                $request->merge(['token' => $jwtToken]);
-                $request->merge(['refreshToken' => $refreshToken]);
+                Session::put('token', $jwtToken);
+                Session::put('refreshToken', $refreshToken);
             }
 
             if ($user->blocked_at) {
