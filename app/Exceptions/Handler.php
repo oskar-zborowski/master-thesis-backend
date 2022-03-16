@@ -56,7 +56,7 @@ class Handler extends ExceptionHandler
 
                 JsonResponse::sendError(
                     $throwable->getErrorCode(),
-                    $throwable->getData()
+                    env('APP_DEBUG') ? [$throwable->getData(), $throwable->getFile(), $throwable->getLine()] : $throwable->getData()
                 );
                 break;
 

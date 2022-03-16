@@ -145,6 +145,7 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'wrong-database-search' => 'You can only use perfect matches (=) or similar matches (LIKE)',
     ],
 
     /*

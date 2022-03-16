@@ -36,6 +36,8 @@ class Authenticate extends Middleware
      */
     public function handle($request, Closure $next, ...$guards) {
 
+        // SET @@GLOBAL.block_encryption_mode = 'aes-256-cbc';
+
         // $user = new User;
         // $user->name = 'Oskar';
         // $user->default_avatar = 'AVATAR_1';
@@ -65,24 +67,31 @@ class Authenticate extends Middleware
         /** @var IpAddress $ipAddress */
         $ipAddress = IpAddress::whereRaw($aesDecrypt)->whereNotNull('blocked_at')->first();
 
-        if ($ipAddress) {
+        if ($ipAddress !== null) {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
                 __('auth.ip-blocked')
             );
         }
 
-        if ($request->token || $request->refreshToken) {
+        if ($request->token !== null) {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
                 __('auth.wrong-token-format')
             );
         }
 
+        if ($request->refresh_token !== null) {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(true),
+                __('auth.wrong-refresh-token-format')
+            );
+        }
+
         $token = $request->header('token');
         $refreshToken = $request->header('refreshToken');
 
-        if ($token && $refreshToken) {
+        if ($token !== null && $refreshToken !== null) {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
                 __('auth.double-token-given')
@@ -95,16 +104,16 @@ class Authenticate extends Middleware
             'user-createUser',
         ];
 
-        if (!in_array($routeName, $routeNamesWhitelist)) {
+        if ($routeName === null || !in_array($routeName, $routeNamesWhitelist)) {
 
-            if (!$token && !$refreshToken) {
+            if ($token === null && $refreshToken === null) {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(true),
                     __('auth.no-token-provided')
                 );
             }
 
-            if ($token) {
+            if ($token !== null) {
 
                 try {
                     $request->headers->set('Authorization', 'Bearer ' . $token);
@@ -124,7 +133,7 @@ class Authenticate extends Middleware
 
                 if (Validation::timeComparison($personalAccessToken->created_at, env('JWT_LIFETIME'), '>')) {
 
-                    if (!$personalAccessToken->expiry_alert_at) {
+                    if ($personalAccessToken->expiry_alert_at === null) {
 
                         $personalAccessToken->expiry_alert_at = now();
                         $personalAccessToken->save();
@@ -152,7 +161,7 @@ class Authenticate extends Middleware
                     'name' => 'JWT',
                 ])->first();
 
-                if (!$personalAccessToken) {
+                if ($personalAccessToken === null) {
                     throw new ApiException(
                         DefaultErrorCode::UNAUTHORIZED(true),
                         __('auth.invalid-refresh-token')
@@ -186,14 +195,14 @@ class Authenticate extends Middleware
                 Session::put('refreshToken', $refreshToken);
             }
 
-            if ($user->blocked_at) {
+            if ($user->blocked_at !== null) {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(true),
                     __('auth.user-blocked')
                 );
             }
 
-        } else if ($token || $refreshToken) {
+        } else if ($token !== null || $refreshToken !== null) {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
                 __('auth.tokens-not-allowed')

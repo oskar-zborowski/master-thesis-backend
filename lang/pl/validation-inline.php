@@ -145,5 +145,6 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'wrong-database-search' => 'Możesz użyć jedynie dopasowań idealnych (=), albo dopasowań podobnych (LIKE)',
     ],
 ];

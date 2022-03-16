@@ -2,6 +2,8 @@
 
 namespace App\Http\Libraries;
 
+use App\Exceptions\ApiException;
+use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Libraries\Validation;
 
 /**
@@ -11,7 +13,7 @@ class Encrypter
 {
     public static function encrypt(?string $text, ?int $maxSize = null, bool $withEncryption = true) {
 
-        if ($text && strlen($text) > 0) {
+        if ($text !== null && strlen($text) > 0) {
 
             $text = self::fillWithRandomCharacters($text, $maxSize);
 
@@ -30,7 +32,7 @@ class Encrypter
 
     public static function decrypt(?string $text) {
 
-        if ($text) {
+        if ($text !== null) {
             $iv = substr($text, 0, 16);
             $text = substr($text, 16);
             $text = base64_encode(hex2bin($text));
@@ -50,7 +52,7 @@ class Encrypter
         if ($maxSize > 0) {
             do {
                 $token = self::fillWithRandomCharacters('', $maxSize, true) . $addition;
-            } while ($entity && $field && !Validation::checkUniqueness($token, $entity, $field, true));
+            } while ($entity !== null && $field !== null && !Validation::checkUniqueness($token, $entity, $field, true));
         } else {
             $token = null;
         }
@@ -66,6 +68,11 @@ class Encrypter
             $semiEncrypted = "LIKE \"%$semiEncrypted%\"";
         } else if ($search == '=' || $search == '==') {
             $semiEncrypted = "= \"$semiEncrypted\"";
+        } else {
+            throw new ApiException(
+                DefaultErrorCode::INTERNAL_SERVER_ERROR(),
+                env('APP_DEBUG') ? __('validation.custom.wrong-database-search') : null
+            );
         }
 
         return "AES_DECRYPT(UNHEX(SUBSTRING($field, 17)), \"$passphrase\", SUBSTRING($field, 1, 16)) $semiEncrypted";

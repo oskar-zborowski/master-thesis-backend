@@ -19,11 +19,11 @@ class FieldConversion
 
     private static function convertByDefault(string $conversionType, $data, int $from, ?int $to, int $current = 0) {
 
-        if (is_array($data) || $current > 0) {
+        if ($data !== null && is_array($data) || $current > 0) {
 
             $fieldNames = null;
 
-            if ($data && (isset($to) && $from <= $to || !isset($to))) {
+            if ($data !== null && ($to !== null && $from <= $to || $to === null)) {
     
                 if ($current == 0) {
                     $data = json_encode($data);
@@ -32,9 +32,9 @@ class FieldConversion
     
                 foreach ($data as $key => $value) {
 
-                    if (is_array($value)) {
+                    if ($value !== null && is_array($value)) {
 
-                        if ($current >= $from && (isset($to) && $current <= $to || !isset($to))) {
+                        if ($current >= $from && ($to !== null && $current <= $to || $to === null)) {
                             $fieldNames[Str::$conversionType($key)] = self::convertByDefault($conversionType, $value, $from, $to, $current+1);
                         } else if ($current < $from) {
 
@@ -49,7 +49,7 @@ class FieldConversion
 
                         if ($current >= $from) {
 
-                            if (isset($to) && $current <= $to || !isset($to)) {
+                            if ($to !== null && $current <= $to || $to === null) {
                                 $fieldNames[Str::$conversionType($key)] = $value;
                             } else {
                                 $fieldNames = null;
@@ -62,7 +62,7 @@ class FieldConversion
                 }
             }
 
-            if ($current == 0 && isset($fieldNames)) {
+            if ($current == 0 && $fieldNames !== null) {
 
                 $fN = null;
 

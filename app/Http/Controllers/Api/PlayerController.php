@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PlayerRequest;
+use App\Http\Responses\JsonResponse;
 use App\Models\Player;
 
 class PlayerController extends Controller
@@ -13,7 +14,7 @@ class PlayerController extends Controller
      * Stworzenie nowego gracza (dołączenie do pokoju)
      */
     public function createPlayer(PlayerRequest $request) {
-        //
+        JsonResponse::sendSuccess();
     }
 
     /**
@@ -21,6 +22,6 @@ class PlayerController extends Controller
      * Edycja gracza (zmiana parametrów w trakcie gry)
      */
     public function updatePlayer(Player $player, PlayerRequest $request) {
-        //
+        JsonResponse::sendSuccess();
     }
 }

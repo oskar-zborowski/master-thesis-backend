@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RoomRequest;
+use App\Http\Responses\JsonResponse;
 use App\Models\Room;
 
 class RoomController extends Controller
@@ -13,7 +14,7 @@ class RoomController extends Controller
      * Stworzenie nowego pokoju
      */
     public function createRoom(RoomRequest $request) {
-        //
+        JsonResponse::sendSuccess();
     }
 
     /**
@@ -21,6 +22,6 @@ class RoomController extends Controller
      * Edycja pokoju
      */
     public function updateRoom(Room $room, RoomRequest $request) {
-        //
+        JsonResponse::sendSuccess();
     }
 }

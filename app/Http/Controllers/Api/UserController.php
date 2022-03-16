@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
+use App\Http\Responses\JsonResponse;
 use App\Models\User;
 
 class UserController extends Controller
@@ -13,7 +14,7 @@ class UserController extends Controller
      * Stworzenie nowego użytkownika
      */
     public function createUser(UserRequest $request) {
-        //
+        JsonResponse::sendSuccess();
     }
 
     /**
@@ -21,6 +22,6 @@ class UserController extends Controller
      * Edycja użytkownika
      */
     public function updateUser(User $user, UserRequest $request) {
-        //
+        JsonResponse::sendSuccess();
     }
 }

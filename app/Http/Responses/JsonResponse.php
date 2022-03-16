@@ -18,23 +18,23 @@ class JsonResponse
 
         $response = [];
 
-        if ($data) {
+        if ($data !== null) {
             $response['data'] = $data;
         }
 
-        if ($meta) {
-            $response['metadata']['general'] = $meta;
+        if ($meta !== null) {
+            $response['metadata'] = $meta;
         }
 
         $tokens = self::getTokens();
 
-        if ($tokens) {
-            $response['metadata']['tokens'] = $tokens;
+        if ($tokens !== null) {
+            $response['tokens'] = $tokens;
         }
 
         $response = FieldConversion::convertToCamelCase($response);
 
-        echo json_encode($response);
+        echo $response ? json_encode($response) : null;
         die;
     }
 
@@ -51,19 +51,19 @@ class JsonResponse
 
         $response['error_code'] = $errorCode->getCode();
 
-        if ($data) {
+        if ($data !== null) {
             $response['data'] = $data;
         }
 
         $tokens = self::getTokens();
 
-        if ($tokens) {
-            $response['metadata']['tokens'] = $tokens;
+        if ($tokens !== null) {
+            $response['tokens'] = $tokens;
         }
 
         $response = FieldConversion::convertToCamelCase($response);
 
-        echo json_encode($response);
+        echo $response ? json_encode($response) : null;
         die;
     }
 
@@ -74,10 +74,14 @@ class JsonResponse
         $token = Session::get('token');
         $refreshToken = Session::get('refreshToken');
 
-        if ($token && $refreshToken) {
+        if ($token !== null && $refreshToken !== null) {
+
+            Session::remove('token');
+            Session::remove('refreshToken');
+
             $result = [
                 'token' => $token,
-                'refreshToken' => $refreshToken,
+                'refresh_token' => $refreshToken,
             ];
         }
 

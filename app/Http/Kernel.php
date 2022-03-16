@@ -18,7 +18,7 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
-        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        // \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
     ];
 
     /**
@@ -41,6 +41,20 @@ class Kernel extends HttpKernel
             'auth:sanctum',
             'throttle:api',
         ],
+    ];
+
+    /**
+     * The priority-sorted list of middleware.
+     *
+     * Forces the listed middleware to always be in the given order.
+     *
+     * @var array
+     */
+    protected $middlewarePriority = [
+        \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        \App\Http\Middleware\ConvertToSnakeCase::class,
+        'auth:sanctum',
+        'throttle:api',
     ];
 
     /**
