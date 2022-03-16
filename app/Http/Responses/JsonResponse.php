@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Session;
  */
 class JsonResponse
 {
-    public static function sendSuccess($data = null, $meta = null, int $code = 200) {
+    public static function sendSuccess($data = null, $meta = null, int $code = 200): void {
 
         header('Content-Type: application/json');
         http_response_code($code);
@@ -38,7 +38,7 @@ class JsonResponse
         die;
     }
 
-    public static function sendError(ErrorCode $errorCode, $data = null) {
+    public static function sendError(ErrorCode $errorCode, $data = null): void {
 
         header('Content-Type: application/json');
         http_response_code($errorCode->getHttpStatus());
@@ -86,5 +86,9 @@ class JsonResponse
         }
 
         return $result;
+    }
+
+    public static function saveDeviceInforamtion() {
+
     }
 }
