@@ -43,8 +43,4 @@ class User extends Authenticatable
     public function tokenable() {
         return $this->morphOne(PersonalAccessToken::class, 'tokenable');
     }
-
-    public function ipAddresses() {
-        return $this->hasMany(IpAddress::class);
-    }
 }

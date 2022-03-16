@@ -3,7 +3,12 @@
 namespace App\Http\Responses;
 
 use App\Http\ErrorCodes\ErrorCode;
+use App\Http\Libraries\Encrypter;
 use App\Http\Libraries\FieldConversion;
+use App\Models\Connection;
+use App\Models\IpAddress;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
 /**
@@ -11,7 +16,7 @@ use Illuminate\Support\Facades\Session;
  */
 class JsonResponse
 {
-    public static function sendSuccess($data = null, $meta = null, int $code = 200): void {
+    public static function sendSuccess($request, $data = null, $meta = null, int $code = 200): void {
 
         header('Content-Type: application/json');
         http_response_code($code);
@@ -26,7 +31,7 @@ class JsonResponse
             $response['metadata'] = $meta;
         }
 
-        $tokens = self::getTokens();
+        $tokens = self::getTokens($request);
 
         if ($tokens !== null) {
             $response['tokens'] = $tokens;
@@ -38,7 +43,7 @@ class JsonResponse
         die;
     }
 
-    public static function sendError(ErrorCode $errorCode, $data = null): void {
+    public static function sendError($request, ErrorCode $errorCode, $data = null): void {
 
         header('Content-Type: application/json');
         http_response_code($errorCode->getHttpStatus());
@@ -55,7 +60,7 @@ class JsonResponse
             $response['data'] = $data;
         }
 
-        $tokens = self::getTokens();
+        $tokens = self::getTokens($request, $errorCode);
 
         if ($tokens !== null) {
             $response['tokens'] = $tokens;
@@ -67,7 +72,7 @@ class JsonResponse
         die;
     }
 
-    public static function getTokens() {
+    public static function getTokens($request, ?ErrorCode $errorCode = null) {
 
         $result = null;
 
@@ -85,12 +90,91 @@ class JsonResponse
             ];
         }
 
-        self::saveDeviceInforamtion();
+        self::saveDeviceInformation($request, $errorCode);
 
         return $result;
     }
 
-    public static function saveDeviceInforamtion() {
-        // 
+    public static function saveDeviceInformation($request, ?ErrorCode $errorCode = null) {
+
+        /** @var Request $request */
+
+        $encryptedIpAddress = Encrypter::encrypt($request->ip(), 45, false);
+        $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address', $encryptedIpAddress);
+
+        /** @var IpAddress $ipAddress */
+        $ipAddress = IpAddress::whereRaw($aesDecrypt)->first();
+
+        if ($ipAddress === null) {
+            $ipAddress = new IpAddress;
+            $ipAddress->ip_address = $request->ip();
+            $ipAddress->save();
+        }
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($user !== null) {
+            /** @var Connection $connection */
+            $connection = $ipAddress->connections()->where('user_id', $user->id)->first();
+        } else {
+            /** @var Connection $connection */
+            $connection = $ipAddress->connections()->where('user_id', null)->first();
+        }
+
+        $isMalicious = false;
+
+        if ($connection === null) {
+
+            $connection = new Connection;
+
+            if ($user !== null) {
+                $connection->user_id = $user->id;
+            }
+
+            $connection->ip_address_id = $ipAddress->id;
+
+            if ($errorCode === null) {
+                $connection->successful_request_counter = 1;
+            } else if ($errorCode->getIsMalicious()) {
+                $isMalicious = true;
+                $connection->malicious_request_counter = 1;
+            } else {
+                $connection->failed_request_counter = 1;
+            }
+
+        } else {
+
+            if ($errorCode === null) {
+                $connection->successful_request_counter = $connection->successful_request_counter + 1;
+            } else if ($errorCode->getIsMalicious()) {
+                $isMalicious = true;
+                $connection->malicious_request_counter = $connection->malicious_request_counter + 1;
+            } else {
+                $connection->failed_request_counter = $connection->failed_request_counter + 1;
+            }
+        }
+
+        $connection->save();
+
+        if ($isMalicious) {
+
+            if ($connection->malicious_request_counter == 1) {
+                // TODO Wysyłka maila z informacją o pierwszym wykryciu złośliwego requesta
+            } else if ($connection->malicious_request_counter == 5) {
+                // TODO Kolejna wysyłka maila z informacją o dalszym wykryciu złośliwego requesta
+            } else if ($connection->malicious_request_counter == 10) {
+
+                $ipAddress->blocked_at = now();
+                $ipAddress->save();
+
+                if ($user !== null) {
+                    $user->blocked_at = now();
+                    $user->save();
+                }
+
+                // TODO Kolejna wysyłka maila z informacją o zablokowaniu adresu ip i urządzenia
+            }
+        }
     }
 }

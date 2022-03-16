@@ -14,7 +14,7 @@ class RoomController extends Controller
      * Stworzenie nowego pokoju
      */
     public function createRoom(RoomRequest $request) {
-        JsonResponse::sendSuccess();
+        JsonResponse::sendSuccess($request);
     }
 
     /**
@@ -22,6 +22,6 @@ class RoomController extends Controller
      * Edycja pokoju
      */
     public function updateRoom(Room $room, RoomRequest $request) {
-        JsonResponse::sendSuccess();
+        JsonResponse::sendSuccess($request);
     }
 }

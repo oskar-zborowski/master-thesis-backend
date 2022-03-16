@@ -55,6 +55,7 @@ class Handler extends ExceptionHandler
                 /** @var ApiException $throwable */
 
                 JsonResponse::sendError(
+                    $request,
                     $throwable->getErrorCode(),
                     env('APP_DEBUG') ? [$throwable->getData(), $throwable->getFile(), $throwable->getLine()] : $throwable->getData()
                 );
@@ -64,6 +65,7 @@ class Handler extends ExceptionHandler
                 /** @var AuthenticationException $throwable */
 
                 JsonResponse::sendError(
+                    $request,
                     DefaultErrorCode::UNAUTHORIZED(true)
                 );
                 break;
@@ -72,6 +74,7 @@ class Handler extends ExceptionHandler
             case MethodNotAllowedHttpException::class:
             case NotFoundHttpException::class:
                 JsonResponse::sendError(
+                    $request,
                     DefaultErrorCode::FAILED_VALIDATION(true),
                     env('APP_DEBUG') ? $throwable->getMessage() : null
                 );
@@ -81,6 +84,7 @@ class Handler extends ExceptionHandler
                 /** @var ErrorException $throwable */
 
                 JsonResponse::sendError(
+                    $request,
                     DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
                     env('APP_DEBUG') ? $throwable->getMessage() : null
                 );
@@ -88,6 +92,7 @@ class Handler extends ExceptionHandler
 
             case ThrottleRequestsException::class:
                 JsonResponse::sendError(
+                    $request,
                     DefaultErrorCode::LIMIT_EXCEEDED()
                 );
                 break;
@@ -96,6 +101,7 @@ class Handler extends ExceptionHandler
                 /** @var ValidationException $throwable */
 
                 JsonResponse::sendError(
+                    $request,
                     DefaultErrorCode::FAILED_VALIDATION(),
                     $throwable->errors()
                 );
@@ -103,6 +109,7 @@ class Handler extends ExceptionHandler
 
             default:
                 JsonResponse::sendError(
+                    $request,
                     DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
                     env('APP_DEBUG') ? $class : null
                 );

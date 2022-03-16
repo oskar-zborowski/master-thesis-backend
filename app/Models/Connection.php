@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-class IpAddress extends BaseModel
+class Connection extends BaseModel
 {
     protected $hidden = [
         'id',
@@ -20,4 +20,6 @@ class IpAddress extends BaseModel
         'failed_request_counter' => 'integer',
         'malicious_request_counter' => 'integer',
     ];
+
+    protected $encryptable = [];
 }

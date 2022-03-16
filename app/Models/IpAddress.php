@@ -15,4 +15,8 @@ class IpAddress extends BaseModel
     protected $encryptable = [
         'ip_address' => 45,
     ];
+
+    public function connections() {
+        return $this->hasMany(Connection::class);
+    }
 }

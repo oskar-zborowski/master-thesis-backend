@@ -14,7 +14,7 @@ class UserController extends Controller
      * Stworzenie nowego użytkownika
      */
     public function createUser(UserRequest $request) {
-        JsonResponse::sendSuccess();
+        JsonResponse::sendSuccess($request);
     }
 
     /**
@@ -22,6 +22,6 @@ class UserController extends Controller
      * Edycja użytkownika
      */
     public function updateUser(User $user, UserRequest $request) {
-        JsonResponse::sendSuccess();
+        JsonResponse::sendSuccess($request);
     }
 }
