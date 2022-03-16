@@ -85,10 +85,12 @@ class JsonResponse
             ];
         }
 
+        self::saveDeviceInforamtion();
+
         return $result;
     }
 
     public static function saveDeviceInforamtion() {
-
+        // 
     }
 }
