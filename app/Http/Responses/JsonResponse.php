@@ -174,6 +174,9 @@ class JsonResponse
                 }
 
                 // TODO Kolejna wysyłka maila z informacją o zablokowaniu adresu ip i urządzenia
+
+            } else if ($connection->malicious_request_counter == 25) {
+                // TODO Ostatnia wysyłka maila z informacją o konieczności zablokowania permanentnie adresu ip użytkownika w komunikacji z serwerem
             }
         }
     }

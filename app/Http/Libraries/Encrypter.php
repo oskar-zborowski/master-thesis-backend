@@ -5,6 +5,8 @@ namespace App\Http\Libraries;
 use App\Exceptions\ApiException;
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Libraries\Validation;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 /**
  * Klasa przeprowadzająca procesy szyfrowania danych
@@ -76,6 +78,25 @@ class Encrypter
         }
 
         return "AES_DECRYPT(UNHEX(SUBSTRING($field, 17)), \"$passphrase\", SUBSTRING($field, 1, 16)) $semiEncrypted";
+    }
+
+    public static function generateAuthTokens() {
+
+        $refreshToken = self::generateToken(31, PersonalAccessToken::class, 'refresh_token');
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $jwt = $user->createToken('JWT');
+        $jwtToken = $jwt->plainTextToken;
+        $jwtId = $jwt->accessToken->getKey();
+
+        $personalAccessToken = $user->tokenable()->where('id', $jwtId)->first();
+        $personalAccessToken->refresh_token = $refreshToken;
+        $personalAccessToken->save();
+
+        Session::put('token', $jwtToken);
+        Session::put('refreshToken', $refreshToken);
     }
 
     private static function fillWithRandomCharacters(string $text = '', ?int $maxSize, bool $rand = false, bool $onlyCapitalLetters = false) {

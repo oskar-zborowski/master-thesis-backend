@@ -8,13 +8,11 @@ use App\Http\Libraries\Encrypter;
 use App\Http\Libraries\Validation;
 use App\Models\IpAddress;
 use App\Models\PersonalAccessToken;
-use App\Models\User;
 use Closure;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Session;
 
 class Authenticate extends Middleware
 {
@@ -37,29 +35,6 @@ class Authenticate extends Middleware
     public function handle($request, Closure $next, ...$guards) {
 
         // SET @@GLOBAL.block_encryption_mode = 'aes-256-cbc';
-
-        // $user = new User;
-        // $user->name = 'Oskar';
-        // $user->default_avatar = 'AVATAR_1';
-        // $user->app_version = '1.0.0';
-        // $user->save();
-
-        // $refreshToken = Encrypter::generateToken(31, PersonalAccessToken::class, 'refresh_token');
-
-        // $jwt = $user->createToken('JWT');
-        // $jwtToken = $jwt->plainTextToken;
-        // $jwtId = $jwt->accessToken->getKey();
-
-        // $personalAccessToken = $user->tokenable()->where('id', $jwtId)->first();
-        // $personalAccessToken->refresh_token = $refreshToken;
-        // $personalAccessToken->save();
-
-        // echo json_encode([
-        //     'token' => $jwtToken,
-        //     'refresh_token' => $refreshToken,
-        // ]);
-
-        // die;
 
         $encryptedIpAddress = Encrypter::encrypt($request->ip(), 45, false);
         $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address', $encryptedIpAddress);
@@ -178,21 +153,7 @@ class Authenticate extends Middleware
                 Auth::loginUsingId($personalAccessToken->tokenable_id);
                 $personalAccessToken->delete();
 
-                $refreshToken = Encrypter::generateToken(31, PersonalAccessToken::class, 'refresh_token');
-
-                /** @var \App\Models\User $user */
-                $user = Auth::user();
-
-                $jwt = $user->createToken('JWT');
-                $jwtToken = $jwt->plainTextToken;
-                $jwtId = $jwt->accessToken->getKey();
-
-                $personalAccessToken = $user->tokenable()->where('id', $jwtId)->first();
-                $personalAccessToken->refresh_token = $refreshToken;
-                $personalAccessToken->save();
-
-                Session::put('token', $jwtToken);
-                Session::put('refreshToken', $refreshToken);
+                Encrypter::generateAuthTokens();
             }
 
             if ($user->blocked_at !== null) {

@@ -146,6 +146,7 @@ return [
             'rule-name' => 'custom-message',
         ],
         'wrong-database-search' => 'Możesz użyć jedynie dopasowań idealnych (=), albo dopasowań podobnych (LIKE)',
+        'wrong-avatar-number' => 'Nieprawidłowy numer avatara.',
     ],
 
     /*

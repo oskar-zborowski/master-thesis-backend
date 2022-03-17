@@ -29,9 +29,12 @@ Route::post('/v1/users', [UserController::class, 'createUser'])->name('user-crea
 |-------------------------------------------------------------------------------------------------------
 */
 
-Route::patch('/v1/users/{user}', [UserController::class, 'updateUser'])->name('user-updateUser');
+Route::patch('/v1/users/me', [UserController::class, 'updateUser'])->name('user-updateUser');
+Route::get('/v1/users/me', [UserController::class, 'getUser'])->name('user-getUser');
+
 Route::post('/v1/rooms', [RoomController::class, 'createRoom'])->name('room-createRoom');
 Route::patch('/v1/rooms/{room}', [RoomController::class, 'updateRoom'])->name('room-updateRoom');
+
 Route::post('/v1/players', [PlayerController::class, 'createPlayer'])->name('player-createPlayer');
 Route::patch('/v1/players/{player}', [PlayerController::class, 'updatePlayer'])->name('player-updatePlayer');
 
