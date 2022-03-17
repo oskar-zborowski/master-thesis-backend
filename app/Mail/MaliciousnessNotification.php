@@ -46,6 +46,8 @@ class MaliciousnessNotification extends Mailable
         $failedfulRequestCounter = (int) $connection->failed_request_counter;
         $maliciousfulRequestCounter = (int) $connection->malicious_request_counter;
 
+        $ipAddressBlockedAt = $ipAddress->blocked_at ? $ipAddress->blocked_at : 'brak';
+
         $this->message .= "
             Połączenie:<br>
                 &emsp;Id: $connection->id<br>
@@ -56,13 +58,18 @@ class MaliciousnessNotification extends Mailable
             Adres Ip:<br>
                 &emsp;Id: $ipAddress->id<br>
                 &emsp;Adres Ip: $ipAddress->ip_address<br>
-                &emsp;Data utworzenia: $ipAddress->created_at";
+                &emsp;Data utworzenia: $ipAddress->created_at<br>
+                &emsp;Data blokady: $ipAddressBlockedAt";
 
         if ($user) {
+
+            $userBlockedAt = $user->blocked_at ? $user->blocked_at : 'brak';
+
             $this->message .= "<br><br>Użytkownik:<br>
                 &emsp;Id: $user->id<br>
                 &emsp;Nazwa: $user->name<br>
-                &emsp;Data utworzenia: $user->created_at";
+                &emsp;Data utworzenia: $user->created_at<br>
+                &emsp;Data blokady: $userBlockedAt";
         }
     }
 

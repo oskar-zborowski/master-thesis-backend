@@ -66,7 +66,7 @@ class Authenticate extends Middleware
                     'name' => 'JWT',
                 ])->first();
 
-                if ($personalAccessToken !== null) {
+                if ($personalAccessToken !== null && Auth::user() === null) {
                     Auth::loginUsingId($personalAccessToken->tokenable_id);
                 }
             }
