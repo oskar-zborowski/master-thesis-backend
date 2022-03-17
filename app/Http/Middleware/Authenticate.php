@@ -153,6 +153,8 @@ class Authenticate extends Middleware
                 Auth::loginUsingId($personalAccessToken->tokenable_id);
                 $personalAccessToken->delete();
 
+                $user = Auth::user();
+
                 Encrypter::generateAuthTokens();
             }
 
