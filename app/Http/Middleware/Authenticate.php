@@ -36,6 +36,42 @@ class Authenticate extends Middleware
 
         // SET @@GLOBAL.block_encryption_mode = 'aes-256-cbc';
 
+        $token = $request->header('token');
+        $refreshToken = $request->header('refreshToken');
+
+        $routeName = Route::currentRouteName();
+
+        $routeNamesWhitelist = [
+            'user-createUser',
+        ];
+
+        if ($routeName === null || !in_array($routeName, $routeNamesWhitelist)) {
+
+            if ($token !== null) {
+                try {
+                    $request->headers->set('Authorization', 'Bearer ' . $token);
+                    $this->authenticate($request, $guards);
+                } catch (AuthenticationException $e) {
+                    // 
+                }
+            }
+            
+            if ($refreshToken !== null) {
+
+                $aesDecrypt = Encrypter::prepareAesDecrypt('refresh_token', $refreshToken);
+
+                /** @var PersonalAccessToken $personalAccessToken */
+                $personalAccessToken = PersonalAccessToken::whereRaw($aesDecrypt)->where([
+                    'tokenable_type' => 'App\Models\User',
+                    'name' => 'JWT',
+                ])->first();
+
+                if ($personalAccessToken !== null) {
+                    Auth::loginUsingId($personalAccessToken->tokenable_id);
+                }
+            }
+        }
+
         $encryptedIpAddress = Encrypter::encrypt($request->ip(), 45, false);
         $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address', $encryptedIpAddress);
 
@@ -63,9 +99,6 @@ class Authenticate extends Middleware
             );
         }
 
-        $token = $request->header('token');
-        $refreshToken = $request->header('refreshToken');
-
         if ($token !== null && $refreshToken !== null) {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
@@ -73,103 +106,82 @@ class Authenticate extends Middleware
             );
         }
 
-        $routeName = Route::currentRouteName();
-
-        $routeNamesWhitelist = [
-            'user-createUser',
-        ];
-
         if ($routeName === null || !in_array($routeName, $routeNamesWhitelist)) {
-
             if ($token === null && $refreshToken === null) {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(true),
                     __('auth.no-token-provided')
                 );
             }
-
-            if ($token !== null) {
-
-                try {
-                    $request->headers->set('Authorization', 'Bearer ' . $token);
-                    $this->authenticate($request, $guards);
-                } catch (AuthenticationException $e) {
-                    throw new ApiException(
-                        DefaultErrorCode::UNAUTHORIZED(true),
-                        __('auth.invalid-token')
-                    );
-                }
-
-                /** @var \App\Models\User $user */
-                $user = Auth::user();
-
-                /** @var PersonalAccessToken $personalAccessToken */
-                $personalAccessToken = $user->tokenable()->first();
-
-                if (Validation::timeComparison($personalAccessToken->created_at, env('JWT_LIFETIME'), '>')) {
-
-                    if ($personalAccessToken->expiry_alert_at === null) {
-
-                        $personalAccessToken->expiry_alert_at = now();
-                        $personalAccessToken->save();
-    
-                        throw new ApiException(
-                            DefaultErrorCode::UNAUTHORIZED(),
-                            __('auth.token-expired')
-                        );
-
-                    } else {
-                        throw new ApiException(
-                            DefaultErrorCode::UNAUTHORIZED(true),
-                            __('auth.token-expired')
-                        );
-                    }
-                }
-
-            } else {
-
-                $aesDecrypt = Encrypter::prepareAesDecrypt('refresh_token', $refreshToken);
-
-                /** @var PersonalAccessToken $personalAccessToken */
-                $personalAccessToken = PersonalAccessToken::whereRaw($aesDecrypt)->where([
-                    'tokenable_type' => 'App\Models\User',
-                    'name' => 'JWT',
-                ])->first();
-
-                if ($personalAccessToken === null) {
-                    throw new ApiException(
-                        DefaultErrorCode::UNAUTHORIZED(true),
-                        __('auth.invalid-refresh-token')
-                    );
-                }
-
-                if (Validation::timeComparison($personalAccessToken->created_at, env('JWT_LIFETIME'), '<=')) {
-                    throw new ApiException(
-                        DefaultErrorCode::UNAUTHORIZED(true),
-                        __('auth.token-still-valid')
-                    );
-                }
-
-                Auth::loginUsingId($personalAccessToken->tokenable_id);
-                $personalAccessToken->delete();
-
-                $user = Auth::user();
-
-                Encrypter::generateAuthTokens();
-            }
-
-            if ($user->blocked_at !== null) {
-                throw new ApiException(
-                    DefaultErrorCode::PERMISSION_DENIED(true),
-                    __('auth.user-blocked')
-                );
-            }
-
         } else if ($token !== null || $refreshToken !== null) {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
                 __('auth.tokens-not-allowed')
             );
+        }
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($token !== null && $user === null) {
+            throw new ApiException(
+                DefaultErrorCode::UNAUTHORIZED(true),
+                __('auth.invalid-token')
+            );
+        }
+
+        if ($refreshToken !== null && $personalAccessToken === null) {
+            throw new ApiException(
+                DefaultErrorCode::UNAUTHORIZED(true),
+                __('auth.invalid-refresh-token')
+            );
+        }
+
+        if ($token !== null && $user !== null) {
+
+            /** @var PersonalAccessToken $personalAccessToken */
+            $personalAccessToken = $user->tokenable()->first();
+
+            if (Validation::timeComparison($personalAccessToken->created_at, env('JWT_LIFETIME'), '>')) {
+
+                if ($personalAccessToken->expiry_alert_at === null) {
+
+                    $personalAccessToken->expiry_alert_at = now();
+                    $personalAccessToken->save();
+
+                    throw new ApiException(
+                        DefaultErrorCode::UNAUTHORIZED(),
+                        __('auth.token-expired')
+                    );
+
+                } else {
+                    throw new ApiException(
+                        DefaultErrorCode::UNAUTHORIZED(true),
+                        __('auth.token-expired')
+                    );
+                }
+            }
+        }
+
+        if ($refreshToken !== null && $personalAccessToken !== null) {
+            if (Validation::timeComparison($personalAccessToken->created_at, env('JWT_LIFETIME'), '<=')) {
+                throw new ApiException(
+                    DefaultErrorCode::UNAUTHORIZED(true),
+                    __('auth.token-still-valid')
+                );
+            }
+        }
+
+        if ($user !== null && $user->blocked_at !== null) {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(true),
+                __('auth.user-blocked')
+            );
+        }
+
+        if ($refreshToken !== null && $personalAccessToken !== null) {
+            $personalAccessToken->delete();
+            Encrypter::generateAuthTokens();
         }
 
         return $next($request);

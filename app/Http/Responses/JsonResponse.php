@@ -5,10 +5,12 @@ namespace App\Http\Responses;
 use App\Http\ErrorCodes\ErrorCode;
 use App\Http\Libraries\Encrypter;
 use App\Http\Libraries\FieldConversion;
+use App\Mail\MaliciousnessNotification;
 use App\Models\Connection;
 use App\Models\IpAddress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 
 /**
@@ -160,9 +162,9 @@ class JsonResponse
         if ($isMalicious) {
 
             if ($connection->malicious_request_counter == 1) {
-                // TODO Wysyłka maila z informacją o pierwszym wykryciu złośliwego requesta
+                Mail::send(new MaliciousnessNotification($connection, 1));
             } else if ($connection->malicious_request_counter == 5) {
-                // TODO Kolejna wysyłka maila z informacją o dalszym wykryciu złośliwego requesta
+                Mail::send(new MaliciousnessNotification($connection, 2));
             } else if ($connection->malicious_request_counter == 10) {
 
                 $ipAddress->blocked_at = now();
@@ -173,10 +175,10 @@ class JsonResponse
                     $user->save();
                 }
 
-                // TODO Kolejna wysyłka maila z informacją o zablokowaniu adresu ip i urządzenia
+                Mail::send(new MaliciousnessNotification($connection, 3));
 
             } else if ($connection->malicious_request_counter == 25) {
-                // TODO Ostatnia wysyłka maila z informacją o konieczności zablokowania permanentnie adresu ip użytkownika w komunikacji z serwerem
+                Mail::send(new MaliciousnessNotification($connection, 4));
             }
         }
     }

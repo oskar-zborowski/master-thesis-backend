@@ -22,4 +22,17 @@ class Connection extends BaseModel
     ];
 
     protected $encryptable = [];
+
+    protected $with = [
+        'user',
+        'ipAddress'
+    ];
+
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
+
+    public function ipAddress() {
+        return $this->belongsTo(IpAddress::class);
+    }
 }
