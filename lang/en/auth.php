@@ -28,4 +28,5 @@ return [
     'token-expired' => 'The token has expired.',
     'token-still-valid' => 'The token is still valid.',
     'malicious-request' => 'Sending requests by non-cooperators is strictly prohibited. All connection attempts are monitored and can have consequences!',
+    'limit-exceeded' => 'The request limit has been exceeded. You can try again in :seconds seconds.',
 ];

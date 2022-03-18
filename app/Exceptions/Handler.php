@@ -91,9 +91,12 @@ class Handler extends ExceptionHandler
                 break;
 
             case ThrottleRequestsException::class:
+                /** @var ThrottleRequestsException $throwable */
+
                 JsonResponse::sendError(
                     $request,
-                    DefaultErrorCode::LIMIT_EXCEEDED(true)
+                    DefaultErrorCode::LIMIT_EXCEEDED(true),
+                    __('auth.limit-exceeded', ['seconds' => $throwable->getHeaders()['Retry-After']])
                 );
                 break;
 

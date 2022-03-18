@@ -43,11 +43,11 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return $request->user()
                 ? Limit::perMinute(env('API_USER_RATE_LIMIT_PER_MINUTE'))->by($request->user()->id)
-                : Limit::perMinute(env('API_IP_RATE_LIMIT_PER_MINUTE'))->by($request->ip());
+                : Limit::perMinutes(env('API_IP_DECAY_MINUNTES'), env('API_IP_RATE_LIMIT_PER_DECAY'))->by($request->ip());
         });
 
         RateLimiter::for('githubLimit', function (Request $request) {
-            return Limit::perMinute(env('API_GITHUB_RATE_LIMIT_PER_MINUTE'))->by($request->ip());
+            return Limit::perMinute(env('GITHUB_RATE_LIMIT_PER_MINUTE'))->by($request->ip());
         });
     }
 }

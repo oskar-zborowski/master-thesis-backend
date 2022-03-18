@@ -63,7 +63,7 @@ class JsonResponse
         }
 
         if ($errorCode->getIsMalicious()) {
-            $response['data'] = __('auth.malicious-request');
+            $response['metadata'] = __('auth.malicious-request');
         }
 
         $tokens = self::getTokens($request, $errorCode);
