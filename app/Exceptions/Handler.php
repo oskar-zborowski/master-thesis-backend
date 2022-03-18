@@ -93,7 +93,7 @@ class Handler extends ExceptionHandler
             case ThrottleRequestsException::class:
                 JsonResponse::sendError(
                     $request,
-                    DefaultErrorCode::LIMIT_EXCEEDED()
+                    DefaultErrorCode::LIMIT_EXCEEDED(true)
                 );
                 break;
 

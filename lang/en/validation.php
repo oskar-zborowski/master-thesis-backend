@@ -146,6 +146,6 @@ return [
             'rule-name' => 'custom-message',
         ],
         'wrong-database-search' => 'You can only use perfect matches (=) or similar matches (LIKE)',
-        'wrong-avatar-number' => 'Wrong avatar number.',
+        'wrong-avatar' => 'Wrong avatar.',
     ],
 ];

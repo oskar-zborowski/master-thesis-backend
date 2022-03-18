@@ -27,4 +27,5 @@ return [
     'invalid-refresh-token' => 'Nieprawidłowy refresh token.',
     'token-expired' => 'Token wygasł.',
     'token-still-valid' => 'Token jest nadal ważny.',
+    'malicious-request' => 'Wysyłanie żądań przez podmioty niewspółpracujące jest surowo zabronione. Wszystkie próby nawiązywania połączenia są monitorowane i mogą wiązać się z konsekwencjami!',
 ];

@@ -13,7 +13,7 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    protected function chooseAvatar(?int $number = null, bool $rand = false) {
+    protected function chooseAvatar(?string $name = null, bool $rand = false) {
 
         $avatars = [
             'AVATAR_1',
@@ -26,16 +26,18 @@ class Controller extends BaseController
         $avatarCounter = count($avatars);
 
         if ($rand) {
-            $number = rand(1, $avatarCounter);
+            $number = rand(0, $avatarCounter-1);
+        } else {
+            if ($name === null || !in_array($name, $avatars)) {
+                throw new ApiException(
+                    DefaultErrorCode::INTERNAL_SERVER_ERROR(),
+                    env('APP_DEBUG') ? __('validation.custom.wrong-avatar') : null
+                );
+            } else {
+                $number = array_search($name, $avatars);
+            }
         }
 
-        if ($number > $avatarCounter) {
-            throw new ApiException(
-                DefaultErrorCode::INTERNAL_SERVER_ERROR(),
-                env('APP_DEBUG') ? __('validation.custom.wrong-avatar-number') : null
-            );
-        }
-
-        return $avatars[$number-1];
+        return $avatars[$number];
     }
 }

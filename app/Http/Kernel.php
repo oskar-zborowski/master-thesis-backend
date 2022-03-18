@@ -40,6 +40,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\ConvertToSnakeCase::class,
             'auth:sanctum',
             'throttle:api',
+            \App\Http\Middleware\SecondAuthenticate::class,
         ],
     ];
 
@@ -55,6 +56,7 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\ConvertToSnakeCase::class,
         'auth:sanctum',
         'throttle:api',
+        \App\Http\Middleware\SecondAuthenticate::class,
     ];
 
     /**

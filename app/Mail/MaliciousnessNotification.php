@@ -19,10 +19,10 @@ class MaliciousnessNotification extends Mailable
     public function __construct(Connection $connection, int $status) {
 
         /** @var \App\Models\User $user */
-        $user = $connection->user()->first();
+        $user = $connection->user;
 
         /** @var \App\Models\IpAddress $ipAddress */
-        $ipAddress = $connection->ipAddress()->first();
+        $ipAddress = $connection->ipAddress;
 
         if ($status == 1) {
             $this->message = 'Wykryto pierwszą próbę złośliwego żądania!<br><br>';
@@ -32,7 +32,7 @@ class MaliciousnessNotification extends Mailable
 
             $this->message = 'Zablokowano Adres Ip przychodzącego żądania';
 
-            if ($user) {
+            if ($user !== null) {
                 $this->message .= ' oraz Konto Użytkownika';
             }
 
@@ -61,7 +61,7 @@ class MaliciousnessNotification extends Mailable
                 &emsp;Data utworzenia: $ipAddress->created_at<br>
                 &emsp;Data blokady: $ipAddressBlockedAt";
 
-        if ($user) {
+        if ($user !== null) {
 
             $userBlockedAt = $user->blocked_at ? $user->blocked_at : 'brak';
 
