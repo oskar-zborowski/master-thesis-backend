@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use App\Http\Traits\Encryptable;
+
 class PersonalAccessToken extends BaseModel
 {
+    use Encryptable;
+
     protected $hidden = [
         'id',
         'tokenable_type',

@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use App\Http\Traits\Encryptable;
+
 class IpAddress extends BaseModel
 {
+    use Encryptable;
+
     protected $hidden = [
         'id',
         'ip_address',

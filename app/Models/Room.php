@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use App\Http\Traits\Encryptable;
+
 class Room extends BaseModel
 {
+    use Encryptable;
+
     protected $fillable = [
         'game_mode',
     ];

@@ -21,8 +21,6 @@ class Connection extends BaseModel
         'malicious_request_counter' => 'integer',
     ];
 
-    protected $encryptable = [];
-
     protected $with = [
         'user',
         'ipAddress'

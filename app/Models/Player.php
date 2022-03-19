@@ -45,6 +45,4 @@ class Player extends BaseModel
         'mission_finished_at' => 'string',
         'updated_at' => 'string',
     ];
-
-    protected $encryptable = [];
 }
