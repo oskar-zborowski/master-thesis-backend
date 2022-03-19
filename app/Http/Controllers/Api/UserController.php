@@ -58,7 +58,7 @@ class UserController extends Controller
 
         $user->save();
 
-        JsonResponse::sendSuccess($request, $user, null);
+        JsonResponse::sendSuccess($request, $user);
     }
 
     /**
@@ -70,6 +70,6 @@ class UserController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        JsonResponse::sendSuccess($request, $user, null);
+        JsonResponse::sendSuccess($request, $user);
     }
 }

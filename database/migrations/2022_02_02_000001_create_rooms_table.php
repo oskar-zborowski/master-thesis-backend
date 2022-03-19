@@ -118,7 +118,8 @@ return new class extends Migration
 //     "mission": {
 //         "number": 5,
 //         "radius": 50,
-//         "time": 10
+//         "time": 10,
+//         "all_visible": true
 //     },
 //     "ticket": {
 //         "black": {

@@ -96,7 +96,7 @@ class Handler extends ExceptionHandler
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::LIMIT_EXCEEDED(true),
-                    __('auth.limit-exceeded', ['seconds' => $throwable->getHeaders()['Retry-After']])
+                    __('validation.custom.limit-exceeded', ['seconds' => $throwable->getHeaders()['Retry-After']])
                 );
                 break;
 

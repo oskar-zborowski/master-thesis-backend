@@ -146,6 +146,8 @@ return [
             'rule-name' => 'custom-message',
         ],
         'wrong-database-search' => 'You can only use perfect matches (=) or similar matches (LIKE)',
-        'wrong-avatar' => 'Wrong avatar.',
+        'malicious-request' => 'Sending requests by non-cooperators is strictly prohibited. All connection attempts are monitored and can have consequences!',
+        'limit-exceeded' => 'The request limit has been exceeded. You can try again in :seconds seconds.',
+        'no-permission' => 'You are not authorized to the given resource.',
     ],
 ];

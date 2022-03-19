@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\ApiException;
-use App\Http\ErrorCodes\DefaultErrorCode;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -23,21 +21,12 @@ class Controller extends BaseController
             'AVATAR_5',
         ];
 
-        $avatarCounter = count($avatars);
-
         if ($rand) {
+            $avatarCounter = count($avatars);
             $number = rand(0, $avatarCounter-1);
-        } else {
-            if ($name === null || !in_array($name, $avatars)) {
-                throw new ApiException(
-                    DefaultErrorCode::INTERNAL_SERVER_ERROR(),
-                    env('APP_DEBUG') ? __('validation.custom.wrong-avatar') : null
-                );
-            } else {
-                $number = array_search($name, $avatars);
-            }
+            $name = $avatars[$number];
         }
 
-        return $avatars[$number];
+        return $name;
     }
 }
