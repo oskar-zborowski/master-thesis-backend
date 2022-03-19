@@ -8,7 +8,7 @@ namespace App\Http\Libraries;
 class JsonConfig
 {
     public static function gameConfig() {
-        return json_encode([
+        return [
             "actor" => [
                 "policeman" => [
                     "number" => 5,
@@ -113,6 +113,6 @@ class JsonConfig
                 "thief_knows_saboteur" => true,
                 "saboteur_sees_thief" => true,
             ],
-        ]);
+        ];
     }
 }
