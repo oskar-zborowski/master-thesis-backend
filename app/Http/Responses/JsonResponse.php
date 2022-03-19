@@ -66,7 +66,7 @@ class JsonResponse
             $response['metadata'] = __('auth.malicious-request');
         }
 
-        $tokens = self::getTokens($request, $errorCode);
+        $tokens = self::getTokens($request, $errorCode, $data);
 
         if ($tokens !== null) {
             $response['tokens'] = $tokens;
@@ -78,7 +78,7 @@ class JsonResponse
         die;
     }
 
-    public static function getTokens($request, ?ErrorCode $errorCode = null) {
+    public static function getTokens($request, ?ErrorCode $errorCode = null, $data = null) {
 
         $result = null;
 
@@ -96,12 +96,12 @@ class JsonResponse
             ];
         }
 
-        self::saveDeviceInformation($request, $errorCode);
+        self::saveDeviceInformation($request, $errorCode, $data);
 
         return $result;
     }
 
-    public static function saveDeviceInformation($request, ?ErrorCode $errorCode = null) {
+    public static function saveDeviceInformation($request, ?ErrorCode $errorCode, $data) {
 
         /** @var Request $request */
 
@@ -166,9 +166,9 @@ class JsonResponse
         if ($isMalicious) {
 
             if ($connection->malicious_request_counter == 1) {
-                Mail::send(new MaliciousnessNotification($connection, 1));
+                Mail::send(new MaliciousnessNotification($connection, 1, $errorCode, $data));
             } else if ($connection->malicious_request_counter == 5) {
-                Mail::send(new MaliciousnessNotification($connection, 2));
+                Mail::send(new MaliciousnessNotification($connection, 2, $errorCode, $data));
             } else if ($connection->malicious_request_counter == 10) {
 
                 $ipAddress->blocked_at = now();
@@ -179,10 +179,10 @@ class JsonResponse
                     $user->save();
                 }
 
-                Mail::send(new MaliciousnessNotification($connection, 3));
+                Mail::send(new MaliciousnessNotification($connection, 3, $errorCode, $data));
 
             } else if ($connection->malicious_request_counter == 25) {
-                Mail::send(new MaliciousnessNotification($connection, 4));
+                Mail::send(new MaliciousnessNotification($connection, 4, $errorCode, $data));
             }
         }
     }

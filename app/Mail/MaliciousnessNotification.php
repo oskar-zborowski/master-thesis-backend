@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Http\ErrorCodes\ErrorCode;
 use App\Models\Connection;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -16,7 +17,7 @@ class MaliciousnessNotification extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(Connection $connection, int $status) {
+    public function __construct(Connection $connection, int $status, ErrorCode $errorCode, $data) {
 
         /** @var \App\Models\User $user */
         $user = $connection->user;
@@ -41,6 +42,14 @@ class MaliciousnessNotification extends Mailable
         } else if ($status == 4) {
             $this->message = 'Wymagana jest permanentna blokada Adresu Ip przychodzącego żądania!<br><br>';
         }
+
+        $errorType = $errorCode->getMessage();
+        $errorDescription = !empty($data) ? implode(' ', $data) : 'brak';
+
+        $this->message .= "
+            Informacje:<br>
+                &emsp;Typ: $errorType<br>
+                &emsp;Opis: $errorDescription<br><br>";
 
         $successfulRequestCounter = (int) $connection->successful_request_counter;
         $failedfulRequestCounter = (int) $connection->failed_request_counter;
