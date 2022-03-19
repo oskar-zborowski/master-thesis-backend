@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Libraries\Encrypter;
-use App\Http\Requests\UserRequest;
+use App\Http\Requests\CreateUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use App\Http\Responses\JsonResponse;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class UserController extends Controller
      * #### `POST` `/api/v1/users`
      * Stworzenie nowego użytkownika
      */
-    public function createUser(UserRequest $request) {
+    public function createUser(CreateUserRequest $request) {
 
         $user = new User;
         $user->name = $request->name;
@@ -38,11 +39,24 @@ class UserController extends Controller
      * #### `PATCH` `/api/v1/users/me`
      * Edycja użytkownika
      */
-    public function updateUser(UserRequest $request) {
+    public function updateUser(UpdateUserRequest $request) {
 
         /** @var User $user */
         $user = Auth::user();
-        $user->update($request->only('name', 'os_version', 'app_version'));
+
+        if ($request->name) {
+            $user->name = $request->name;
+        }
+
+        if ($request->os_version) {
+            $user->os_version = $request->os_version;
+        }
+
+        if ($request->app_version) {
+            $user->app_version = $request->app_version;
+        }
+
+        $user->save();
 
         JsonResponse::sendSuccess($request, $user, null);
     }
