@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RoomRequest extends FormRequest
+class UpdateRoomRequest extends FormRequest
 {
     public function authorize() {
         return true;

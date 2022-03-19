@@ -12,12 +12,6 @@ class User extends Authenticatable
 {
     use Encryptable, HasApiTokens, HasFactory, Notifiable;
 
-    protected $fillable = [
-        'name',
-        'os_version',
-        'app_version',
-    ];
-
     protected $hidden = [
         'default_avatar',
         'producer',

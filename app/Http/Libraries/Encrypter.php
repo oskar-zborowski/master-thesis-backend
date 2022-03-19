@@ -48,37 +48,19 @@ class Encrypter
         return $text;
     }
 
-    public static function generateToken(int $maxSize = 36, $entity = null, ?string $field = null, string $addition = '') {
+    public static function generateToken(int $size = 36, $entity = null, ?string $field = null, string $addition = '') {
 
-        $maxSize -= strlen($addition);
+        $size -= strlen($addition);
 
-        if ($maxSize > 0) {
+        if ($size > 0) {
             do {
-                $token = self::fillWithRandomCharacters('', $maxSize, true) . $addition;
+                $token = self::fillWithRandomCharacters('', $size, true) . $addition;
             } while ($entity !== null && $field !== null && !Validation::checkUniqueness($token, $entity, $field, true));
         } else {
             $token = null;
         }
 
         return $token;
-    }
-
-    public static function prepareAesDecrypt(string $field, string $semiEncrypted, string $search = '=') {
-
-        $passphrase = env('OPENSSL_PASSPHRASE');
-
-        if (strtolower($search) == 'like') {
-            $semiEncrypted = "LIKE \"%$semiEncrypted%\"";
-        } else if ($search == '=' || $search == '==') {
-            $semiEncrypted = "= \"$semiEncrypted\"";
-        } else {
-            throw new ApiException(
-                DefaultErrorCode::INTERNAL_SERVER_ERROR(),
-                env('APP_DEBUG') ? __('validation.custom.wrong-database-search') : null
-            );
-        }
-
-        return "AES_DECRYPT(UNHEX(SUBSTRING($field, 17)), \"$passphrase\", SUBSTRING($field, 1, 16)) $semiEncrypted";
     }
 
     public static function generateAuthTokens() {
@@ -98,6 +80,24 @@ class Encrypter
 
         Session::put('token', $jwtToken);
         Session::put('refreshToken', $refreshToken);
+    }
+
+    public static function prepareAesDecrypt(string $field, string $semiEncrypted, string $search = '=') {
+
+        $passphrase = env('OPENSSL_PASSPHRASE');
+
+        if (strtolower($search) == 'like') {
+            $semiEncrypted = "LIKE \"%$semiEncrypted%\"";
+        } else if ($search == '=' || $search == '==') {
+            $semiEncrypted = "= \"$semiEncrypted\"";
+        } else {
+            throw new ApiException(
+                DefaultErrorCode::INTERNAL_SERVER_ERROR(),
+                env('APP_DEBUG') ? __('validation.custom.wrong-database-search') : null
+            );
+        }
+
+        return "AES_DECRYPT(UNHEX(SUBSTRING($field, 17)), \"$passphrase\", SUBSTRING($field, 1, 16)) $semiEncrypted";
     }
 
     private static function fillWithRandomCharacters(string $text = '', ?int $maxSize, bool $rand = false, bool $onlyCapitalLetters = false) {

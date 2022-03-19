@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('model', 50)->nullable();
             $table->enum('os_name', ['ANDROID', 'IOS'])->nullable();
             $table->string('os_version', 10)->nullable();
-            $table->enum('app_version', ['1.0.0'])->default('1.0.0');
+            $table->enum('app_version', ['1.0.0']);
             $table->char('uuid', 112)->nullable(); // Kodowane automatycznie
             $table->timestamp('blocked_at')->nullable();
             $table->timestamps();

@@ -8,10 +8,6 @@ class Room extends BaseModel
 {
     use Encryptable;
 
-    protected $fillable = [
-        'game_mode',
-    ];
-
     protected $hidden = [
         'host_id',
         'street',
@@ -31,7 +27,6 @@ class Room extends BaseModel
 
     protected $casts = [
         'id' => 'integer',
-        'game_counter' => 'integer',
         'game_config' => 'array',
         'game_started_at' => 'string',
         'game_paused_at' => 'string',

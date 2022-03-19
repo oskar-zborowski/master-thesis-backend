@@ -15,12 +15,11 @@ return new class extends Migration
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
             $table->foreignId('host_id')->nullable()->references('id')->on('users')->nullOnDelete();
-            $table->char('code', 48); // Kodowane automatycznie
+            $table->char('code', 48)->unique(); // Kodowane automatycznie
             $table->string('street', 80)->nullable();
             $table->string('city', 40)->nullable();
             $table->string('voivodeship', 20)->nullable();
             $table->string('country', 30)->nullable();
-            $table->unsignedSmallInteger('game_counter');
             $table->enum('game_mode', ['SCOTLAND_YARD', 'MISSION_IMPOSSIBLE'])->default('SCOTLAND_YARD');
             $table->json('game_config');
             $table->polygon('boundary')->nullable();
