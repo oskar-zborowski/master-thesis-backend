@@ -20,7 +20,6 @@ class Geometry
             );
         }
 
-        $points = json_decode($points);
         $result = '';
 
         foreach ($points as $point) {
@@ -32,6 +31,12 @@ class Geometry
             $result .= $point['lng'] . ' ' . $point['lat'];
         }
 
-        return DB::raw("(GeomFromText('$objectType($result)'))");
+        if ($objectType == 'MULTIPOINT') {
+            $result = DB::raw("ST_GeomFromText('$objectType($result)')");
+        } else {
+            $result = DB::raw("ST_GeomFromText('$objectType(($result))')");
+        }
+
+        return $result;
     }
 }

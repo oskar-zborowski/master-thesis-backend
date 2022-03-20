@@ -7,6 +7,8 @@ use App\Http\Responses\JsonResponse;
 use BadMethodCallException;
 use ErrorException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Validation\ValidationException;
@@ -72,7 +74,9 @@ class Handler extends ExceptionHandler
 
             case BadMethodCallException::class:
             case MethodNotAllowedHttpException::class:
+            case ModelNotFoundException::class:
             case NotFoundHttpException::class:
+            case QueryException::class:
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::FAILED_VALIDATION(true),
@@ -80,7 +84,7 @@ class Handler extends ExceptionHandler
                 );
                 break;
 
-             case ErrorException::class:
+            case ErrorException::class:
                 /** @var ErrorException $throwable */
 
                 JsonResponse::sendError(

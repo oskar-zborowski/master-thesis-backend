@@ -51,18 +51,25 @@ class RoomController extends Controller
             );
         }
 
-        /** @var \App\Models\Player $newHost */
-        $newHost = $room->players()->where('user_id', $request->host_id)->where('status', '<>', 'BLOCKED')->first();
+        if ($request->host_id !== null) {
 
-        if ($newHost === null) {
-            throw new ApiException(
-                DefaultErrorCode::FAILED_VALIDATION(),
-                __('validation.custom.user-is-not-in-room')
-            );
+            /** @var \App\Models\Player $newHost */
+            $newHost = $room->players()->where('user_id', $request->host_id)->where('status', '<>', 'BLOCKED')->first();
+
+            if ($newHost === null) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.user-is-not-in-room')
+                );
+            }
+
+            $room->host_id = $request->host_id;
         }
 
-        $room->host_id = $request->host_id;
-        $room->game_mode = $request->game_mode;
+        if ($request->game_mode !== null) {
+            $room->game_mode = $request->game_mode;
+        }
+
         $room->game_config = JsonConfig::gameConfig($room, $request);
 
         if ($request->boundary !== null) {

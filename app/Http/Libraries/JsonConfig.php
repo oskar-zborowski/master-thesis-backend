@@ -127,24 +127,24 @@ class JsonConfig
 
         $gameConfig = $room->game_config;
 
-        if ($request->policeman_number !== null) {
-            $gameConfig['actor']['policeman']['number'] = $request->policeman_number;
+        if ($request->actor_policeman_number !== null) {
+            $gameConfig['actor']['policeman']['number'] = $request->actor_policeman_number;
         }
 
-        if ($request->thief_number !== null) {
-            $gameConfig['actor']['thief']['number'] = $request->thief_number;
+        if ($request->actor_thief_number !== null) {
+            $gameConfig['actor']['thief']['number'] = $request->actor_thief_number;
         }
 
-        if ($request->agent_number !== null) {
-            $gameConfig['actor']['agent']['number'] = $request->agent_number;
+        if ($request->actor_agent_number !== null) {
+            $gameConfig['actor']['agent']['number'] = $request->actor_agent_number;
         }
 
-        if ($request->saboteur_number !== null) {
-            $gameConfig['actor']['saboteur']['number'] = $request->saboteur_number;
+        if ($request->actor_saboteur_number !== null) {
+            $gameConfig['actor']['saboteur']['number'] = $request->actor_saboteur_number;
         }
 
-        if ($request->saboteur_probability !== null) {
-            $gameConfig['actor']['saboteur']['probability'] = $request->saboteur_probability;
+        if ($request->actor_saboteur_probability !== null) {
+            $gameConfig['actor']['saboteur']['probability'] = $request->actor_saboteur_probability;
         }
 
         if ($request->bot_policeman_maximum_speed !== null) {

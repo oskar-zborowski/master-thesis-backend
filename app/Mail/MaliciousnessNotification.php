@@ -44,7 +44,18 @@ class MaliciousnessNotification extends Mailable
         }
 
         $errorType = $errorCode->getMessage();
-        $errorDescription = !empty($data) ? implode(' ', $data) : 'brak';
+
+        if (!empty($data)) {
+
+            if (is_array($data)) {
+                $errorDescription = implode(' ', $data);
+            } else {
+                $errorDescription = $data;
+            }
+
+        } else {
+            $errorDescription = 'brak';
+        }
 
         $this->message .= "
             Informacje:<br>
