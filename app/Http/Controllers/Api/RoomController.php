@@ -21,7 +21,7 @@ class RoomController extends Controller
      */
     public function createRoom(Request $request) {
 
-        /** @var User $user */
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         /** @var Room $room */
@@ -40,7 +40,7 @@ class RoomController extends Controller
      */
     public function updateRoom(Room $room, UpdateRoomRequest $request) {
 
-        /** @var User $user */
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         if ($room->host_id != $user->id) {
@@ -50,6 +50,17 @@ class RoomController extends Controller
             );
         }
 
+        /** @var \App\Models\Player $newHost */
+        $newHost = $room->players()->where('user_id', $request->host_id)->where('status', '<>', 'BLOCKED')->first();
+
+        if ($newHost === null) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.user-is-not-in-room')
+            );
+        }
+
+        $room->host_id = $request->host_id;
         $room->game_mode = $request->game_mode;
         $room->game_config = $request->game_config;
         $room->boundary = $request->boundary;
@@ -62,8 +73,8 @@ class RoomController extends Controller
     }
 
     /**
-     * #### `PATCH` `/api/v1/rooms/{room}`
-     * Edycja pokoju
+     * #### `GET` `/api/v1/rooms/{room}`
+     * Pobranie informacji o grze
      */
     public function getRoom(Room $room, Request $request) {
 
@@ -71,7 +82,7 @@ class RoomController extends Controller
         $user = Auth::user();
 
         /** @var \App\Models\Player $player */
-        $player = $user->players()->where('room_id', $room->id)->first();
+        $player = $room->players()->where('user_id', $user->id)->where('status', '<>', 'BLOCKED')->first();
 
         if ($player === null) {
             throw new ApiException(

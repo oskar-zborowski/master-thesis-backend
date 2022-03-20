@@ -149,6 +149,7 @@ return [
         'malicious-request' => 'Sending requests by non-cooperators is strictly prohibited. All connection attempts are monitored and can have consequences!',
         'limit-exceeded' => 'The request limit has been exceeded. You can try again in :seconds seconds.',
         'no-permission' => 'You are not authorized to the given resource.',
+        'user-is-not-in-room' => 'The specified user is not in the room.',
     ],
 
     /*

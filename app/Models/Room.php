@@ -37,4 +37,8 @@ class Room extends BaseModel
     protected $encryptable = [
         'code' => 6,
     ];
+
+    public function players() {
+        return $this->hasMany(Player::class);
+    }
 }

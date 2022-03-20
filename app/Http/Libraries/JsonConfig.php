@@ -71,9 +71,11 @@ class JsonConfig
             "monitoring" => [
                 "number" => 0,
                 "radius" => 50,
+                "random" => false,
                 "central" => [
                     "number" => 0,
                     "radius" => 50,
+                    "random" => false,
                 ],
             ],
             "mission" => [
@@ -104,6 +106,7 @@ class JsonConfig
                 "number" => 0,
                 "probability" => 0.5,
                 "radius" => 250,
+                "random" => false,
             ],
             "game_pause" => [
                 "after_disconnecting" => true,

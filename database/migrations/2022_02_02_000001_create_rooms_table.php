@@ -110,9 +110,11 @@ return new class extends Migration
 //     "monitoring": {
 //         "number": 0,
 //         "radius": 50,
+//         "random": false,
 //         "central": {
 //             "number": 0,
-//             "radius": 50
+//             "radius": 50,
+//             "random": false
 //         }
 //     },
 //     "mission": {
@@ -142,7 +144,8 @@ return new class extends Migration
 //     "fake_position": {
 //         "number": 0,
 //         "probability": 0.5,
-//         "radius": 250
+//         "radius": 250,
+//         "random": false
 //     },
 //     "game_pause": {
 //         "after_disconnecting": true,

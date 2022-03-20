@@ -34,6 +34,7 @@ Route::get('/v1/users/me', [UserController::class, 'getUser'])->name('user-getUs
 
 Route::post('/v1/rooms', [RoomController::class, 'createRoom'])->name('room-createRoom');
 Route::patch('/v1/rooms/{room}', [RoomController::class, 'updateRoom'])->name('room-updateRoom');
+Route::get('/v1/rooms/{room}', [RoomController::class, 'getRoom'])->name('room-getRoom');
 
 Route::post('/v1/players', [PlayerController::class, 'createPlayer'])->name('player-createPlayer');
 Route::patch('/v1/players/{player}', [PlayerController::class, 'updatePlayer'])->name('player-updatePlayer');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Libraries\Encrypter;
+use App\Http\Libraries\Validation;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Responses\JsonResponse;
@@ -21,7 +22,7 @@ class UserController extends Controller
 
         $user = new User;
         $user->name = $request->name;
-        $user->default_avatar = $this->chooseAvatar(null, true);
+        $user->default_avatar = Validation::chooseAvatar();
         $user->producer = $request->producer;
         $user->model = $request->model;
         $user->os_name = $request->os_name;

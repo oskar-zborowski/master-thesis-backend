@@ -149,5 +149,6 @@ return [
         'malicious-request' => 'Wysyłanie żądań przez podmioty niewspółpracujące jest surowo zabronione. Wszystkie próby nawiązywania połączenia są monitorowane i mogą wiązać się z konsekwencjami!',
         'limit-exceeded' => 'Przekroczono limit żądań. Możesz spróbować ponownie za :seconds sekund.',
         'no-permission' => 'Nie masz uprawnień do danego zasobu.',
+        'user-is-not-in-room' => 'Podany użytkownik nie znajduje się w pokoju.',
     ],
 ];

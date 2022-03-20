@@ -37,8 +37,4 @@ class User extends Authenticatable
     public function tokenable() {
         return $this->morphOne(PersonalAccessToken::class, 'tokenable');
     }
-
-    public function players() {
-        return $this->hasMany(Player::class);
-    }
 }

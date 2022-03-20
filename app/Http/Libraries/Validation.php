@@ -69,4 +69,20 @@ class Validation
 
         return $comparasion;
     }
+
+    public static function chooseAvatar() {
+
+        $avatars = [
+            'AVATAR_1',
+            'AVATAR_2',
+            'AVATAR_3',
+            'AVATAR_4',
+            'AVATAR_5',
+        ];
+
+        $avatarCounter = count($avatars);
+        $number = rand(0, $avatarCounter-1);
+
+        return $avatars[$number];
+    }
 }
