@@ -45,15 +45,15 @@ class UserController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        if ($request->name) {
+        if ($request->name !== null) {
             $user->name = $request->name;
         }
 
-        if ($request->os_version) {
+        if ($request->os_version !== null) {
             $user->os_version = $request->os_version;
         }
 
-        if ($request->app_version) {
+        if ($request->app_version !== null) {
             $user->app_version = $request->app_version;
         }
 

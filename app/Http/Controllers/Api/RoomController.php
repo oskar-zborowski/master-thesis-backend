@@ -6,6 +6,7 @@ use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Libraries\Encrypter;
+use App\Http\Libraries\Geometry;
 use App\Http\Libraries\JsonConfig;
 use App\Http\Requests\UpdateRoomRequest;
 use App\Http\Responses\JsonResponse;
@@ -28,7 +29,7 @@ class RoomController extends Controller
         $room = new Room;
         $room->host_id = $user->id;
         $room->code = Encrypter::generateToken(6, Room::class, 'code');
-        $room->game_config = JsonConfig::gameConfig();
+        $room->game_config = JsonConfig::defaultGameConfig();
         $room->save();
 
         JsonResponse::sendSuccess($request, null, null, 201);
@@ -62,11 +63,24 @@ class RoomController extends Controller
 
         $room->host_id = $request->host_id;
         $room->game_mode = $request->game_mode;
-        $room->game_config = $request->game_config;
-        $room->boundary = $request->boundary;
-        $room->mission_centers = $request->mission_centers;
-        $room->monitoring_centers = $request->monitoring_centers;
-        $room->monitoring_centrals = $request->monitoring_centrals;
+        $room->game_config = JsonConfig::gameConfig($room, $request);
+
+        if ($request->boundary !== null) {
+            $room->boundary = Geometry::geometryObject($request->boundary, 'POLYGON');
+        }
+
+        if ($request->mission_centers !== null) {
+            $room->mission_centers = Geometry::geometryObject($request->mission_centers, 'MULTIPOINT');
+        }
+
+        if ($request->monitoring_centers !== null) {
+            $room->monitoring_centers = Geometry::geometryObject($request->monitoring_centers, 'MULTIPOINT');
+        }
+
+        if ($request->monitoring_centrals !== null) {
+            $room->monitoring_centrals = Geometry::geometryObject($request->monitoring_centrals, 'MULTIPOINT');
+        }
+
         $room->save();
 
         JsonResponse::sendSuccess($request);

@@ -145,11 +145,12 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
-        'wrong-database-search' => 'Możesz użyć jedynie dopasowań idealnych (=), albo dopasowań podobnych (LIKE)',
-        'malicious-request' => 'Wysyłanie żądań przez podmioty niewspółpracujące jest surowo zabronione. Wszystkie próby nawiązywania połączenia są monitorowane i mogą wiązać się z konsekwencjami!',
         'limit-exceeded' => 'Przekroczono limit żądań. Możesz spróbować ponownie za :seconds sekund.',
+        'malicious-request' => 'Wysyłanie żądań przez podmioty niewspółpracujące jest surowo zabronione. Wszystkie próby nawiązywania połączenia są monitorowane i mogą wiązać się z konsekwencjami!',
         'no-permission' => 'Nie masz uprawnień do danego zasobu.',
         'user-is-not-in-room' => 'Podany użytkownik nie znajduje się w pokoju.',
+        'wrong-database-search' => 'Możesz użyć jedynie dopasowań idealnych (=), albo dopasowań podobnych (LIKE)',
+        'wrong-geometry-object-type' => 'Możesz użyć jedynie typu MULTIPOINT lub POLYGON',
     ],
 
     /*
