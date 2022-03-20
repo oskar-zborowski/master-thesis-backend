@@ -148,8 +148,11 @@ return [
         'limit-exceeded' => 'Przekroczono limit żądań. Możesz spróbować ponownie za :seconds sekund.',
         'malicious-request' => 'Wysyłanie żądań przez podmioty niewspółpracujące jest surowo zabronione. Wszystkie próby nawiązywania połączenia są monitorowane i mogą wiązać się z konsekwencjami!',
         'no-permission' => 'Nie masz uprawnień do danego zasobu.',
+        'boundary-not-closed' => 'Granica nie została zamknięta.',
+        'invalid-coordinate-format' => 'Nieprawidłowy format współrzędnych geograficznych.',
+        'repeated-points' => 'Współrzędne geograficzne punktów nie mogą się powtarzać.',
         'user-is-not-in-room' => 'Podany użytkownik nie znajduje się w pokoju.',
-        'wrong-database-search' => 'Możesz użyć jedynie dopasowań idealnych (=), albo dopasowań podobnych (LIKE)',
-        'wrong-geometry-object-type' => 'Możesz użyć jedynie typu MULTIPOINT lub POLYGON',
+        'wrong-database-search' => 'Możesz użyć jedynie dopasowań idealnych (=), albo dopasowań podobnych (LIKE).',
+        'wrong-geometry-object-type' => 'Możesz użyć jedynie typu MULTIPOINT lub POLYGON.',
     ],
 ];

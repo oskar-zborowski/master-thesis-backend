@@ -46,7 +46,7 @@ class RoomController extends Controller
 
         if ($room->host_id != $user->id) {
             throw new ApiException(
-                DefaultErrorCode::PERMISSION_DENIED(),
+                DefaultErrorCode::PERMISSION_DENIED(true),
                 __('validation.custom.no-permission')
             );
         }
@@ -58,7 +58,7 @@ class RoomController extends Controller
 
             if ($newHost === null) {
                 throw new ApiException(
-                    DefaultErrorCode::FAILED_VALIDATION(),
+                    DefaultErrorCode::FAILED_VALIDATION(true),
                     __('validation.custom.user-is-not-in-room')
                 );
             }
@@ -107,7 +107,7 @@ class RoomController extends Controller
 
         if ($player === null) {
             throw new ApiException(
-                DefaultErrorCode::PERMISSION_DENIED(),
+                DefaultErrorCode::PERMISSION_DENIED(true),
                 __('validation.custom.no-permission')
             );
         }
