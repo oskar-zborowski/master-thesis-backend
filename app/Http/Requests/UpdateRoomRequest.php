@@ -73,7 +73,6 @@ class UpdateRoomRequest extends FormRequest
             'other_thief_knows_saboteur' => 'nullable|boolean',
             'other_saboteur_sees_thief' => 'nullable|boolean',
             'boundary' => 'nullable|array|between:4,20',
-            'mission_centers' => 'nullable|array|between:3,50',
             'monitoring_centers' => 'nullable|array|between:1,10',
             'monitoring_centrals' => 'nullable|array|between:1,5',
         ];

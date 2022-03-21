@@ -13,6 +13,7 @@ use App\Http\Responses\JsonResponse;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class RoomController extends Controller
 {
@@ -73,11 +74,8 @@ class RoomController extends Controller
         $room->game_config = JsonConfig::gameConfig($room, $request);
 
         if ($request->boundary !== null) {
-            $room->boundary = Geometry::geometryObject($request->boundary, 'POLYGON');
-        }
-
-        if ($request->mission_centers !== null) {
-            $room->mission_centers = Geometry::geometryObject($request->mission_centers, 'MULTIPOINT');
+            $room->boundary = DB::raw("ST_GeomFromText('POLYGON((0 0,10 0,10 10,0 10,0 0))')");
+            // $room->boundary = Geometry::geometryObject($request->boundary, 'POLYGON');
         }
 
         if ($request->monitoring_centers !== null) {
@@ -105,12 +103,17 @@ class RoomController extends Controller
         /** @var \App\Models\Player $player */
         $player = $room->players()->where('user_id', $user->id)->where('status', '<>', 'BLOCKED')->first();
 
-        if ($player === null) {
-            throw new ApiException(
-                DefaultErrorCode::PERMISSION_DENIED(true),
-                __('validation.custom.no-permission')
-            );
-        }
+        // if ($player === null) {
+        //     throw new ApiException(
+        //         DefaultErrorCode::PERMISSION_DENIED(true),
+        //         __('validation.custom.no-permission')
+        //     );
+        // }
+
+        $result = Room::selectRaw('ST_AsText(ST_ExteriorRing(' . $room->boundary . '))')->first();
+
+        echo $result;
+        die;
 
         JsonResponse::sendSuccess($request);
     }

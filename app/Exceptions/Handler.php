@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Responses\JsonResponse;
+use ArgumentCountError;
 use BadMethodCallException;
 use ErrorException;
 use Illuminate\Auth\AuthenticationException;
@@ -84,13 +85,12 @@ class Handler extends ExceptionHandler
                 );
                 break;
 
+            case ArgumentCountError::class:
             case ErrorException::class:
-                /** @var ErrorException $throwable */
-
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
-                    env('APP_DEBUG') ? $throwable->getMessage() : null
+                    env('APP_DEBUG') ? [$throwable->getMessage(), $throwable->getFile(), $throwable->getLine()] : null
                 );
                 break;
 

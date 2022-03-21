@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Http\Traits\Encryptable;
+use MatanYadaev\EloquentSpatial\SpatialBuilder;
+use MatanYadaev\EloquentSpatial\Objects\Point;
+use MatanYadaev\EloquentSpatial\Objects\Polygon;
 
 class Room extends BaseModel
 {
@@ -28,6 +31,10 @@ class Room extends BaseModel
     protected $casts = [
         'id' => 'integer',
         'game_config' => 'array',
+        'boundary' => Polygon::class,
+        'mission_centers' => Point::class,
+        'monitoring_centers' => Point::class,
+        'monitoring_centrals' => Point::class,
         'game_started_at' => 'string',
         'game_paused_at' => 'string',
         'game_ended_at' => 'string',
@@ -40,5 +47,9 @@ class Room extends BaseModel
 
     public function players() {
         return $this->hasMany(Player::class);
+    }
+
+    public function newEloquentBuilder($query): SpatialBuilder {
+        return new SpatialBuilder($query);
     }
 }

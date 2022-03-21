@@ -150,9 +150,10 @@ return [
         'no-permission' => 'Nie masz uprawnień do danego zasobu.',
         'boundary-not-closed' => 'Granica nie została zamknięta.',
         'invalid-coordinate-format' => 'Nieprawidłowy format współrzędnych geograficznych.',
+        'invalid-geometry-object-type' => 'Możesz użyć jedynie typu MULTIPOINT lub POLYGON.',
+        'invalid-object-type' => 'Możesz użyć jedynie typów: boundary, mission_centers, monitoring_centers, monitoring_centrals.',
         'repeated-points' => 'Współrzędne geograficzne punktów nie mogą się powtarzać.',
         'user-is-not-in-room' => 'Podany użytkownik nie znajduje się w pokoju.',
         'wrong-database-search' => 'Możesz użyć jedynie dopasowań idealnych (=), albo dopasowań podobnych (LIKE).',
-        'wrong-geometry-object-type' => 'Możesz użyć jedynie typu MULTIPOINT lub POLYGON.',
     ],
 ];

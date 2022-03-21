@@ -4,6 +4,7 @@ namespace App\Http\Libraries;
 
 use App\Exceptions\ApiException;
 use App\Http\ErrorCodes\DefaultErrorCode;
+use App\Models\Room;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -11,58 +12,70 @@ use Illuminate\Support\Facades\DB;
  */
 class Geometry
 {
-    public static function geometryObject($points, string $objectType) {
+    private array $typesOfPolygons;
+    private array $typesOfMultiPoints;
 
-        if ($objectType != 'MULTIPOINT' && $objectType != 'POLYGON') {
+    private Room $room;
+
+    private array $boundaries;
+    private array $missionCenters;
+    private array $monitoringCenters;
+    private array $monitoringCentrals;
+
+    public function __construct(Room $room) {
+        $this->typesOfPolygons = $this->getTypesOfPolygons();
+        $this->typesOfMultiPoints = $this->getTypesOfMultiPoints();
+        $this->room = $room;
+    }
+
+    public function addPoints(array $points, string $objectType) {
+
+        $this->checkPoints($points);
+
+        if ($objectType == 'boundary') {
+            $this->boundaries[] = $points;
+        } else if ($objectType == 'missionCenter') {
+            $this->missionCenters = array_merge($this->missionCenters, $points);
+        } else if ($objectType == 'monitoringCenter') {
+            $this->monitoringCenters = array_merge($this->monitoringCenters, $points);
+        } else if ($objectType == 'monitoringCentral') {
+            $this->monitoringCentrals = array_merge($this->monitoringCentrals, $points);
+        } else {
             throw new ApiException(
                 DefaultErrorCode::INTERNAL_SERVER_ERROR(),
-                env('APP_DEBUG') ? __('validation.custom.wrong-object-type') : null
+                env('APP_DEBUG') ? __('validation.custom.invalid-object-type') : null
             );
         }
+    }
+
+    public static function geometryObject(array $points, string $geometryObjectType) {
+
+        self::checkGeometryObjectType($geometryObjectType);
+        self::checkPointsFormat($points);
 
         $result = '';
-        $allPointsString = [];
-        $allPointsFloat = [];
 
         foreach ($points as $point) {
-
-            if ($point['lng'] === null || (!is_float($point['lng']) && !is_int($point['lng'])) ||
-                $point['lat'] === null || (!is_float($point['lat']) && !is_int($point['lat'])))
-            {
-                throw new ApiException(
-                    DefaultErrorCode::FAILED_VALIDATION(true),
-                    __('validation.custom.invalid-coordinate-format')
-                );
-            }
 
             if ($result != '') {
                 $result .= ',';
             }
 
-            $pString = $point['lng'] . ' ' . $point['lat'];
-            $result .= $pString;
-
-            $allPointsString[] = $pString;
-            $allPointsFloat[] = [
-                'lng' => $point['lng'],
-                'lat' => $point['lat'],
-            ];
-
-            if ($objectType == 'MULTIPOINT' && in_array($pString, $allPointsString)) {
-                throw new ApiException(
-                    DefaultErrorCode::FAILED_VALIDATION(),
-                    __('validation.custom.repeated-points')
-                );
-            }
+            $result .= $point['lng'] . ' ' . $point['lat'];
         }
 
-        if ($objectType == 'MULTIPOINT') {
-            $result = DB::raw("ST_GeomFromText('$objectType($result)')");
-        } else {
+        if (self::checkRepeatedPoints($points, $geometryObjectType)) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.repeated-points')
+            );
+        }
 
-            $countAllPoints = count($allPointsString);
+        if ($geometryObjectType == 'MULTIPOINT') {
+            $result = DB::raw("ST_GeomFromText('$geometryObjectType($result)')");
+        } else if ($geometryObjectType == 'POLYGON') {
 
-            if ($allPointsString[0] != $allPointsString[$countAllPoints-1]) {
+            if ($points[0]['lng'] != $points[$countPoints-1]['lng'] || $points[0]['lat'] != $points[$countPoints-1]['lat']) {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(),
                     __('validation.custom.boundary-not-closed')
@@ -71,8 +84,22 @@ class Geometry
 
             for ($i=0; $i<$countAllPoints-2; $i++) {
                 for ($j=$i+1; $j<$countAllPoints-1; $j++) {
-                    if (self::checkLineIntersection($allPointsFloat[$i], $allPointsFloat[$i+1], $allPointsFloat[$j], $allPointsFloat[($j+1) % $countAllPoints])) {
-                        echo 'Nieprawidłowa granica';
+
+                    $haveCommonVertices = false;
+
+                    if ($allPointsFloat[$i+1]['lng'] == $allPointsFloat[$j]['lng'] && $allPointsFloat[$i+1]['lat'] == $allPointsFloat[$j]['lat'] ||
+                        $allPointsFloat[$i]['lng'] == $allPointsFloat[$j+1]['lng'] && $allPointsFloat[$i]['lat'] == $allPointsFloat[$j+1]['lat'])
+                    {
+                        $haveCommonVertices = true;
+                    }
+
+                    if (self::checkLineIntersection($allPointsFloat[$i], $allPointsFloat[$i+1], $allPointsFloat[$j], $allPointsFloat[$j+1], $haveCommonVertices)) {
+                        echo json_encode([
+                            $allPointsFloat[$i],
+                            $allPointsFloat[$i+1],
+                            $allPointsFloat[$j],
+                            $allPointsFloat[$j+1],
+                        ]);
                         die;
                     }
                 }
@@ -84,7 +111,7 @@ class Geometry
         return $result;
     }
 
-    private static function checkLineIntersection(array $A1, array $B1, array $A2, array $B2) {
+    private static function checkLineIntersection(array $A1, array $B1, array $A2, array $B2, bool $haveCommonVertices) {
 
         $result = false;
 
@@ -99,7 +126,7 @@ class Geometry
             $a2 = ($A2['lat'] - $B2['lat']) / $denominator2;
         }
 
-        if ($denominator1 != 0 && $denominator2 != 0) {
+        if (isset($a1) && isset($a2)) {
 
             if ($a1 - $a2 != 0) {
                 $x = ($A2['lat'] - $A1['lat'] + $a1 * $A1['lng'] - $a2 * $A2['lng']) / ($a1 - $a2);
@@ -141,43 +168,159 @@ class Geometry
 
             $result = true;
 
-            if ($A1['lng'] < $B1['lng']) {
-                if ($x <= $A1['lng'] || $x >= $B1['lng']) {
+            if ($haveCommonVertices) {
+                if ($A1['lng'] < $B1['lng']) {
+                    if ($x <= $A1['lng'] || $x >= $B1['lng']) {
+                        $result = false;
+                    }
+                } else if ($x <= $B1['lng'] || $x >= $A1['lng']) {
                     $result = false;
                 }
-            } else if ($x <= $B1['lng'] || $x >= $A1['lng']) {
-                $result = false;
-            }
-
-            if ($A2['lng'] < $B2['lng']) {
-                if ($x <= $A2['lng'] || $x >= $B2['lng']) {
+    
+                if ($A2['lng'] < $B2['lng']) {
+                    if ($x <= $A2['lng'] || $x >= $B2['lng']) {
+                        $result = false;
+                    }
+                } else if ($x <= $B2['lng'] || $x >= $A2['lng']) {
                     $result = false;
                 }
-            } else if ($x <= $B2['lng'] || $x >= $A2['lng']) {
-                $result = false;
-            }
-
-            if ($A1['lat'] < $B1['lat']) {
-                if ($y <= $A1['lat'] || $y >= $B1['lat']) {
+    
+                if ($A1['lat'] < $B1['lat']) {
+                    if ($y <= $A1['lat'] || $y >= $B1['lat']) {
+                        $result = false;
+                    }
+                } else if ($y <= $B1['lat'] || $y >= $A1['lat']) {
                     $result = false;
                 }
-            } else if ($y <= $B1['lat'] || $y >= $A1['lat']) {
-                $result = false;
-            }
-
-            if ($A2['lat'] < $B2['lat']) {
-                if ($y <= $A2['lat'] || $y >= $B2['lat']) {
+    
+                if ($A2['lat'] < $B2['lat']) {
+                    if ($y <= $A2['lat'] || $y >= $B2['lat']) {
+                        $result = false;
+                    }
+                } else if ($y <= $B2['lat'] || $y >= $A2['lat']) {
                     $result = false;
                 }
-            } else if ($y <= $B2['lat'] || $y >= $A2['lat']) {
-                $result = false;
+            } else {
+                if ($A1['lng'] < $B1['lng']) {
+                    if ($x < $A1['lng'] || $x > $B1['lng']) {
+                        $result = false;
+                    }
+                } else if ($x < $B1['lng'] || $x > $A1['lng']) {
+                    $result = false;
+                }
+    
+                if ($A2['lng'] < $B2['lng']) {
+                    if ($x < $A2['lng'] || $x > $B2['lng']) {
+                        $result = false;
+                    }
+                } else if ($x < $B2['lng'] || $x > $A2['lng']) {
+                    $result = false;
+                }
+    
+                if ($A1['lat'] < $B1['lat']) {
+                    if ($y < $A1['lat'] || $y > $B1['lat']) {
+                        $result = false;
+                    }
+                } else if ($y < $B1['lat'] || $y > $A1['lat']) {
+                    $result = false;
+                }
+    
+                if ($A2['lat'] < $B2['lat']) {
+                    if ($y < $A2['lat'] || $y > $B2['lat']) {
+                        $result = false;
+                    }
+                } else if ($y < $B2['lat'] || $y > $A2['lat']) {
+                    $result = false;
+                }
             }
-        }
-
-        if ($B1['lng'] == $B2['lng'] && $B1['lat'] == $B2['lat']) {
-            $result = true;
         }
 
         return $result;
+    }
+
+    private function checkSuperimposedPoints($objectType) {
+
+        $result = false;
+
+        $boundaries = $this->boundaries;
+        $monitorings = array_merge($this->monitoringCenters, $this->monitoringCentrals);
+        $missions = $this->missionCenters;
+
+        if (is_string($objectType)) {
+
+            if ($objectType == 'boundary') {
+                // 
+            } else if ($objectType == 'monitoring') {
+                // 
+            } else if ($objectType == 'mission') {
+                // 
+            }
+
+        } else {
+
+            if (in_array('boundary', $objectType)) {
+                // 
+            }
+
+            if (in_array('monitoring', $objectType)) {
+                // 
+            }
+
+            if (in_array('mission', $objectType)) {
+                // 
+            }
+        }
+        
+
+        $countPoints = count($points);
+
+        for ($i=0; $i<$countPoints-1; $i++) {
+            for ($j=$i+1; $j<$countPoints; $j++) {
+                if ($objectTypes[$i] == 'boundary') {
+
+                    if ($objectTypes[$i] == '') {
+
+                    }
+                    if ($points[$i]['lng'] == $points[$j]['lng'] && $points[$i]['lat'] == $points[$j]['lat']) {
+                        $result = true;
+                    }
+                } else if ($geometryObjectTypes[$i] == 'POLYGON') {
+                    if ($i > 0 || $j < $countPoints-1) {
+                        if ($points[$i]['lng'] == $points[$j]['lng'] && $points[$i]['lat'] == $points[$j]['lat']) {
+                            $result = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    private function checkPoints(array $points) {
+        foreach ($points as $point) {
+            if ($point['lng'] === null || (!is_float($point['lng']) && !is_int($point['lng'])) ||
+                $point['lat'] === null || (!is_float($point['lat']) && !is_int($point['lat'])))
+            {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(true),
+                    env('APP_DEBUG') ? __('validation.custom.invalid-coordinate-format') : null
+                );
+            }
+        }
+    }
+
+    private function getTypesOfPolygons() {
+        return [
+            'boundary',
+        ];
+    }
+
+    private function getTypesOfMultiPoints() {
+        return [
+            'missionCenter',
+            'monitoringCenter',
+            'monitoringCentral',
+        ];
     }
 }

@@ -150,10 +150,11 @@ return [
         'no-permission' => 'You are not authorized to the given resource.',
         'boundary-not-closed' => 'The boundary has not been closed.',
         'invalid-coordinate-format' => 'Invalid geographic coordinate format.',
+        'invalid-geometry-object-type' => 'You can only use the MULTIPOINT or POLYGON type.',
+        'invalid-object-type' => 'You can only use types: boundary, mission_centers, monitoring_centers, monitoring_centrals.',
         'repeated-points' => 'The geographical coordinates of the points cannot be repeated.',
         'user-is-not-in-room' => 'The specified user is not in the room.',
         'wrong-database-search' => 'You can only use perfect matches (=) or similar matches (LIKE).',
-        'wrong-geometry-object-type' => 'You can only use the MULTIPOINT or POLYGON type.',
     ],
 
     /*
