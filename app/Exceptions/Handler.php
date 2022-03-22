@@ -73,6 +73,15 @@ class Handler extends ExceptionHandler
                 );
                 break;
 
+            case ArgumentCountError::class:
+            case ErrorException::class:
+                JsonResponse::sendError(
+                    $request,
+                    DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
+                    env('APP_DEBUG') ? [$throwable->getMessage(), $throwable->getFile(), $throwable->getLine()] : null
+                );
+                break;
+
             case BadMethodCallException::class:
             case MethodNotAllowedHttpException::class:
             case ModelNotFoundException::class:
@@ -82,15 +91,6 @@ class Handler extends ExceptionHandler
                     $request,
                     DefaultErrorCode::FAILED_VALIDATION(true),
                     env('APP_DEBUG') ? $throwable->getMessage() : null
-                );
-                break;
-
-            case ArgumentCountError::class:
-            case ErrorException::class:
-                JsonResponse::sendError(
-                    $request,
-                    DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
-                    env('APP_DEBUG') ? [$throwable->getMessage(), $throwable->getFile(), $throwable->getLine()] : null
                 );
                 break;
 

@@ -14,12 +14,12 @@ class PlayerController extends Controller
      * Stworzenie nowego gracza (dołączenie do pokoju)
      */
     public function createPlayer(PlayerRequest $request) {
-        JsonResponse::sendSuccess($request);
+        JsonResponse::sendSuccess($request, null, null, 201);
     }
 
     /**
      * #### `PATCH` `/api/v1/players/{player}`
-     * Edycja gracza (zmiana parametrów w trakcie gry)
+     * Edycja gracza (zmiana parametrów podczas oczekiwania w pokoju i w trakcie gry)
      */
     public function updatePlayer(Player $player, PlayerRequest $request) {
         JsonResponse::sendSuccess($request);

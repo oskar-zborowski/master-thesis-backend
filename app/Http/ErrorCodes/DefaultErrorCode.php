@@ -17,12 +17,12 @@ class DefaultErrorCode
         return new ErrorCode('DEF2', 'FAILED VALIDATION', Response::HTTP_BAD_REQUEST, $isMalicious); 
     }
 
-    public static function PERMISSION_DENIED(bool $isMalicious = false) {
-        return new ErrorCode('DEF3', 'PERMISSION DENIED', Response::HTTP_FORBIDDEN, $isMalicious);
+    public static function UNAUTHORIZED(bool $isMalicious = false) {
+        return new ErrorCode('DEF3', 'UNAUTHORIZED', Response::HTTP_UNAUTHORIZED, $isMalicious);
     }
 
-    public static function UNAUTHORIZED(bool $isMalicious = false) {
-        return new ErrorCode('DEF4', 'UNAUTHORIZED', Response::HTTP_UNAUTHORIZED, $isMalicious);
+    public static function PERMISSION_DENIED(bool $isMalicious = false) {
+        return new ErrorCode('DEF4', 'PERMISSION DENIED', Response::HTTP_FORBIDDEN, $isMalicious);
     }
 
     public static function LIMIT_EXCEEDED(bool $isMalicious = false) {

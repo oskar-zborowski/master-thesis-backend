@@ -44,14 +44,14 @@ class Authenticate extends Middleware
 
         Session::put('routeNamesWhitelist', $routeNamesWhitelist);
 
-        if ($routeName === null || !in_array($routeName, $routeNamesWhitelist)) {
+        if (!in_array($routeName, $routeNamesWhitelist)) {
 
             if ($token !== null) {
                 try {
                     $request->headers->set('Authorization', 'Bearer ' . $token);
                     $this->authenticate($request, $guards);
                 } catch (AuthenticationException $e) {
-                    // 
+                    // nic się nie dzieje
                 }
             }
             

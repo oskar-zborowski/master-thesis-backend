@@ -19,7 +19,7 @@ class FieldConversion
 
     private static function convertByDefault(string $conversionType, $data, int $from, ?int $to, int $current = 0) {
 
-        if ($data !== null && is_array($data) || $current > 0) {
+        if (is_array($data) || $current > 0) {
 
             $fieldNames = null;
 
@@ -32,7 +32,7 @@ class FieldConversion
     
                 foreach ($data as $key => $value) {
 
-                    if ($value !== null && is_array($value)) {
+                    if (is_array($value)) {
 
                         if ($current >= $from && ($to !== null && $current <= $to || $to === null)) {
                             $fieldNames[Str::$conversionType($key)] = self::convertByDefault($conversionType, $value, $from, $to, $current+1);

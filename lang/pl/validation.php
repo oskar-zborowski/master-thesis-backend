@@ -149,11 +149,11 @@ return [
         'malicious-request' => 'Wysyłanie żądań przez podmioty niewspółpracujące jest surowo zabronione. Wszystkie próby nawiązywania połączenia są monitorowane i mogą wiązać się z konsekwencjami!',
         'no-permission' => 'Nie masz uprawnień do danego zasobu.',
         'boundary-not-closed' => 'Granica nie została zamknięta.',
+        'incorrect-database-search' => 'Możesz użyć jedynie dopasowań idealnych (=), albo dopasowań podobnych (LIKE).',
         'invalid-coordinate-format' => 'Nieprawidłowy format współrzędnych geograficznych.',
         'invalid-geometry-object-type' => 'Możesz użyć jedynie typu MULTIPOINT lub POLYGON.',
         'invalid-object-type' => 'Możesz użyć jedynie typów: boundary, mission_centers, monitoring_centers, monitoring_centrals.',
         'repeated-points' => 'Współrzędne geograficzne punktów nie mogą się powtarzać.',
         'user-is-not-in-room' => 'Podany użytkownik nie znajduje się w pokoju.',
-        'wrong-database-search' => 'Możesz użyć jedynie dopasowań idealnych (=), albo dopasowań podobnych (LIKE).',
     ],
 ];

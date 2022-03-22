@@ -48,7 +48,7 @@ class Encrypter
         return $text;
     }
 
-    public static function generateToken(int $size = 36, $entity = null, ?string $field = null, string $addition = '') {
+    public static function generateToken(int $size, $entity = null, ?string $field = null, string $addition = '') {
 
         $size -= strlen($addition);
 
@@ -93,7 +93,7 @@ class Encrypter
         } else {
             throw new ApiException(
                 DefaultErrorCode::INTERNAL_SERVER_ERROR(),
-                env('APP_DEBUG') ? __('validation.custom.wrong-database-search') : null
+                env('APP_DEBUG') ? __('validation.custom.incorrect-database-search') : null
             );
         }
 
