@@ -190,7 +190,7 @@ return [
         'district' => 'Dzielnica',
         'duration' => 'Czas trwania',
         'email' => 'Adres e-mail',
-        'excerpt' => 'Wyjątek',
+        'excerpt' => 'Fragment',
         'filter' => 'Filtr',
         'first_name' => 'Imię',
         'gender' => 'Płeć',
