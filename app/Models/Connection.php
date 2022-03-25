@@ -23,7 +23,7 @@ class Connection extends BaseModel
 
     protected $with = [
         'user',
-        'ipAddress'
+        'ipAddress',
     ];
 
     public function user() {

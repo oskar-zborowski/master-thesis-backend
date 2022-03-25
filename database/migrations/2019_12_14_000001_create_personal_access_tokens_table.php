@@ -8,8 +8,6 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up() {
         Schema::create('personal_access_tokens', function (Blueprint $table) {
@@ -17,7 +15,7 @@ return new class extends Migration
             $table->morphs('tokenable');
             $table->string('name', 30);
             $table->char('token', 64)->unique(); // Kodowane przez dostawcę
-            $table->char('refresh_token', 80)->unique()->nullable(); // Kodowane podczas przetwarzania
+            $table->char('refresh_token', 80)->unique()->nullable(); // Kodowane automatycznie
             $table->text('abilities')->nullable();
             $table->timestamp('expiry_alert_at')->nullable();
             $table->timestamp('last_used_at')->nullable();
@@ -27,8 +25,6 @@ return new class extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down() {
         Schema::dropIfExists('personal_access_tokens');
