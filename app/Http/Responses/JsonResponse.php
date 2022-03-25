@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Session;
  */
 class JsonResponse
 {
-    public static function sendSuccess($request, $data = null, $meta = null, int $code = 200): void {
+    public static function sendSuccess($request, ?array $data = null, ?array $meta = null, int $code = 200): void {
 
         header('Content-Type: application/json');
         http_response_code($code);
@@ -78,7 +78,7 @@ class JsonResponse
         die;
     }
 
-    public static function getTokens($request, ?ErrorCode $errorCode = null, $data = null) {
+    private static function getTokens($request, ErrorCode $errorCode = null, $data = null) {
 
         $result = null;
 
@@ -101,7 +101,7 @@ class JsonResponse
         return $result;
     }
 
-    public static function saveDeviceInformation($request, ?ErrorCode $errorCode, $data) {
+    private static function saveDeviceInformation($request, ?ErrorCode $errorCode, $data) {
 
         /** @var Request $request */
 
@@ -167,9 +167,9 @@ class JsonResponse
 
             if ($connection->malicious_request_counter == 1) {
                 Mail::send(new MaliciousnessNotification($connection, 1, $errorCode, $data));
-            } else if ($connection->malicious_request_counter == 5) {
+            } else if ($connection->malicious_request_counter == 2) {
                 Mail::send(new MaliciousnessNotification($connection, 2, $errorCode, $data));
-            } else if ($connection->malicious_request_counter == 10) {
+            } else if ($connection->malicious_request_counter == 3) {
 
                 $ipAddress->blocked_at = now();
                 $ipAddress->save();
@@ -181,7 +181,7 @@ class JsonResponse
 
                 Mail::send(new MaliciousnessNotification($connection, 3, $errorCode, $data));
 
-            } else if ($connection->malicious_request_counter == 25) {
+            } else if ($connection->malicious_request_counter == 50) {
                 Mail::send(new MaliciousnessNotification($connection, 4, $errorCode, $data));
             }
         }

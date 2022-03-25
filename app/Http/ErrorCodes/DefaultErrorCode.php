@@ -17,8 +17,8 @@ class DefaultErrorCode
         return new ErrorCode('DEF2', 'FAILED VALIDATION', Response::HTTP_BAD_REQUEST, $isMalicious); 
     }
 
-    public static function UNAUTHORIZED(bool $isMalicious = false) {
-        return new ErrorCode('DEF3', 'UNAUTHORIZED', Response::HTTP_UNAUTHORIZED, $isMalicious);
+    public static function UNAUTHENTICATED(bool $isMalicious = false) {
+        return new ErrorCode('DEF3', 'UNAUTHENTICATED', Response::HTTP_UNAUTHORIZED, $isMalicious);
     }
 
     public static function PERMISSION_DENIED(bool $isMalicious = false) {

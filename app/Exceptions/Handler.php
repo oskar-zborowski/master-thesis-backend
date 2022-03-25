@@ -60,7 +60,25 @@ class Handler extends ExceptionHandler
                 JsonResponse::sendError(
                     $request,
                     $throwable->getErrorCode(),
-                    env('APP_DEBUG') ? [$throwable->getData(), $throwable->getFile(), $throwable->getLine()] : $throwable->getData()
+                    env('APP_DEBUG') ? [
+                        'message' => $throwable->getData(),
+                        'file' => $throwable->getFile(),
+                        'line' => $throwable->getLine(),
+                    ] : ['message' => $throwable->getData()]
+                );
+                break;
+
+            case ArgumentCountError::class:
+            case ErrorException::class:
+            case QueryException::class:
+                JsonResponse::sendError(
+                    $request,
+                    DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
+                    env('APP_DEBUG') ? [
+                        'message' => $throwable->getMessage(),
+                        'file' => $throwable->getFile(),
+                        'line' => $throwable->getLine(),
+                    ] : null
                 );
                 break;
 
@@ -69,16 +87,7 @@ class Handler extends ExceptionHandler
 
                 JsonResponse::sendError(
                     $request,
-                    DefaultErrorCode::UNAUTHORIZED(true)
-                );
-                break;
-
-            case ArgumentCountError::class:
-            case ErrorException::class:
-                JsonResponse::sendError(
-                    $request,
-                    DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
-                    env('APP_DEBUG') ? [$throwable->getMessage(), $throwable->getFile(), $throwable->getLine()] : null
+                    DefaultErrorCode::UNAUTHENTICATED(true),
                 );
                 break;
 
@@ -86,11 +95,10 @@ class Handler extends ExceptionHandler
             case MethodNotAllowedHttpException::class:
             case ModelNotFoundException::class:
             case NotFoundHttpException::class:
-            case QueryException::class:
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::FAILED_VALIDATION(true),
-                    env('APP_DEBUG') ? $throwable->getMessage() : null
+                    env('APP_DEBUG') ? ['message' => $throwable->getMessage()] : null
                 );
                 break;
 
@@ -100,7 +108,7 @@ class Handler extends ExceptionHandler
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::LIMIT_EXCEEDED(true),
-                    __('validation.custom.limit-exceeded', ['seconds' => $throwable->getHeaders()['Retry-After']])
+                    ['message' => __('validation.custom.limit-exceeded', ['seconds' => $throwable->getHeaders()['Retry-After']])]
                 );
                 break;
 
@@ -110,7 +118,7 @@ class Handler extends ExceptionHandler
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::FAILED_VALIDATION(),
-                    $throwable->errors()
+                    ['message' => $throwable->errors()]
                 );
                 break;
 
@@ -118,7 +126,7 @@ class Handler extends ExceptionHandler
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
-                    env('APP_DEBUG') ? $class : null
+                    env('APP_DEBUG') ? ['message' => $class] : null
                 );
                 break;
         }

@@ -72,17 +72,76 @@ class Validation
 
     public static function chooseAvatar() {
 
-        $avatars = [
+        $avatars = self::getAvatars();
+
+        $avatarCounter = count($avatars);
+        $number = rand(0, $avatarCounter-1);
+
+        return $avatars[$number];
+    }
+
+    public static function getAvatars() {
+        return [
             'AVATAR_1',
             'AVATAR_2',
             'AVATAR_3',
             'AVATAR_4',
             'AVATAR_5',
         ];
+    }
 
-        $avatarCounter = count($avatars);
-        $number = rand(0, $avatarCounter-1);
+    public static function getOsNames() {
+        return [
+            'ANDROID',
+            'IOS',
+        ];
+    }
 
-        return $avatars[$number];
+    public static function getAppVersions() {
+        return [
+            '1.0.0',
+        ];
+    }
+
+    public static function getGameModes() {
+        return [
+            'SCOTLAND_YARD',
+            'MISSION_IMPOSSIBLE',
+        ];
+    }
+
+    public static function getRoomStatuses() {
+        return [
+            'WAITING_IN_ROOM',
+            'GAME_IN_PROGRESS',
+            'GAME_PAUSED',
+            'GAME_OVER',
+        ];
+    }
+
+    public static function getGameResults() {
+        return [
+            'POLICEMEN_WON_BY_CATCHING',
+            'POLICEMEN_WON_ON_TIME',
+            'THIEVES_WON_BY_COMPLETING_MISSIONS',
+            'THIEVES_WON_ON_TIME',
+        ];
+    }
+
+    public static function getPlayerRoles() {
+        return [
+            'POLICEMAN',
+            'THIEF',
+            'AGENT',
+            'SABOTEUR',
+        ];
+    }
+
+    public static function getPlayerStatuses() {
+        return [
+            'DISCONNECTED',
+            'BORDER_CROSSED',
+            'BLOCKED',
+        ];
     }
 }

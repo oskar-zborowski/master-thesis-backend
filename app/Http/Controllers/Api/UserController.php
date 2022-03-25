@@ -33,12 +33,12 @@ class UserController extends Controller
 
         Auth::loginUsingId($user->id);
         Encrypter::generateAuthTokens();
-        JsonResponse::sendSuccess($request, $user, null, 201);
+        JsonResponse::sendSuccess($request, ['User' => $user], null, 201);
     }
 
     /**
      * #### `PATCH` `/api/v1/users/me`
-     * Edycja użytkownika
+     * Edycja danych użytkownika
      */
     public function updateUser(UpdateUserRequest $request) {
 
@@ -59,7 +59,7 @@ class UserController extends Controller
 
         $user->save();
 
-        JsonResponse::sendSuccess($request, $user);
+        JsonResponse::sendSuccess($request, ['User' => $user]);
     }
 
     /**
@@ -71,6 +71,6 @@ class UserController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        JsonResponse::sendSuccess($request, $user);
+        JsonResponse::sendSuccess($request, ['User' => $user]);
     }
 }

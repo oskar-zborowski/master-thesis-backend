@@ -65,40 +65,40 @@ return new class extends Migration
 //     },
 //     "bot": {
 //         "policeman": {
-//             "maximum_speed": 4,
+//             "maximum_speed": 5,
 //             "physical_endurance": 0.8,
 //             "level": 2
 //         },
 //         "thief": {
-//             "maximum_speed": 4,
+//             "maximum_speed": 5,
 //             "physical_endurance": 0.8,
 //             "level": 2
 //         },
 //         "agent": {
-//             "maximum_speed": 4,
+//             "maximum_speed": 5,
 //             "physical_endurance": 0.8,
 //             "level": 2
 //         },
 //         "saboteur": {
-//             "maximum_speed": 4,
+//             "maximum_speed": 5,
 //             "physical_endurance": 0.8,
 //             "level": 2
 //         }
 //     },
 //     "game_duration": {
-//         "scheduled": 1800,
+//         "scheduled": 3600,
 //         "real": 0
 //     },
 //     "escape": {
-//         "time": 300
+//         "time": 600
 //     },
 //     "catching": {
-//         "number": 2,
+//         "number": 3,
 //         "radius": 50,
 //         "time": 5
 //     },
 //     "disclosure": {
-//         "interval": 180,
+//         "interval": 300,
 //         "after_starting": false,
 //         "thief_direction": true,
 //         "short_distance": true,
@@ -151,9 +151,12 @@ return new class extends Migration
 //         "after_disconnecting": true,
 //         "after_crossing_border": true
 //     },
+//     "warning": {
+//         "number": 2
+//     },
 //     "other": {
 //         "role_random": true,
-//         "thief_knows_saboteur": true,
-//         "saboteur_sees_thief": true
+//         "thief_knows_saboteur": false,
+//         "saboteur_sees_thief": false
 //     }
 // }

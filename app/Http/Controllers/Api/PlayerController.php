@@ -19,7 +19,7 @@ class PlayerController extends Controller
 
     /**
      * #### `PATCH` `/api/v1/players/{player}`
-     * Edycja gracza (zmiana parametrów podczas oczekiwania w pokoju i w trakcie gry)
+     * Edycja danych gracza (zmiana parametrów podczas oczekiwania w pokoju i w trakcie gry)
      */
     public function updatePlayer(Player $player, PlayerRequest $request) {
         JsonResponse::sendSuccess($request);

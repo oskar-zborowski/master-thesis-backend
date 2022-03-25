@@ -13,18 +13,18 @@ return [
     |
     */
 
+    'double-token-given' => 'Nie można przesłać jendocześnie tokena i refresh tokena.',
     'failed' => 'Błędny login lub hasło.',
+    'invalid-refresh-token' => 'Nieprawidłowy refresh token.',
+    'invalid-refresh-token-format' => 'Zły format refresh tokena. Należy umieścić go w nagłówku żądania.',
+    'invalid-token' => 'Nieprawidłowy token.',
+    'invalid-token-format' => 'Zły format tokena. Należy umieścić go w nagłówku żądania.',
+    'ip-blocked' => 'Adres IP został zablokowany.',
+    'no-token-provided' => 'Nie podano żadnego z tokenów.',
     'password' => 'Podane hasło jest nieprawidłowe.',
     'throttle' => 'Za dużo nieudanych prób logowania. Proszę spróbować za :seconds sekund.',
-    'ip-blocked' => 'Adres IP został zablokowany.',
-    'user-blocked' => 'Konto zostało zablokowane.',
-    'wrong-token-format' => 'Zły format tokena. Należy umieścić go w nagłówku żądania.',
-    'wrong-refresh-token-format' => 'Zły format refresh tokena. Należy umieścić go w nagłówku żądania.',
-    'double-token-given' => 'Nie można przesłać jendocześnie tokena i refresh tokena.',
-    'no-token-provided' => 'Nie podano żadnego z tokenów.',
-    'tokens-not-allowed' => 'Tokeny nie są dozwolone.',
-    'invalid-token' => 'Nieprawidłowy token.',
-    'invalid-refresh-token' => 'Nieprawidłowy refresh token.',
     'token-expired' => 'Token wygasł.',
     'token-still-valid' => 'Token jest nadal ważny.',
+    'tokens-not-allowed' => 'Tokeny nie są dozwolone.',
+    'user-blocked' => 'Konto zostało zablokowane.',
 ];

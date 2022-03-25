@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 
+/**
+ * Klasa przeprowadzająca proces uwierzytelnienia użytkownika
+ */
 class Authenticate extends Middleware
 {
     /**
@@ -54,7 +57,7 @@ class Authenticate extends Middleware
                     // nic się nie dzieje
                 }
             }
-            
+
             if ($refreshToken !== null) {
 
                 $aesDecrypt = Encrypter::prepareAesDecrypt('refresh_token', $refreshToken);

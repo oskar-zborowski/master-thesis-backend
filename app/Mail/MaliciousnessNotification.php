@@ -63,8 +63,8 @@ class MaliciousnessNotification extends Mailable
                 &emsp;Opis: $errorDescription<br><br>";
 
         $successfulRequestCounter = (int) $connection->successful_request_counter;
-        $failedfulRequestCounter = (int) $connection->failed_request_counter;
-        $maliciousfulRequestCounter = (int) $connection->malicious_request_counter;
+        $failedRequestCounter = (int) $connection->failed_request_counter;
+        $maliciousRequestCounter = (int) $connection->malicious_request_counter;
 
         $ipAddressBlockedAt = $ipAddress->blocked_at ? $ipAddress->blocked_at : 'brak';
 
@@ -72,8 +72,8 @@ class MaliciousnessNotification extends Mailable
             Połączenie:<br>
                 &emsp;Id: $connection->id<br>
                 &emsp;Pomyślnych żądań: $successfulRequestCounter<br>
-                &emsp;Błędnych żądań: $failedfulRequestCounter<br>
-                &emsp;Złośliwych żądań: $maliciousfulRequestCounter<br>
+                &emsp;Błędnych żądań: $failedRequestCounter<br>
+                &emsp;Złośliwych żądań: $maliciousRequestCounter<br>
                 &emsp;Data utworzenia: $connection->created_at<br><br>
             Adres Ip:<br>
                 &emsp;Id: $ipAddress->id<br>

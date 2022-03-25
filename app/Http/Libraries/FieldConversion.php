@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
  */
 class FieldConversion
 {
-    public static function convertToCamelCase($data, int $from = 0, ?int $to = null) {
+    public static function convertToCamelCase(array $data, int $from = 0, ?int $to = null) {
         return self::convertByDefault('camel', $data, $from, $to);
     }
 
@@ -23,7 +23,7 @@ class FieldConversion
 
             $fieldNames = null;
 
-            if ($data !== null && ($to !== null && $from <= $to || $to === null)) {
+            if ($data !== null && ($to === null || $from <= $to)) {
     
                 if ($current == 0) {
                     $data = json_encode($data);
@@ -34,7 +34,7 @@ class FieldConversion
 
                     if (is_array($value)) {
 
-                        if ($current >= $from && ($to !== null && $current <= $to || $to === null)) {
+                        if ($current >= $from && ($to === null || $current <= $to)) {
                             $fieldNames[Str::$conversionType($key)] = self::convertByDefault($conversionType, $value, $from, $to, $current+1);
                         } else if ($current < $from) {
 
@@ -49,7 +49,7 @@ class FieldConversion
 
                         if ($current >= $from) {
 
-                            if ($to !== null && $current <= $to || $to === null) {
+                            if ($to === null || $current <= $to) {
                                 $fieldNames[Str::$conversionType($key)] = $value;
                             } else {
                                 $fieldNames = null;

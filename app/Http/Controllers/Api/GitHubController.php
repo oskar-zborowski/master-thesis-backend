@@ -11,6 +11,12 @@ class GitHubController extends Controller
      * Zaciągnięcie nowych zmian ze zdalnego repozytorium
      */
     public function pull() {
-        echo shell_exec('git pull https://BolleyVall7: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@github.com/BolleyVall7/master-thesis-beckend.git master 2>&1');
+
+        $githubAccount = env('GITHUB_ACCOUNT');
+        $githubToken = env('GITHUB_TOKEN');
+        $githubRepository = env('GITHUB_REPOSITORY');
+        $githubBranch = env('GITHUB_BRANCH');
+
+        echo shell_exec("git pull https://$githubAccount:$githubToken@github.com/$githubRepository $githubBranch 2>&1");
     }
 }
