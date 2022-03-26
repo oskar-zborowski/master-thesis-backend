@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use App\Http\Traits\Encryptable;
-use MatanYadaev\EloquentSpatial\SpatialBuilder;
-use MatanYadaev\EloquentSpatial\Objects\Point;
+use MatanYadaev\EloquentSpatial\Objects\MultiPolygon;
 use MatanYadaev\EloquentSpatial\Objects\Polygon;
+use MatanYadaev\EloquentSpatial\SpatialBuilder;
 
 class Room extends BaseModel
 {
@@ -17,13 +17,11 @@ class Room extends BaseModel
         'city',
         'voivodeship',
         'country',
-        'game_config',
         'boundary',
-        'mission_centers',
-        'monitoring_centers',
+        'missions',
+        'monitoring_cameras',
         'monitoring_centrals',
         'game_paused_at',
-        'game_ended_at',
         'created_at',
         'updated_at',
     ];
@@ -32,18 +30,26 @@ class Room extends BaseModel
         'id' => 'integer',
         'game_config' => 'array',
         'boundary' => Polygon::class,
-        'mission_centers' => Point::class,
-        'monitoring_centers' => Point::class,
-        'monitoring_centrals' => Point::class,
+        'missions' => MultiPolygon::class,
+        'monitoring_cameras' => MultiPolygon::class,
+        'monitoring_centrals' => MultiPolygon::class,
         'game_started_at' => 'string',
         'game_paused_at' => 'string',
         'game_ended_at' => 'string',
         'next_disclosure_at' => 'string',
     ];
 
+    protected $with = [
+        'host',
+    ];
+
     protected $encryptable = [
         'code' => 6,
     ];
+
+    public function host() {
+        return $this->belongsTo(User::class, 'host_id');
+    }
 
     public function players() {
         return $this->hasMany(Player::class);

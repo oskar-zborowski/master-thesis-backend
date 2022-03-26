@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Libraries\Validation;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -8,8 +9,6 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up() {
         Schema::create('rooms', function (Blueprint $table) {
@@ -20,14 +19,14 @@ return new class extends Migration
             $table->string('city', 40)->nullable();
             $table->string('voivodeship', 20)->nullable();
             $table->string('country', 30)->nullable();
-            $table->enum('game_mode', ['SCOTLAND_YARD', 'MISSION_IMPOSSIBLE'])->default('SCOTLAND_YARD');
+            $table->enum('game_mode', Validation::getGameModes())->default(Validation::getGameModes()[0]);
             $table->json('game_config');
             $table->polygon('boundary')->nullable();
-            $table->multiPoint('mission_centers')->nullable();
-            $table->multiPoint('monitoring_centers')->nullable();
-            $table->multiPoint('monitoring_centrals')->nullable();
-            $table->enum('status', ['WAITING_IN_ROOM', 'GAME_IN_PROGRESS', 'GAME_PAUSED', 'GAME_OVER'])->default('WAITING_IN_ROOM');
-            $table->enum('game_result', ['POLICEMEN_WON_BY_CATCHING', 'POLICEMEN_WON_ON_TIME', 'THIEVES_WON_BY_COMPLETING_MISSIONS', 'THIEVES_WON_ON_TIME'])->nullable();
+            $table->multiPolygon('missions')->nullable();
+            $table->multiPolygon('monitoring_cameras')->nullable();
+            $table->multiPolygon('monitoring_centrals')->nullable();
+            $table->enum('status', Validation::getRoomStatuses())->default(Validation::getRoomStatuses()[0]);
+            $table->enum('game_result', Validation::getGameResults())->nullable();
             $table->timestamp('game_started_at')->nullable();
             $table->timestamp('game_paused_at')->nullable();
             $table->timestamp('game_ended_at')->nullable();
@@ -38,8 +37,6 @@ return new class extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down() {
         Schema::dropIfExists('rooms');
