@@ -60,65 +60,39 @@ return new class extends Migration
 //             "probability": 0.5
 //         }
 //     },
-//     "bot": {
-//         "policeman": {
-//             "maximum_speed": 5,
-//             "physical_endurance": 0.8,
-//             "level": 2
-//         },
-//         "thief": {
-//             "maximum_speed": 5,
-//             "physical_endurance": 0.8,
-//             "level": 2
-//         },
-//         "agent": {
-//             "maximum_speed": 5,
-//             "physical_endurance": 0.8,
-//             "level": 2
-//         },
-//         "saboteur": {
-//             "maximum_speed": 5,
-//             "physical_endurance": 0.8,
-//             "level": 2
-//         }
-//     },
 //     "game_duration": {
 //         "scheduled": 3600,
+//         "escape_time": 600,
 //         "real": 0
-//     },
-//     "escape": {
-//         "time": 600
 //     },
 //     "catching": {
 //         "number": 3,
-//         "radius": 50,
-//         "time": 5
+//         "radius": 100,
+//         "time": 10
 //     },
 //     "disclosure": {
 //         "interval": 300,
 //         "after_starting": false,
-//         "thief_direction": true,
+//         "thief_direction": false,
 //         "short_distance": true,
 //         "thief_knows_when": true,
-//         "agent": true,
-//         "agent_knows_when": true,
+//         "thief_knows_saboteur": false,
+//         "saboteur_sees_thief": false,
 //         "after_crossing_border": false
-//     },
-//     "monitoring": {
-//         "number": 0,
-//         "radius": 50,
-//         "random": false,
-//         "central": {
-//             "number": 0,
-//             "radius": 50,
-//             "random": false
-//         }
 //     },
 //     "mission": {
 //         "number": 5,
 //         "radius": 50,
 //         "time": 10,
 //         "all_visible": true
+//     },
+//     "monitoring": {
+//         "number": 0,
+//         "radius": 50,
+//         "central": {
+//             "number": 0,
+//             "radius": 50
+//         }
 //     },
 //     "ticket": {
 //         "black": {
@@ -128,32 +102,21 @@ return new class extends Migration
 //         "white": {
 //             "number": 0,
 //             "probability": 0.5
-//         },
-//         "gold": {
-//             "number": 0,
-//             "probability": 0.5
-//         },
-//         "silver": {
-//             "number": 0,
-//             "probability": 0.5
 //         }
 //     },
 //     "fake_position": {
 //         "number": 0,
 //         "probability": 0.5,
-//         "radius": 250,
-//         "random": false
+//         "radius": 500
 //     },
 //     "game_pause": {
 //         "after_disconnecting": true,
-//         "after_crossing_border": true
-//     },
-//     "warning": {
-//         "number": 2
+//         "after_crossing_border": false
 //     },
 //     "other": {
 //         "role_random": true,
-//         "thief_knows_saboteur": false,
-//         "saboteur_sees_thief": false
+//         "warning_number": 2,
+//         "max_speed": 6,
+//         "bot_speed": 2.5
 //     }
 // }

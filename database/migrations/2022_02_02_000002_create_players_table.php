@@ -23,7 +23,6 @@ return new class extends Migration
             $table->float('direction')->default(0);
             $table->unsignedTinyInteger('hide_stock')->default(0);
             $table->boolean('is_bot')->default(false);
-            $table->unsignedFloat('bot_physical_endurance')->default(1);
             $table->enum('status', ['DISCONNECTED', 'BORDER_CROSSED', 'BLOCKED'])->nullable();
             $table->unsignedSmallInteger('average_ping')->default(0); // wyrażony w [ms]
             $table->unsignedSmallInteger('standard_deviation')->default(0); // wyrażony w [ms]
@@ -51,14 +50,6 @@ return new class extends Migration
 //             "used_number": 0
 //         },
 //         "white": {
-//             "number": 0,
-//             "used_number": 0
-//         },
-//         "gold": {
-//             "number": 0,
-//             "used_number": 0
-//         },
-//         "silver": {
 //             "number": 0,
 //             "used_number": 0
 //         }

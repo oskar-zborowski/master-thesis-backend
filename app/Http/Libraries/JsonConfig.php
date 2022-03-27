@@ -10,120 +10,86 @@ use App\Models\Room;
  */
 class JsonConfig
 {
-    public static function defaultGameConfig() {
+    public static function getDefaultGameConfig() {
         return [
-            "actor" => [
-                "policeman" => [
-                    "number" => 5,
+            'actor' => [
+                'policeman' => [
+                    'number' => 5,
                 ],
-                "thief" => [
-                    "number" => 1,
+                'thief' => [
+                    'number' => 1,
                 ],
-                "agent" => [
-                    "number" => 0,
+                'agent' => [
+                    'number' => 0,
                 ],
-                "saboteur" => [
-                    "number" => 1,
-                    "probability" => 0.5,
-                ],
-            ],
-            "bot" => [
-                "policeman" => [
-                    "maximum_speed" => 4,
-                    "physical_endurance" => 0.8,
-                    "level" => 2,
-                ],
-                "thief" => [
-                    "maximum_speed" => 4,
-                    "physical_endurance" => 0.8,
-                    "level" => 2,
-                ],
-                "agent" => [
-                    "maximum_speed" => 4,
-                    "physical_endurance" => 0.8,
-                    "level" => 2,
-                ],
-                "saboteur" => [
-                    "maximum_speed" => 4,
-                    "physical_endurance" => 0.8,
-                    "level" => 2,
+                'saboteur' => [
+                    'number' => 0,
+                    'probability' => 0.5,
                 ],
             ],
-            "game_duration" => [
-                "scheduled" => 1800,
-                "real" => 0,
+            'game_duration' => [
+                'scheduled' => 3600,
+                'escape_time' => 600,
+                'real' => 0,
             ],
-            "escape" => [
-                "time" => 300,
+            'catching' => [
+                'number' => 3,
+                'radius' => 100,
+                'time' => 10,
             ],
-            "catching" => [
-                "number" => 2,
-                "radius" => 50,
-                "time" => 5,
+            'disclosure' => [
+                'interval' => 300,
+                'after_starting' => false,
+                'thief_direction' => false,
+                'short_distance' => true,
+                'thief_knows_when' => true,
+                'thief_knows_saboteur' => false,
+                'saboteur_sees_thief' => false,
+                'after_crossing_border' => false,
             ],
-            "disclosure" => [
-                "interval" => 180,
-                "after_starting" => false,
-                "thief_direction" => true,
-                "short_distance" => true,
-                "thief_knows_when" => true,
-                "agent" => true,
-                "agent_knows_when" => true,
-                "after_crossing_border" => false,
+            'mission' => [
+                'number' => 5,
+                'radius' => 50,
+                'time' => 10,
+                'all_visible' => true,
             ],
-            "monitoring" => [
-                "number" => 0,
-                "radius" => 50,
-                "random" => false,
-                "central" => [
-                    "number" => 0,
-                    "radius" => 50,
-                    "random" => false,
+            'monitoring' => [
+                'number' => 0,
+                'radius' => 50,
+                'central' => [
+                    'number' => 0,
+                    'radius' => 50,
                 ],
             ],
-            "mission" => [
-                "number" => 5,
-                "radius" => 50,
-                "time" => 10,
-                "all_visible" => true,
-            ],
-            "ticket" => [
-                "black" => [
-                    "number" => 0,
-                    "probability" => 0.5,
+            'ticket' => [
+                'black' => [
+                    'number' => 0,
+                    'probability' => 0.5,
                 ],
-                "white" => [
-                    "number" => 0,
-                    "probability" => 0.5,
-                ],
-                "gold" => [
-                    "number" => 0,
-                    "probability" => 0.5,
-                ],
-                "silver" => [
-                    "number" => 0,
-                    "probability" => 0.5,
+                'white' => [
+                    'number' => 0,
+                    'probability' => 0.5,
                 ],
             ],
-            "fake_position" => [
-                "number" => 0,
-                "probability" => 0.5,
-                "radius" => 250,
-                "random" => false,
+            'fake_position' => [
+                'number' => 0,
+                'probability' => 0.5,
+                'radius' => 500,
             ],
-            "game_pause" => [
-                "after_disconnecting" => true,
-                "after_crossing_border" => true,
+            'game_pause' => [
+                'after_disconnecting' => true,
+                'after_crossing_border' => false,
             ],
-            "other" => [
-                "role_random" => true,
-                "thief_knows_saboteur" => true,
-                "saboteur_sees_thief" => true,
+            'other' => [
+                'role_random' => true,
+                'warning_number' => 2,
+                'max_speed' => 6,
+                'bot_speed' => 2.5,
             ],
         ];
     }
 
-    public static function gameConfig(Room $room, UpdateRoomRequest $request) {
+    public static function setGameConfig(Room $room, UpdateRoomRequest $request) {
 
         $gameConfig = $room->game_config;
 
@@ -147,60 +113,12 @@ class JsonConfig
             $gameConfig['actor']['saboteur']['probability'] = $request->actor_saboteur_probability;
         }
 
-        if ($request->bot_policeman_maximum_speed !== null) {
-            $gameConfig['bot']['policeman']['maximum_speed'] = $request->bot_policeman_maximum_speed;
-        }
-
-        if ($request->bot_policeman_physical_endurance !== null) {
-            $gameConfig['bot']['policeman']['physical_endurance'] = $request->bot_policeman_physical_endurance;
-        }
-
-        if ($request->bot_policeman_level !== null) {
-            $gameConfig['bot']['policeman']['level'] = $request->bot_policeman_level;
-        }
-
-        if ($request->bot_thief_maximum_speed !== null) {
-            $gameConfig['bot']['thief']['maximum_speed'] = $request->bot_thief_maximum_speed;
-        }
-
-        if ($request->bot_thief_physical_endurance !== null) {
-            $gameConfig['bot']['thief']['physical_endurance'] = $request->bot_thief_physical_endurance;
-        }
-
-        if ($request->bot_thief_level !== null) {
-            $gameConfig['bot']['thief']['level'] = $request->bot_thief_level;
-        }
-
-        if ($request->bot_agent_maximum_speed !== null) {
-            $gameConfig['bot']['agent']['maximum_speed'] = $request->bot_agent_maximum_speed;
-        }
-
-        if ($request->bot_agent_physical_endurance !== null) {
-            $gameConfig['bot']['agent']['physical_endurance'] = $request->bot_agent_physical_endurance;
-        }
-
-        if ($request->bot_agent_level !== null) {
-            $gameConfig['bot']['agent']['level'] = $request->bot_agent_level;
-        }
-
-        if ($request->bot_saboteur_maximum_speed !== null) {
-            $gameConfig['bot']['saboteur']['maximum_speed'] = $request->bot_saboteur_maximum_speed;
-        }
-
-        if ($request->bot_saboteur_physical_endurance !== null) {
-            $gameConfig['bot']['saboteur']['physical_endurance'] = $request->bot_saboteur_physical_endurance;
-        }
-
-        if ($request->bot_saboteur_level !== null) {
-            $gameConfig['bot']['saboteur']['level'] = $request->bot_saboteur_level;
-        }
-
         if ($request->game_duration_scheduled !== null) {
             $gameConfig['game_duration']['scheduled'] = $request->game_duration_scheduled;
         }
 
-        if ($request->escape_time !== null) {
-            $gameConfig['escape']['time'] = $request->escape_time;
+        if ($request->game_duration_escape_time !== null) {
+            $gameConfig['game_duration']['escape_time'] = $request->game_duration_escape_time;
         }
 
         if ($request->catching_number !== null) {
@@ -235,40 +153,16 @@ class JsonConfig
             $gameConfig['disclosure']['thief_knows_when'] = $request->disclosure_thief_knows_when;
         }
 
-        if ($request->disclosure_agent !== null) {
-            $gameConfig['disclosure']['agent'] = $request->disclosure_agent;
+        if ($request->disclosure_thief_knows_saboteur !== null) {
+            $gameConfig['disclosure']['thief_knows_saboteur'] = $request->disclosure_thief_knows_saboteur;
         }
 
-        if ($request->disclosure_agent_knows_when !== null) {
-            $gameConfig['disclosure']['agent_knows_when'] = $request->disclosure_agent_knows_when;
+        if ($request->disclosure_saboteur_sees_thief !== null) {
+            $gameConfig['disclosure']['saboteur_sees_thief'] = $request->disclosure_saboteur_sees_thief;
         }
 
         if ($request->disclosure_after_crossing_border !== null) {
             $gameConfig['disclosure']['after_crossing_border'] = $request->disclosure_after_crossing_border;
-        }
-
-        if ($request->monitoring_number !== null) {
-            $gameConfig['monitoring']['number'] = $request->monitoring_number;
-        }
-
-        if ($request->monitoring_radius !== null) {
-            $gameConfig['monitoring']['radius'] = $request->monitoring_radius;
-        }
-
-        if ($request->monitoring_random !== null) {
-            $gameConfig['monitoring']['random'] = $request->monitoring_random;
-        }
-
-        if ($request->monitoring_central_number !== null) {
-            $gameConfig['monitoring']['central']['number'] = $request->monitoring_central_number;
-        }
-
-        if ($request->monitoring_central_radius !== null) {
-            $gameConfig['monitoring']['central']['radius'] = $request->monitoring_central_radius;
-        }
-
-        if ($request->monitoring_central_random !== null) {
-            $gameConfig['monitoring']['central']['random'] = $request->monitoring_central_random;
         }
 
         if ($request->mission_number !== null) {
@@ -279,8 +173,28 @@ class JsonConfig
             $gameConfig['mission']['radius'] = $request->mission_radius;
         }
 
+        if ($request->mission_time !== null) {
+            $gameConfig['mission']['time'] = $request->mission_time;
+        }
+
         if ($request->mission_all_visible !== null) {
             $gameConfig['mission']['all_visible'] = $request->mission_all_visible;
+        }
+
+        if ($request->monitoring_number !== null) {
+            $gameConfig['monitoring']['number'] = $request->monitoring_number;
+        }
+
+        if ($request->monitoring_radius !== null) {
+            $gameConfig['monitoring']['radius'] = $request->monitoring_radius;
+        }
+
+        if ($request->monitoring_central_number !== null) {
+            $gameConfig['monitoring']['central']['number'] = $request->monitoring_central_number;
+        }
+
+        if ($request->monitoring_central_radius !== null) {
+            $gameConfig['monitoring']['central']['radius'] = $request->monitoring_central_radius;
         }
 
         if ($request->ticket_black_number !== null) {
@@ -299,22 +213,6 @@ class JsonConfig
             $gameConfig['ticket']['white']['probability'] = $request->ticket_white_probability;
         }
 
-        if ($request->ticket_gold_number !== null) {
-            $gameConfig['ticket']['gold']['number'] = $request->ticket_gold_number;
-        }
-
-        if ($request->ticket_gold_probability !== null) {
-            $gameConfig['ticket']['gold']['probability'] = $request->ticket_gold_probability;
-        }
-
-        if ($request->ticket_silver_number !== null) {
-            $gameConfig['ticket']['silver']['number'] = $request->ticket_silver_number;
-        }
-
-        if ($request->ticket_silver_probability !== null) {
-            $gameConfig['ticket']['silver']['probability'] = $request->ticket_silver_probability;
-        }
-
         if ($request->fake_position_number !== null) {
             $gameConfig['fake_position']['number'] = $request->fake_position_number;
         }
@@ -325,10 +223,6 @@ class JsonConfig
 
         if ($request->fake_position_radius !== null) {
             $gameConfig['fake_position']['radius'] = $request->fake_position_radius;
-        }
-
-        if ($request->fake_position_random !== null) {
-            $gameConfig['fake_position']['random'] = $request->fake_position_random;
         }
 
         if ($request->game_pause_after_disconnecting !== null) {
@@ -343,12 +237,16 @@ class JsonConfig
             $gameConfig['other']['role_random'] = $request->other_role_random;
         }
 
-        if ($request->other_thief_knows_saboteur !== null) {
-            $gameConfig['other']['thief_knows_saboteur'] = $request->other_thief_knows_saboteur;
+        if ($request->other_warning_number !== null) {
+            $gameConfig['other']['warning_number'] = $request->other_warning_number;
         }
 
-        if ($request->other_saboteur_sees_thief !== null) {
-            $gameConfig['other']['saboteur_sees_thief'] = $request->other_saboteur_sees_thief;
+        if ($request->other_max_speed !== null) {
+            $gameConfig['other']['max_speed'] = $request->other_max_speed;
+        }
+
+        if ($request->other_bot_speed !== null) {
+            $gameConfig['other']['bot_speed'] = $request->other_bot_speed;
         }
 
         return $gameConfig;
