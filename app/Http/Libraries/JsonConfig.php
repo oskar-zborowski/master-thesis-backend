@@ -74,7 +74,6 @@ class JsonConfig
             'fake_position' => [
                 'number' => 0,
                 'probability' => 0.5,
-                'radius' => 500,
             ],
             'game_pause' => [
                 'after_disconnecting' => true,
@@ -219,10 +218,6 @@ class JsonConfig
 
         if ($request->fake_position_probability !== null) {
             $gameConfig['fake_position']['probability'] = $request->fake_position_probability;
-        }
-
-        if ($request->fake_position_radius !== null) {
-            $gameConfig['fake_position']['radius'] = $request->fake_position_radius;
         }
 
         if ($request->game_pause_after_disconnecting !== null) {

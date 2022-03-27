@@ -28,7 +28,6 @@ return new class extends Migration
             $table->enum('status', Validation::getRoomStatuses())->default(Validation::getRoomStatuses()[0]);
             $table->enum('game_result', Validation::getGameResults())->nullable();
             $table->timestamp('game_started_at')->nullable();
-            $table->timestamp('game_paused_at')->nullable();
             $table->timestamp('game_ended_at')->nullable();
             $table->timestamp('next_disclosure_at')->nullable();
             $table->timestamps();
@@ -106,8 +105,7 @@ return new class extends Migration
 //     },
 //     "fake_position": {
 //         "number": 0,
-//         "probability": 0.5,
-//         "radius": 500
+//         "probability": 0.5
 //     },
 //     "game_pause": {
 //         "after_disconnecting": true,

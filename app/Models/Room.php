@@ -21,7 +21,6 @@ class Room extends BaseModel
         'missions',
         'monitoring_cameras',
         'monitoring_centrals',
-        'game_paused_at',
         'created_at',
         'updated_at',
     ];
@@ -34,7 +33,6 @@ class Room extends BaseModel
         'monitoring_cameras' => MultiPolygon::class,
         'monitoring_centrals' => MultiPolygon::class,
         'game_started_at' => 'string',
-        'game_paused_at' => 'string',
         'game_ended_at' => 'string',
         'next_disclosure_at' => 'string',
     ];
