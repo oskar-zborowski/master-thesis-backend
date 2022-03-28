@@ -57,6 +57,7 @@ class UpdateRoomRequest extends FormRequest
             'boundary' => 'nullable|array|between:1,11',
             'monitoring_cameras' => 'nullable|array|between:1,10',
             'monitoring_centrals' => 'nullable|array|between:1,5',
+            'geometries_confirmed' => 'nullable|boolean',
             'status' => ['nullable', Rule::in(['GAME_IN_PROGRESS', 'GAME_PAUSED'])],
         ];
     }

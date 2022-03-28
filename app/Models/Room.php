@@ -32,6 +32,7 @@ class Room extends BaseModel
         'missions' => MultiPolygon::class,
         'monitoring_cameras' => MultiPolygon::class,
         'monitoring_centrals' => MultiPolygon::class,
+        'geometries_confirmed' => 'boolean',
         'game_started_at' => 'string',
         'game_ended_at' => 'string',
         'next_disclosure_at' => 'string',

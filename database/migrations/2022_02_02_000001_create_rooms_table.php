@@ -25,6 +25,7 @@ return new class extends Migration
             $table->multiPolygon('missions')->nullable();
             $table->multiPolygon('monitoring_cameras')->nullable();
             $table->multiPolygon('monitoring_centrals')->nullable();
+            $table->boolean('geometries_confirmed')->default(false);
             $table->enum('status', Validation::getRoomStatuses())->default(Validation::getRoomStatuses()[0]);
             $table->enum('game_result', Validation::getGameResults())->nullable();
             $table->timestamp('game_started_at')->nullable();
