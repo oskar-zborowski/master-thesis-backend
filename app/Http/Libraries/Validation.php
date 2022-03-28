@@ -139,8 +139,9 @@ class Validation
 
     public static function getPlayerStatuses() {
         return [
-            'DISCONNECTED',
+            'DETECTED_BY_CAMERA',
             'BORDER_CROSSED',
+            'DISCONNECTED',
             'BLOCKED',
         ];
     }
