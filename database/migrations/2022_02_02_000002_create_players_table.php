@@ -18,15 +18,15 @@ return new class extends Migration
             $table->enum('avatar', Validation::getAvatars());
             $table->enum('role', Validation::getPlayerRoles())->nullable();
             $table->json('player_config');
-            $table->json('thief_track')->nullable();
-            $table->lineString('track')->nullable();
-            $table->point('disclosed_thief_position')->nullable(); // pozycja złodzieja ujawniona poprzez standardowe ujawnianie (widoczna dla wszystkich)
+            $table->json('track')->nullable();
+            $table->json('disclosure')->nullable(); // pozycja złodzieja ujawniona poprzez np. wykrycie kamery albo wykorzystanie ticketu (przypisana do rekordu gracza, który pozycję wykrył). Jeżeli pozycja disclosed_position będzie świeższa, u wszystkich graczy to pole jest usuwane
+            $table->point('disclosed_position')->nullable(); // pozycja gracza ujawniona dla wszystkich
             $table->point('thief_fake_position')->nullable(); // fake'owa pozycja złodzieja, po zużyciu jest usuwana
-            $table->multiPoint('detected_thief_position')->nullable(); // pozycja złodzieja ujawniona poprzez np. wykrycie kamery albo wykorzystanie ticketu (przypisana do rekordu gracza, który pozycję wykrył). Jeżeli pozycja disclosed_thief_position będzie świeższa, u wszystkich graczy to pole jest usuwane
             $table->point('mission_performed')->nullable();
             $table->multiPoint('missions_completed')->nullable();
             $table->float('direction')->default(0);
             $table->unsignedTinyInteger('hide_stock')->default(0); // określa ile odkryć w przód złodziej ma ochronę przed ujawnieniem pozycji
+            $table->boolean('protected_disclosure')->default(false); // określa czy złodziej cały czas znajduje się w miejscu, które powinno ujawnić jego pozycję, gdyby nie black_ticket
             $table->boolean('is_bot')->default(false);
             $table->enum('status', Validation::getPlayerStatuses())->nullable();
             $table->unsignedTinyInteger('warning_number')->default(0);
@@ -34,6 +34,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('standard_deviation')->default(0); // wyrażone w [ms]
             $table->unsignedSmallInteger('samples_number')->default(0);
             $table->timestamp('expected_time_at')->nullable();
+            $table->timestamp('crossing_border_finished_at')->nullable();
             $table->timestamp('mission_finished_at')->nullable();
             $table->timestamp('catching_finished_at')->nullable();
             $table->timestamp('caught_at')->nullable();
@@ -65,66 +66,90 @@ return new class extends Migration
 //         "used_number": 0
 //     }
 
-// Struktura JSONa z przykładowymi wartościami dla pola "disclosure_by_players"
-//     0: {
+// Struktura JSONa z przykładowymi wartościami dla pola "track"
+//     {
+//         "time": "2022-03-31 09:15:45",
+//         "type": "standard",
 //         "position": {
-//              "latitude": 17.5437434,
-//              "longitude": 51.694656
+//              "latitude": 51.6946562,
+//              "longitude": 17.5437434
 //         },
-//         "type": "hidden",
-//     },
-//     1: {
-//         "position": {
-//              "latitude": 17.5437434,
-//              "longitude": 51.694656
-//         },
-//         "type": "disclosure",
-//         "is_fake_position": true,
-//         "players": all
-//     },
-//     2: {
-//         "position": {
-//              "latitude": 17.5437434,
-//              "longitude": 51.694656
-//         },
-//         "type": "camera_detection",
 //         "is_fake_position": false,
-//         "players": {
+//         "players_id": null
+//     },
+//     {
+//         "time": "2022-03-31 09:15:45",
+//         "type": "disclosure",
+//         "position": {
+//              "latitude": 51.6946562,
+//              "longitude": 17.5437434
+//         },
+//         "is_fake_position": true,
+//         "players_id": null
+//     },
+//     {
+//         "time": "2022-03-31 09:15:45",
+//         "type": "camera_detection",
+//         "position": {
+//              "latitude": 51.6946562,
+//              "longitude": 17.5437434
+//         },
+//         "is_fake_position": false,
+//         "players_id": {
 //             15,
 //             49
 //         }
 //     },
-//     3: {
-//         "position": {
-//              "latitude": 17.5437434,
-//              "longitude": 51.694656
-//         },
+//     {
+//         "time": "2022-03-31 09:15:45",
 //         "type": "white_ticket",
-//         "is_fake_position": true,
-//         "players": {
-//             7
-//         }
-//     },
-//     4: {
 //         "position": {
-//              "latitude": 17.5437434,
-//              "longitude": 51.694656
+//              "latitude": 51.6946562,
+//              "longitude": 17.5437434
 //         },
-//         "type": "black_ticket",
-//         "is_fake_position": false,
-//         "players": {
+//         "is_fake_position": true,
+//         "players_id": {
 //             18
 //         }
 //     },
-//     5: {
+//     {
+//         "time": "2022-03-31 09:15:45",
+//         "type": "black_ticket",
 //         "position": {
-//              "latitude": 17.5437434,
-//              "longitude": 51.694656
+//              "latitude": 51.6946562,
+//              "longitude": 17.5437434
 //         },
-//         "type": "crossing_border",
 //         "is_fake_position": false,
-//         "players": {
-//             1,
-//             3
+//         "players_id": {
+//             18
+//         }
+//     },
+//     {
+//         "time": "2022-03-31 09:15:45",
+//         "type": "crossing_border",
+//         "position": {
+//              "latitude": 51.6946562,
+//              "longitude": 17.5437434
+//         },
+//         "is_fake_position": false,
+//         "players_id": {
+//             15,
+//             49
+//         }
+//     }
+
+// Struktura JSONa z domyślnymi wartościami dla pola "disclosure"
+//     {
+//         "player_id": 3,
+//         "position": {
+//              "latitude": 51.6946562,
+//              "longitude": 17.5437434
+//         }
+//     },
+//     {
+//         "player_id": 5,
+//         "position": {
+//              "latitude": 51.6946562,
+//              "longitude": 17.5437434
 //         }
 //     }

@@ -43,8 +43,9 @@ class JsonConfig
                 'thief_direction' => false,
                 'short_distance' => true,
                 'thief_knows_when' => true,
-                'thief_knows_saboteur' => false,
+                'policeman_sees_agent' => true,
                 'saboteur_sees_thief' => false,
+                'thief_knows_saboteur' => false,
                 'after_crossing_border' => false,
             ],
             'mission' => [
@@ -80,8 +81,8 @@ class JsonConfig
                 'after_crossing_border' => false,
             ],
             'other' => [
-                'role_random' => true,
                 'warning_number' => 2,
+                'crossing_border_countdown' => 30,
                 'max_speed' => 6,
                 'bot_speed' => 2.5,
             ],
@@ -152,12 +153,16 @@ class JsonConfig
             $gameConfig['disclosure']['thief_knows_when'] = $request->disclosure_thief_knows_when;
         }
 
-        if ($request->disclosure_thief_knows_saboteur !== null) {
-            $gameConfig['disclosure']['thief_knows_saboteur'] = $request->disclosure_thief_knows_saboteur;
+        if ($request->disclosure_policeman_sees_agent !== null) {
+            $gameConfig['disclosure']['policeman_sees_agent'] = $request->disclosure_policeman_sees_agent;
         }
 
         if ($request->disclosure_saboteur_sees_thief !== null) {
             $gameConfig['disclosure']['saboteur_sees_thief'] = $request->disclosure_saboteur_sees_thief;
+        }
+
+        if ($request->disclosure_thief_knows_saboteur !== null) {
+            $gameConfig['disclosure']['thief_knows_saboteur'] = $request->disclosure_thief_knows_saboteur;
         }
 
         if ($request->disclosure_after_crossing_border !== null) {
@@ -228,12 +233,12 @@ class JsonConfig
             $gameConfig['game_pause']['after_crossing_border'] = $request->game_pause_after_crossing_border;
         }
 
-        if ($request->other_role_random !== null) {
-            $gameConfig['other']['role_random'] = $request->other_role_random;
-        }
-
         if ($request->other_warning_number !== null) {
             $gameConfig['other']['warning_number'] = $request->other_warning_number;
+        }
+
+        if ($request->other_crossing_border_countdown !== null) {
+            $gameConfig['other']['crossing_border_countdown'] = $request->other_crossing_border_countdown;
         }
 
         if ($request->other_max_speed !== null) {

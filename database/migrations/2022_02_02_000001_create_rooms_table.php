@@ -76,8 +76,9 @@ return new class extends Migration
 //         "thief_direction": false,
 //         "short_distance": true,
 //         "thief_knows_when": true,
-//         "thief_knows_saboteur": false,
+//         "policeman_sees_agent": true,
 //         "saboteur_sees_thief": false,
+//         "thief_knows_saboteur": false,
 //         "after_crossing_border": false
 //     },
 //     "mission": {
@@ -113,8 +114,8 @@ return new class extends Migration
 //         "after_crossing_border": false
 //     },
 //     "other": {
-//         "role_random": true,
 //         "warning_number": 2,
+//         "crossing_border_countdown": 30,
 //         "max_speed": 6,
 //         "bot_speed": 2.5
 //     }
