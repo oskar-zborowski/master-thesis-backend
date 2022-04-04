@@ -26,9 +26,9 @@ class MaliciousnessNotification extends Mailable
         $ipAddress = $connection->ipAddress;
 
         if ($status == 1) {
-            $this->message = 'Wykryto pierwszą próbę złośliwego żądania!<br><br>';
+            $this->message = 'Wykryto pierwszą próbę złośliwego żądania!';
         } else if ($status == 2) {
-            $this->message = 'Wykryto kolejną próbę złośliwego żądania!<br><br>';
+            $this->message = 'Wykryto kolejną próbę złośliwego żądania!';
         } else if ($status == 3) {
 
             $this->message = 'Zablokowano Adres Ip przychodzącego żądania';
@@ -37,18 +37,67 @@ class MaliciousnessNotification extends Mailable
                 $this->message .= ' oraz Konto Użytkownika';
             }
 
-            $this->message .= '!<br><br>';
+            $this->message .= '!';
 
         } else if ($status == 4) {
-            $this->message = 'Wymagana jest permanentna blokada Adresu Ip przychodzącego żądania!<br><br>';
+            $this->message = 'Wymagana jest permanentna blokada Adresu Ip przychodzącego żądania!';
         }
 
         $errorType = $errorCode->getMessage();
 
+        $this->message .= "<br><br>Informacje:<br>
+            &emsp;Typ: $errorType<br>";
+
         if (!empty($data)) {
 
             if (is_array($data)) {
-                $errorDescription = implode(' ', $data);
+
+                if (key_exists('message', $data) || key_exists('file', $data) || key_exists('line', $data)) {
+
+                    $errorDescription = '';
+
+                    if (key_exists('message', $data)) {
+                        if (is_array($data['message'])) {
+                            $errorDescription .= implode(' ', $data['message']);
+                        } else {
+                            $errorDescription .= $data['message'];
+                        }
+                    }
+
+                    if (key_exists('file', $data)) {
+
+                        if (strlen($errorDescription) == 0) {
+                            $errorDescription .= 'brak<br>&emsp;Plik: ';
+                        } else {
+                            $errorDescription .= '<br>&emsp;Plik: ';
+                        }
+
+                        if (is_array($data['file'])) {
+                            $errorDescription .= implode(' ', $data['file']);
+                        } else {
+                            $errorDescription .= $data['file'];
+                        }
+                    }
+
+                    if (key_exists('line', $data)) {
+
+                        if (strlen($errorDescription) == 0) {
+                            $errorDescription .= 'brak<br>&emsp;Linia: ';
+                        } else {
+                            $errorDescription .= '<br>&emsp;Linia: ';
+                        }
+
+                        if (is_array($data['line'])) {
+                            $errorDescription .= implode(' ', $data['line']);
+                        } else {
+                            $errorDescription .= $data['line'];
+                        }
+                    }
+
+                } else {
+                    $errorDescription = implode(' ', $data);
+                }
+
             } else {
                 $errorDescription = $data;
             }
@@ -57,10 +106,7 @@ class MaliciousnessNotification extends Mailable
             $errorDescription = 'brak';
         }
 
-        $this->message .= "
-            Informacje:<br>
-                &emsp;Typ: $errorType<br>
-                &emsp;Opis: $errorDescription<br><br>";
+        $this->message .= "&emsp;Opis: $errorDescription<br><br>";
 
         $successfulRequestCounter = (int) $connection->successful_request_counter;
         $failedRequestCounter = (int) $connection->failed_request_counter;

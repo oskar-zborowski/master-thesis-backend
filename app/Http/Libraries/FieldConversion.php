@@ -35,13 +35,28 @@ class FieldConversion
                     if (is_array($value)) {
 
                         if ($current >= $from && ($to === null || $current <= $to)) {
-                            $fieldNames[Str::$conversionType($key)] = self::convertByDefault($conversionType, $value, $from, $to, $current+1);
+
+                            $convertedKey = Str::$conversionType($key);
+
+                            if (ctype_upper($key[0])) {
+                                $convertedKey = ucfirst($convertedKey);
+                            }
+
+                            $fieldNames[$convertedKey] = self::convertByDefault($conversionType, $value, $from, $to, $current+1);
+
                         } else if ($current < $from) {
 
                             $deep = self::convertByDefault($conversionType, $value, $from, $to, $current+1);
 
                             foreach ($deep as $k => $v) {
-                                $fieldNames[Str::$conversionType($k)] = $v;
+
+                                $convertedKey = Str::$conversionType($k);
+
+                                if (ctype_upper($k[0])) {
+                                    $convertedKey = ucfirst($convertedKey);
+                                }
+
+                                $fieldNames[$convertedKey] = $v;
                             }
                         }
 
@@ -50,7 +65,15 @@ class FieldConversion
                         if ($current >= $from) {
 
                             if ($to === null || $current <= $to) {
-                                $fieldNames[Str::$conversionType($key)] = $value;
+
+                                $convertedKey = Str::$conversionType($key);
+
+                                if (ctype_upper($key[0])) {
+                                    $convertedKey = ucfirst($convertedKey);
+                                }
+
+                                $fieldNames[$convertedKey] = $value;
+
                             } else {
                                 $fieldNames = null;
                             }

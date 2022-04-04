@@ -33,7 +33,7 @@ class UserController extends Controller
 
         Auth::loginUsingId($user->id);
         Encrypter::generateAuthTokens();
-        JsonResponse::sendSuccess($request, ['User' => $user], null, 201);
+        JsonResponse::sendSuccess($request, $user->getData(), null, 201);
     }
 
     /**
@@ -59,7 +59,7 @@ class UserController extends Controller
 
         $user->save();
 
-        JsonResponse::sendSuccess($request, ['User' => $user]);
+        JsonResponse::sendSuccess($request, $user->getData());
     }
 
     /**
@@ -71,6 +71,6 @@ class UserController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        JsonResponse::sendSuccess($request, ['User' => $user]);
+        JsonResponse::sendSuccess($request, $user->getData());
     }
 }
