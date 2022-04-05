@@ -9,32 +9,20 @@ use MatanYadaev\EloquentSpatial\SpatialBuilder;
 class Player extends BaseModel
 {
     protected $hidden = [
-        'id',
         'room_id',
         'user_id',
-        'avatar',
         'role',
         'player_config',
         'track',
         'disclosure',
-        'disclosed_position',
         'thief_fake_position',
-        'mission_performed',
-        'missions_completed',
         'direction',
         'hide_stock',
         'protected_disclosure',
-        'is_bot',
-        'status',
-        'warning_number',
         'average_ping',
         'standard_deviation',
         'samples_number',
         'expected_time_at',
-        'crossing_border_finished_at',
-        'mission_finished_at',
-        'catching_finished_at',
-        'caught_at',
         'created_at',
         'updated_at',
     ];
@@ -60,6 +48,7 @@ class Player extends BaseModel
         'crossing_border_finished_at' => 'string',
         'mission_finished_at' => 'string',
         'catching_finished_at' => 'string',
+        'caught_at' => 'boolean',
         'updated_at' => 'string',
     ];
 

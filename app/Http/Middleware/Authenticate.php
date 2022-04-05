@@ -70,7 +70,7 @@ class Authenticate extends Middleware
 
                 Session::put('personalAccessToken', $personalAccessToken);
 
-                if ($personalAccessToken !== null && Auth::user() === null) {
+                if ($personalAccessToken !== null && !Auth::user()) {
                     Auth::loginUsingId($personalAccessToken->tokenable_id);
                 }
             }

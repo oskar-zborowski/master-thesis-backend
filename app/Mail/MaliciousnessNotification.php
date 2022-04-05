@@ -33,7 +33,7 @@ class MaliciousnessNotification extends Mailable
 
             $this->message = 'Zablokowano Adres Ip przychodzącego żądania';
 
-            if ($user !== null) {
+            if ($user) {
                 $this->message .= ' oraz Konto Użytkownika';
             }
 
@@ -127,7 +127,7 @@ class MaliciousnessNotification extends Mailable
                 &emsp;Data utworzenia: $ipAddress->created_at<br>
                 &emsp;Data blokady: $ipAddressBlockedAt";
 
-        if ($user !== null) {
+        if ($user) {
 
             $userBlockedAt = $user->blocked_at ? $user->blocked_at : 'brak';
 

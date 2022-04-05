@@ -57,4 +57,10 @@ class Room extends BaseModel
     public function newEloquentBuilder($query): SpatialBuilder {
         return new SpatialBuilder($query);
     }
+
+    public function getData() {
+        return [
+            'Room' => 'test'
+        ];
+    }
 }

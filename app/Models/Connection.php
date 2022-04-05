@@ -19,6 +19,7 @@ class Connection extends BaseModel
         'successful_request_counter' => 'integer',
         'failed_request_counter' => 'integer',
         'malicious_request_counter' => 'integer',
+        'updated_at' => 'string',
     ];
 
     protected $with = [

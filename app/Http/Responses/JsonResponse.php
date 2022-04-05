@@ -111,7 +111,7 @@ class JsonResponse
         /** @var IpAddress $ipAddress */
         $ipAddress = IpAddress::whereRaw($aesDecrypt)->first();
 
-        if ($ipAddress === null) {
+        if (!$ipAddress) {
             $ipAddress = new IpAddress;
             $ipAddress->ip_address = $request->ip();
             $ipAddress->save();
@@ -120,7 +120,7 @@ class JsonResponse
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if ($user !== null) {
+        if ($user) {
             /** @var Connection $connection */
             $connection = $ipAddress->connections()->where('user_id', $user->id)->first();
         } else {
@@ -130,11 +130,11 @@ class JsonResponse
 
         $isMalicious = false;
 
-        if ($connection === null) {
+        if (!$connection) {
 
             $connection = new Connection;
 
-            if ($user !== null) {
+            if ($user) {
                 $connection->user_id = $user->id;
             }
 
@@ -174,7 +174,7 @@ class JsonResponse
                 $ipAddress->blocked_at = now();
                 $ipAddress->save();
 
-                if ($user !== null) {
+                if ($user) {
                     $user->blocked_at = now();
                     $user->save();
                 }

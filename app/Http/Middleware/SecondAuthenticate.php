@@ -41,7 +41,7 @@ class SecondAuthenticate
         /** @var IpAddress $ipAddress */
         $ipAddress = IpAddress::whereRaw($aesDecrypt)->whereNotNull('blocked_at')->first();
 
-        if ($ipAddress !== null) {
+        if ($ipAddress) {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
                 __('auth.ip-blocked')
@@ -88,28 +88,28 @@ class SecondAuthenticate
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if ($token !== null && $user === null) {
+        if ($token !== null && !$user) {
             throw new ApiException(
                 DefaultErrorCode::UNAUTHENTICATED(true),
                 __('auth.invalid-token')
             );
         }
 
-        if ($refreshToken !== null && $personalAccessToken === null) {
+        if ($refreshToken !== null && !$personalAccessToken) {
             throw new ApiException(
                 DefaultErrorCode::UNAUTHENTICATED(true),
                 __('auth.invalid-refresh-token')
             );
         }
 
-        if ($token !== null && $user !== null) {
+        if ($token !== null && $user) {
 
             /** @var PersonalAccessToken $personalAccessToken */
             $personalAccessToken = $user->tokenable()->first();
 
             if (Validation::timeComparison($personalAccessToken->created_at, env('JWT_LIFETIME'), '>')) {
 
-                if ($personalAccessToken->expiry_alert_at === null) {
+                if (!$personalAccessToken->expiry_alert_at) {
 
                     $personalAccessToken->expiry_alert_at = now();
                     $personalAccessToken->save();
@@ -128,7 +128,7 @@ class SecondAuthenticate
             }
         }
 
-        if ($refreshToken !== null && $personalAccessToken !== null) {
+        if ($refreshToken !== null && $personalAccessToken) {
             if (Validation::timeComparison($personalAccessToken->created_at, env('JWT_LIFETIME'), '<=')) {
                 throw new ApiException(
                     DefaultErrorCode::UNAUTHENTICATED(true),
@@ -137,14 +137,14 @@ class SecondAuthenticate
             }
         }
 
-        if ($user !== null && $user->blocked_at !== null) {
+        if ($user && $user->blocked_at) {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
                 __('auth.user-blocked')
             );
         }
 
-        if ($refreshToken !== null && $personalAccessToken !== null) {
+        if ($refreshToken !== null && $personalAccessToken) {
             $personalAccessToken->delete();
             Encrypter::generateAuthTokens();
         }

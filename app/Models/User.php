@@ -27,6 +27,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'id' => 'integer',
+        'blocked_at' => 'boolean',
     ];
 
     protected $encryptable = [
