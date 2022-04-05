@@ -251,4 +251,23 @@ class JsonConfig
 
         return $gameConfig;
     }
+
+    public static function getDefaultPlayerConfig() {
+        return [
+            'ticket' => [
+                'black' => [
+                    'number' => 0,
+                    'used_number' => 0,
+                ],
+                'white' => [
+                    'number' => 0,
+                    'used_number' => 0,
+                ],
+                'fake_position' => [
+                    'number' => 0,
+                    'used_number' => 0,
+                ],
+            ],
+        ];
+    }
 }

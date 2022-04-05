@@ -10,6 +10,7 @@ use App\Http\Libraries\Geometry;
 use App\Http\Libraries\JsonConfig;
 use App\Http\Requests\UpdateRoomRequest;
 use App\Http\Responses\JsonResponse;
+use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,10 +31,22 @@ class RoomController extends Controller
         $room = new Room;
         $room->host_id = $user->id;
         $room->code = Encrypter::generateToken(6, Room::class, 'code');
-        $room->game_config = JsonConfig::defaultGameConfig();
+        $room->game_config = JsonConfig::getDefaultGameConfig();
         $room->save();
 
-        JsonResponse::sendSuccess($request, null, null, 201);
+        $now = date('Y-m-d H:i:s');
+        $expirationDate = date('Y-m-d H:i:s', strtotime('+5 seconds', strtotime($now)));
+
+        /** @var Player $player */
+        $player = new Player;
+        $player->room_id = $room->id;
+        $player->user_id = $user->id;
+        $player->avatar = $user->default_avatar;
+        $player->player_config = JsonConfig::getDefaultPlayerConfig();
+        $player->expected_time_at = $expirationDate;
+        $player->save();
+
+        JsonResponse::sendSuccess($request, $room->getData(), null, 201);
     }
 
     /**
@@ -100,21 +113,23 @@ class RoomController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        /** @var \App\Models\Player $player */
-        $player = $room->players()->where('user_id', $user->id)->where('status', '<>', 'BLOCKED')->first();
+        /** @var Player $player */
+        $player = $room->players()->where('user_id', $user->id)->first();
 
-        // if ($player === null) {
-        //     throw new ApiException(
-        //         DefaultErrorCode::PERMISSION_DENIED(true),
-        //         __('validation.custom.no-permission')
-        //     );
-        // }
+        if (!$player) {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(true),
+                __('validation.custom.no-permission')
+            );
+        }
 
-        $result = Room::selectRaw('ST_AsText(ST_ExteriorRing(' . $room->boundary . '))')->first();
+        if ($player->status == 'BLOCKED') {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(),
+                __('validation.custom.you-have-been-banned')
+            );
+        }
 
-        echo $result;
-        die;
-
-        JsonResponse::sendSuccess($request);
+        JsonResponse::sendSuccess($request, $room->getData());
     }
 }

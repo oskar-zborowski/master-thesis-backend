@@ -55,4 +55,8 @@ class Player extends BaseModel
     public function newEloquentBuilder($query): SpatialBuilder {
         return new SpatialBuilder($query);
     }
+
+    public function room() {
+        return $this->belongsTo(Room::class);
+    }
 }

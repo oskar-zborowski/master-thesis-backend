@@ -146,6 +146,8 @@ return [
             'rule-name' => 'custom-message',
         ],
         'boundary-not-closed' => 'The boundary has not been closed.',
+        'game-already-started' => 'The game has already started.',
+        'incorrect-code' => 'Incorrect code.',
         'incorrect-database-search' => 'You can only use perfect matches (=) or similar matches (LIKE).',
         'invalid-boundary-shape' => 'Invalid boundary shape.',
         'invalid-coordinate-format' => 'Invalid geographic coordinate format.',
@@ -160,5 +162,7 @@ return [
         'overlapping-monitoring-centrals' => 'The monitoring centrals cannot overlap perfectly.',
         'overlapping-monitorings' => 'The monitoring cameras cannot overlap perfectly.',
         'user-is-not-in-room' => 'The specified user is not in the room.',
+        'you-are-already-in-room' => 'You are already in the room.',
+        'you-have-been-banned' => 'You have been banned from this room.',
     ],
 ];

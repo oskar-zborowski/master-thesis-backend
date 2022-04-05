@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class PlayerRequest extends FormRequest
+class CreatePlayerRequest extends FormRequest
 {
     public function authorize() {
         return true;
@@ -12,7 +12,7 @@ class PlayerRequest extends FormRequest
 
     public function rules() {
         return [
-            //
+            'code' => 'required|string|size:6',
         ];
     }
 }
