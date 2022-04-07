@@ -14,13 +14,14 @@ class CreateUserRequest extends FormRequest
 
     public function rules() {
         return [
-            'name' => 'required|string|between:1,15',
             'producer' => 'nullable|string|between:1,30',
             'model' => 'nullable|string|between:1,50',
             'os_name' => ['nullable', Rule::in(Validation::getOsNames())],
             'os_version' => 'nullable|string|between:1,10',
             'app_version' => ['required', Rule::in(Validation::getAppVersions())],
             'uuid' => 'nullable|string|between:1,45',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
         ];
     }
 }

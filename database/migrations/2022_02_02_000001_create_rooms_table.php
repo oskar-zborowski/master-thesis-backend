@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('host_id')->nullable()->references('id')->on('users')->nullOnDelete();
             $table->char('code', 48)->unique(); // Kodowane automatycznie
-            $table->string('street', 80)->nullable();
+            $table->string('house_number', 10)->nullable();
+            $table->string('street', 70)->nullable();
+            $table->string('housing_estate', 70)->nullable();
+            $table->string('district', 70)->nullable();
             $table->string('city', 40)->nullable();
             $table->string('voivodeship', 20)->nullable();
             $table->string('country', 30)->nullable();

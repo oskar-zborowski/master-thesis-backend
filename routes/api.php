@@ -30,7 +30,6 @@ Route::post('/v1/users', [UserController::class, 'createUser'])->name('user-crea
 */
 
 Route::patch('/v1/users/me', [UserController::class, 'updateUser'])->name('user-updateUser');
-Route::get('/v1/users/me', [UserController::class, 'getUser'])->name('user-getUser');
 
 Route::post('/v1/rooms', [RoomController::class, 'createRoom'])->name('room-createRoom');
 Route::patch('/v1/rooms/{room}', [RoomController::class, 'updateRoom'])->name('room-updateRoom');

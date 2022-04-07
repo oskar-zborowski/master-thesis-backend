@@ -13,7 +13,7 @@ return new class extends Migration
     public function up() {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->char('name', 48); // Kodowane automatycznie
+            $table->char('name', 48)->nullable(); // Kodowane automatycznie
             $table->enum('default_avatar', Validation::getAvatars());
             $table->string('producer', 30)->nullable();
             $table->string('model', 50)->nullable();

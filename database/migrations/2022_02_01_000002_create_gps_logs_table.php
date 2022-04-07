@@ -14,7 +14,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->references('id')->on('users')->nullOnDelete();
             $table->point('gps_location');
-            $table->string('street', 80);
+            $table->string('house_number', 10)->nullable();
+            $table->string('street', 70)->nullable();
+            $table->string('housing_estate', 70)->nullable();
+            $table->string('district', 70)->nullable();
             $table->string('city', 40);
             $table->string('voivodeship', 20);
             $table->string('country', 30);

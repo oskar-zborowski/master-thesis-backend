@@ -39,6 +39,10 @@ class User extends Authenticatable
         return $this->morphOne(PersonalAccessToken::class, 'tokenable');
     }
 
+    public function gpsLogs() {
+        return $this->hasMany(GpsLog::class);
+    }
+
     public function getData() {
         return [
             'User' => $this

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Http\Traits\Encryptable;
+use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class GpsLog extends BaseModel
 {
@@ -10,7 +10,10 @@ class GpsLog extends BaseModel
         'id',
         'user_id',
         'gps_location',
+        'house_number',
         'street',
+        'housing_estate',
+        'district',
         'city',
         'voivodeship',
         'country',

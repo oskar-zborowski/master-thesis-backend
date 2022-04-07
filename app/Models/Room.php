@@ -13,7 +13,10 @@ class Room extends BaseModel
 
     protected $hidden = [
         'host_id',
+        'house_number',
         'street',
+        'housing_estate',
+        'district',
         'city',
         'voivodeship',
         'country',
