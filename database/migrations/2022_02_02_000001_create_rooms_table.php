@@ -25,7 +25,7 @@ return new class extends Migration
             $table->char('country', 80)->nullable(); // Kodowane automatycznie
             $table->enum('game_mode', Validation::getGameModes())->default(Validation::getGameModes()[0]);
             $table->json('game_config');
-            $table->string('boundary_points', 29936)->nullable(); // Kodowane automatycznie | Przykładowa struktura: lat:lng,lat:lng,lat:lng,lat:lng;lat:lng,lat:lng,lat:lng,lat:lng;lat:lng,lat:lng,lat:lng,lat:lng
+            $table->text('boundary_points')->nullable(); // Kodowane automatycznie | Przykładowa struktura: lat:lng,lat:lng,lat:lng,lat:lng;lat:lng,lat:lng,lat:lng,lat:lng;lat:lng,lat:lng,lat:lng,lat:lng | max_length: 29936
             $table->polygon('boundary_polygon')->nullable(); // Poligon zewnętrzny może składać się z maksymalnie 50 pkt., może zawierać maksymalnie 30 poligonów wewnętrznych, z których każdy może posiadać maksymalnie 20 pkt.
             $table->string('mission_points', 2320)->nullable(); // Kodowane automatycznie | Przykładowa struktura: lat:lng,lat:lng,lat:lng
             $table->multiPolygon('mission_polygons')->nullable();
