@@ -94,7 +94,7 @@ class UserController extends Controller
 
         $gpsLog = new GpsLog;
         $gpsLog->user_id = $user->id;
-        $gpsLog->gps_location = new Point($latitude, $longitude);
+        $gpsLog->gps_location = "$latitude:$longitude";
 
         if (isset($result['house_number'])) {
             $gpsLog->house_number = FieldConversion::stringToUppercase($result['house_number']);
@@ -145,8 +145,7 @@ class UserController extends Controller
 
         if (isset($result['state'])) {
             $voivodeship = FieldConversion::stringToLowercase($result['state']);
-            $voivodeship = str_replace('województwo ', '', $voivodeship);
-            $gpsLog->voivodeship = $voivodeship;
+            $gpsLog->voivodeship = str_replace('województwo ', '', $voivodeship);
         }
 
         if (isset($result['country'])) {

@@ -13,7 +13,7 @@ return new class extends Migration
         Schema::create('gps_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->references('id')->on('users')->nullOnDelete();
-            $table->char('gps_location', 80); // Kodowane automatycznie
+            $table->char('gps_location', 80); // Kodowane automatycznie | Przykładowa struktura: lat:lng
             $table->char('house_number', 48)->nullable(); // Kodowane automatycznie
             $table->char('street', 176)->nullable(); // Kodowane automatycznie
             $table->char('housing_estate', 176)->nullable(); // Kodowane automatycznie
