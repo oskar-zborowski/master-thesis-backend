@@ -55,7 +55,7 @@ class UpdateRoomRequest extends FormRequest
             'other_crossing_border_countdown' => 'nullable|integer|between:-1,120',
             'other_max_speed' => 'nullable|numeric|between:-1,10',
             'other_bot_speed' => 'nullable|numeric|between:2,10',
-            'boundary' => 'nullable|array|between:1,11',
+            'boundary' => 'nullable|array|between:1,31',
             'monitoring_cameras' => 'nullable|array|between:1,10',
             'monitoring_centrals' => 'nullable|array|between:1,5',
             'geometries_confirmed' => 'nullable|boolean',

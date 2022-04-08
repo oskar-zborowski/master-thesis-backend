@@ -15,20 +15,24 @@ return new class extends Migration
             $table->id();
             $table->foreignId('host_id')->nullable()->references('id')->on('users')->nullOnDelete();
             $table->char('code', 48)->unique(); // Kodowane automatycznie
-            $table->point('gps_location')->nullable();
-            $table->string('house_number', 10)->nullable();
-            $table->string('street', 70)->nullable();
-            $table->string('housing_estate', 70)->nullable();
-            $table->string('district', 70)->nullable();
-            $table->string('city', 40)->nullable();
-            $table->string('voivodeship', 20)->nullable();
-            $table->string('country', 30)->nullable();
+            $table->char('gps_location', 80)->nullable(); // Kodowane automatycznie
+            $table->char('house_number', 48)->nullable(); // Kodowane automatycznie
+            $table->char('street', 176)->nullable(); // Kodowane automatycznie
+            $table->char('housing_estate', 176)->nullable(); // Kodowane automatycznie
+            $table->char('district', 176)->nullable(); // Kodowane automatycznie
+            $table->char('city', 112)->nullable(); // Kodowane automatycznie
+            $table->char('voivodeship', 80)->nullable(); // Kodowane automatycznie
+            $table->char('country', 80)->nullable(); // Kodowane automatycznie
             $table->enum('game_mode', Validation::getGameModes())->default(Validation::getGameModes()[0]);
             $table->json('game_config');
-            $table->polygon('boundary')->nullable();
-            $table->multiPolygon('missions')->nullable();
-            $table->multiPolygon('monitoring_cameras')->nullable();
-            $table->multiPolygon('monitoring_centrals')->nullable();
+            $table->char('boundary_points', 29936)->nullable(); // Kodowane automatycznie | Przykładowa struktura: lat:lng,lat:lng,lat:lng,lat:lng;lat:lng,lat:lng,lat:lng,lat:lng;lat:lng,lat:lng,lat:lng,lat:lng
+            $table->polygon('boundary_polygon')->nullable(); // Poligon zewnętrzny może składać się z maksymalnie 50 pkt., może zawierać maksymalnie 30 poligonów wewnętrznych, z których każdy może posiadać maksymalnie 20 pkt.
+            $table->char('mission_points', 2320)->nullable(); // Kodowane automatycznie | Przykładowa struktura: lat:lng,lat:lng,lat:lng
+            $table->multiPolygon('mission_polygons')->nullable();
+            $table->char('monitoring_camera_points', 496)->nullable(); // Kodowane automatycznie
+            $table->multiPolygon('monitoring_camera_polygons')->nullable();
+            $table->char('monitoring_central_points', 272)->nullable(); // Kodowane automatycznie
+            $table->multiPolygon('monitoring_central_polygons')->nullable();
             $table->boolean('geometries_confirmed')->default(false);
             $table->enum('status', Validation::getRoomStatuses())->default(Validation::getRoomStatuses()[0]);
             $table->enum('game_result', Validation::getGameResults())->nullable();

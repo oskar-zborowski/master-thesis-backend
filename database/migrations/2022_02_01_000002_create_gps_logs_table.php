@@ -13,14 +13,14 @@ return new class extends Migration
         Schema::create('gps_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->references('id')->on('users')->nullOnDelete();
-            $table->point('gps_location');
-            $table->string('house_number', 10)->nullable();
-            $table->string('street', 70)->nullable();
-            $table->string('housing_estate', 70)->nullable();
-            $table->string('district', 70)->nullable();
-            $table->string('city', 40);
-            $table->string('voivodeship', 20);
-            $table->string('country', 30);
+            $table->char('gps_location', 80); // Kodowane automatycznie
+            $table->char('house_number', 48)->nullable(); // Kodowane automatycznie
+            $table->char('street', 176)->nullable(); // Kodowane automatycznie
+            $table->char('housing_estate', 176)->nullable(); // Kodowane automatycznie
+            $table->char('district', 176)->nullable(); // Kodowane automatycznie
+            $table->char('city', 112); // Kodowane automatycznie
+            $table->char('voivodeship', 80); // Kodowane automatycznie
+            $table->char('country', 80); // Kodowane automatycznie
             $table->timestamps();
         });
     }

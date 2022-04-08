@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
-use MatanYadaev\EloquentSpatial\Objects\Point;
+use App\Http\Traits\Encryptable;
 
 class GpsLog extends BaseModel
 {
+    use Encryptable;
+
     protected $hidden = [
         'id',
         'user_id',
@@ -21,7 +23,14 @@ class GpsLog extends BaseModel
         'updated_at',
     ];
 
-    protected $casts = [
-        'gps_location' => Point::class,
+    protected $encryptable = [
+        'gps_location' => 22,
+        'house_number' => 10,
+        'street' => 70,
+        'housing_estate' => 70,
+        'district' => 70,
+        'city' => 40,
+        'voivodeship' => 20,
+        'country' => 30,
     ];
 }

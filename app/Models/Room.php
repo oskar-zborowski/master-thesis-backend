@@ -21,10 +21,14 @@ class Room extends BaseModel
         'city',
         'voivodeship',
         'country',
-        'boundary',
-        'missions',
-        'monitoring_cameras',
-        'monitoring_centrals',
+        'boundary_points',
+        'boundary_polygon',
+        'mission_points',
+        'mission_polygons',
+        'monitoring_camera_points',
+        'monitoring_camera_polygons',
+        'monitoring_central_points',
+        'monitoring_central_polygons',
         'created_at',
         'updated_at',
     ];
@@ -32,10 +36,10 @@ class Room extends BaseModel
     protected $casts = [
         'id' => 'integer',
         'game_config' => 'array',
-        'boundary' => Polygon::class,
-        'missions' => MultiPolygon::class,
-        'monitoring_cameras' => MultiPolygon::class,
-        'monitoring_centrals' => MultiPolygon::class,
+        'boundary_polygon' => Polygon::class,
+        'mission_polygons' => MultiPolygon::class,
+        'monitoring_camera_polygons' => MultiPolygon::class,
+        'monitoring_central_polygons' => MultiPolygon::class,
         'geometries_confirmed' => 'boolean',
         'game_started_at' => 'string',
         'game_ended_at' => 'string',
@@ -48,6 +52,18 @@ class Room extends BaseModel
 
     protected $encryptable = [
         'code' => 6,
+        'gps_location' => 22,
+        'house_number' => 10,
+        'street' => 70,
+        'housing_estate' => 70,
+        'district' => 70,
+        'city' => 40,
+        'voivodeship' => 20,
+        'country' => 30,
+        'boundary_points' => 14949,
+        'mission_points' => 1149,
+        'monitoring_camera_points' => 229,
+        'monitoring_central_points' => 114,
     ];
 
     public function host() {

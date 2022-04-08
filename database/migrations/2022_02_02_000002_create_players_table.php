@@ -19,12 +19,12 @@ return new class extends Migration
             $table->enum('role', Validation::getPlayerRoles())->nullable();
             $table->json('player_config');
             $table->json('track')->nullable();
-            $table->json('disclosure')->nullable(); // pozycja złodzieja ujawniona poprzez np. wykrycie kamery albo wykorzystanie ticketu (przypisana do rekordu gracza, który pozycję wykrył). Jeżeli pozycja disclosed_position będzie świeższa, u wszystkich graczy to pole jest usuwane
+            $table->json('disclosures')->nullable(); // pozycje złodziei ujawnione poprzez np. wykrycie kamery albo wykorzystanie ticketu (przypisane do rekordu gracza, który pozycje wykrył). Jeżeli pozycja disclosed_position będzie świeższa, u wszystkich graczy to pole jest usuwane
+            $table->json('missions_completed')->nullable();
             $table->point('disclosed_position')->nullable(); // pozycja gracza ujawniona dla wszystkich
             $table->point('thief_fake_position')->nullable(); // fake'owa pozycja złodzieja, po zużyciu jest usuwana
-            $table->point('mission_performed')->nullable();
-            $table->multiPoint('missions_completed')->nullable();
             $table->float('direction')->default(0);
+            $table->unsignedTinyInteger('mission_performed')->nullable();
             $table->unsignedTinyInteger('hide_stock')->default(0); // określa ile odkryć w przód złodziej ma ochronę przed ujawnieniem pozycji
             $table->boolean('protected_disclosure')->default(false); // określa czy złodziej cały czas znajduje się w miejscu, które powinno ujawnić jego pozycję, gdyby nie black_ticket
             $table->boolean('is_bot')->default(false);
@@ -71,8 +71,8 @@ return new class extends Migration
 //         "time": "2022-03-31 09:15:45",
 //         "type": "standard",
 //         "position": {
-//              "latitude": 51.6946562,
-//              "longitude": 17.5437434
+//              "latitude": 51.6946562, // Kodowane automatycznie
+//              "longitude": 17.5437434 // Kodowane automatycznie
 //         },
 //         "is_fake_position": false,
 //         "players_id": null
@@ -81,8 +81,8 @@ return new class extends Migration
 //         "time": "2022-03-31 09:15:45",
 //         "type": "disclosure",
 //         "position": {
-//              "latitude": 51.6946562,
-//              "longitude": 17.5437434
+//              "latitude": 51.6946562, // Kodowane automatycznie
+//              "longitude": 17.5437434 // Kodowane automatycznie
 //         },
 //         "is_fake_position": true,
 //         "players_id": null
@@ -91,8 +91,8 @@ return new class extends Migration
 //         "time": "2022-03-31 09:15:45",
 //         "type": "camera_detection",
 //         "position": {
-//              "latitude": 51.6946562,
-//              "longitude": 17.5437434
+//              "latitude": 51.6946562, // Kodowane automatycznie
+//              "longitude": 17.5437434 // Kodowane automatycznie
 //         },
 //         "is_fake_position": false,
 //         "players_id": {
@@ -104,8 +104,8 @@ return new class extends Migration
 //         "time": "2022-03-31 09:15:45",
 //         "type": "white_ticket",
 //         "position": {
-//              "latitude": 51.6946562,
-//              "longitude": 17.5437434
+//              "latitude": 51.6946562, // Kodowane automatycznie
+//              "longitude": 17.5437434 // Kodowane automatycznie
 //         },
 //         "is_fake_position": true,
 //         "players_id": {
@@ -116,8 +116,8 @@ return new class extends Migration
 //         "time": "2022-03-31 09:15:45",
 //         "type": "black_ticket",
 //         "position": {
-//              "latitude": 51.6946562,
-//              "longitude": 17.5437434
+//              "latitude": 51.6946562, // Kodowane automatycznie
+//              "longitude": 17.5437434 // Kodowane automatycznie
 //         },
 //         "is_fake_position": false,
 //         "players_id": {
@@ -128,8 +128,8 @@ return new class extends Migration
 //         "time": "2022-03-31 09:15:45",
 //         "type": "crossing_border",
 //         "position": {
-//              "latitude": 51.6946562,
-//              "longitude": 17.5437434
+//              "latitude": 51.6946562, // Kodowane automatycznie
+//              "longitude": 17.5437434 // Kodowane automatycznie
 //         },
 //         "is_fake_position": false,
 //         "players_id": {
@@ -138,7 +138,7 @@ return new class extends Migration
 //         }
 //     }
 
-// Struktura JSONa z domyślnymi wartościami dla pola "disclosure"
+// Struktura JSONa z przykładowymi wartościami dla pola "disclosures"
 //     {
 //         "player_id": 3,
 //         "position": {
@@ -152,4 +152,10 @@ return new class extends Migration
 //              "latitude": 51.6946562,
 //              "longitude": 17.5437434
 //         }
+//     }
+
+// Struktura JSONa z przykładowymi wartościami dla pola "missions_completed"
+//     {
+//         1,
+//         3
 //     }

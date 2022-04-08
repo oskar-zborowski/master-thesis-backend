@@ -2,27 +2,38 @@
 
 namespace App\Models;
 
-use MatanYadaev\EloquentSpatial\Objects\MultiPoint;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use MatanYadaev\EloquentSpatial\SpatialBuilder;
 
 class Player extends BaseModel
 {
     protected $hidden = [
+        'id',
         'room_id',
         'user_id',
+        'avatar',
         'role',
         'player_config',
         'track',
-        'disclosure',
+        'disclosures',
+        'missions_completed',
+        'disclosed_position',
         'thief_fake_position',
         'direction',
+        'mission_performed',
         'hide_stock',
         'protected_disclosure',
+        'is_bot',
+        'status',
+        'warning_number',
         'average_ping',
         'standard_deviation',
         'samples_number',
         'expected_time_at',
+        'crossing_border_finished_at',
+        'mission_finished_at',
+        'catching_finished_at',
+        'caught_at',
         'created_at',
         'updated_at',
     ];
@@ -31,12 +42,12 @@ class Player extends BaseModel
         'id' => 'integer',
         'player_config' => 'array',
         'track' => 'array',
-        'disclosure' => 'array',
+        'disclosures' => 'array',
+        'missions_completed' => 'array',
         'disclosed_position' => Point::class,
         'thief_fake_position' => Point::class,
-        'mission_performed' => Point::class,
-        'missions_completed' => MultiPoint::class,
         'direction' => 'float',
+        'mission_performed' => 'integer',
         'hide_stock' => 'integer',
         'protected_disclosure' => 'boolean',
         'is_bot' => 'boolean',
