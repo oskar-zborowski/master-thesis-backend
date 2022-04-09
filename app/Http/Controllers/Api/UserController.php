@@ -12,7 +12,6 @@ use App\Http\Responses\JsonResponse;
 use App\Models\GpsLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use MatanYadaev\EloquentSpatial\Objects\Point;
 use maxh\Nominatim\Nominatim;
 
 class UserController extends Controller

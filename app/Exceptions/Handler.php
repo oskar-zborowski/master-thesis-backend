@@ -14,6 +14,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
@@ -61,25 +62,28 @@ class Handler extends ExceptionHandler
                 JsonResponse::sendError(
                     $request,
                     $throwable->getErrorCode(),
-                    env('APP_DEBUG') ? [
+                    [
                         'message' => $throwable->getData(),
                         'file' => $throwable->getFile(),
                         'line' => $throwable->getLine(),
-                    ] : ['message' => $throwable->getData()]
+                    ],
+                    true
                 );
                 break;
 
             case ArgumentCountError::class:
+            case ConnectException::class:
             case ErrorException::class:
             case QueryException::class:
+            case RuntimeException::class:
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
-                    env('APP_DEBUG') ? [
+                    [
                         'message' => $throwable->getMessage(),
                         'file' => $throwable->getFile(),
                         'line' => $throwable->getLine(),
-                    ] : null
+                    ]
                 );
                 break;
 
@@ -93,14 +97,13 @@ class Handler extends ExceptionHandler
                 break;
 
             case BadMethodCallException::class:
-            case ConnectException::class:
             case MethodNotAllowedHttpException::class:
             case ModelNotFoundException::class:
             case NotFoundHttpException::class:
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::FAILED_VALIDATION(true),
-                    env('APP_DEBUG') ? ['message' => $throwable->getMessage()] : null
+                    ['message' => $throwable->getMessage()]
                 );
                 break;
 
@@ -128,7 +131,7 @@ class Handler extends ExceptionHandler
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
-                    env('APP_DEBUG') ? ['message' => $class] : null
+                    ['message' => $class]
                 );
                 break;
         }

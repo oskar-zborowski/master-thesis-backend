@@ -2,7 +2,6 @@
 
 namespace App\Mail;
 
-use App\Http\ErrorCodes\ErrorCode;
 use App\Models\Connection;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -17,7 +16,7 @@ class MaliciousnessNotification extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(Connection $connection, int $status, ErrorCode $errorCode, $data) {
+    public function __construct(Connection $connection, int $status, string $errorMessage, string $errorDescription) {
 
         /** @var \App\Models\User $user */
         $user = $connection->user;
@@ -43,70 +42,9 @@ class MaliciousnessNotification extends Mailable
             $this->message = 'Wymagana jest permanentna blokada Adresu Ip przychodzącego żądania!';
         }
 
-        $errorType = $errorCode->getMessage();
-
         $this->message .= "<br><br>Informacje:<br>
-            &emsp;Typ: $errorType<br>";
-
-        if (!empty($data)) {
-
-            if (is_array($data)) {
-
-                if (key_exists('message', $data) || key_exists('file', $data) || key_exists('line', $data)) {
-
-                    $errorDescription = '';
-
-                    if (key_exists('message', $data)) {
-                        if (is_array($data['message'])) {
-                            $errorDescription .= implode(' ', $data['message']);
-                        } else {
-                            $errorDescription .= $data['message'];
-                        }
-                    }
-
-                    if (key_exists('file', $data)) {
-
-                        if (strlen($errorDescription) == 0) {
-                            $errorDescription .= 'brak<br>&emsp;Plik: ';
-                        } else {
-                            $errorDescription .= '<br>&emsp;Plik: ';
-                        }
-
-                        if (is_array($data['file'])) {
-                            $errorDescription .= implode(' ', $data['file']);
-                        } else {
-                            $errorDescription .= $data['file'];
-                        }
-                    }
-
-                    if (key_exists('line', $data)) {
-
-                        if (strlen($errorDescription) == 0) {
-                            $errorDescription .= 'brak<br>&emsp;Linia: ';
-                        } else {
-                            $errorDescription .= '<br>&emsp;Linia: ';
-                        }
-
-                        if (is_array($data['line'])) {
-                            $errorDescription .= implode(' ', $data['line']);
-                        } else {
-                            $errorDescription .= $data['line'];
-                        }
-                    }
-
-                } else {
-                    $errorDescription = implode(' ', $data);
-                }
-
-            } else {
-                $errorDescription = $data;
-            }
-
-        } else {
-            $errorDescription = 'brak';
-        }
-
-        $this->message .= "&emsp;Opis: $errorDescription<br><br>";
+            &emsp;Typ: $errorMessage<br>
+            &emsp;Opis: $errorDescription<br><br>";
 
         $successfulRequestCounter = (int) $connection->successful_request_counter;
         $failedRequestCounter = (int) $connection->failed_request_counter;

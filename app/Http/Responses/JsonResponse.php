@@ -3,14 +3,9 @@
 namespace App\Http\Responses;
 
 use App\Http\ErrorCodes\ErrorCode;
-use App\Http\Libraries\Encrypter;
 use App\Http\Libraries\FieldConversion;
-use App\Mail\MaliciousnessNotification;
-use App\Models\Connection;
-use App\Models\IpAddress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 
 /**
@@ -45,7 +40,7 @@ class JsonResponse
         die;
     }
 
-    public static function sendError($request, ErrorCode $errorCode, $data = null): void {
+    public static function sendError($request, ErrorCode $errorCode, ?array $data = null, bool $attachMessage = false): void {
 
         header('Content-Type: application/json');
         http_response_code($errorCode->getHttpStatus());
@@ -59,7 +54,11 @@ class JsonResponse
         $response['error_code'] = $errorCode->getCode();
 
         if ($data !== null) {
-            $response['data'] = $data;
+            if (env('APP_DEBUG')) {
+                $response['data'] = $data;
+            } else if ($attachMessage) {
+                $response['data']['message'] = $data['message'];
+            }
         }
 
         if ($errorCode->getIsMalicious()) {
@@ -96,94 +95,97 @@ class JsonResponse
             ];
         }
 
-        self::saveDeviceInformation($request, $errorCode, $data);
+        self::saveConnectionInformation($request, $errorCode, $data);
 
         return $result;
     }
 
-    private static function saveDeviceInformation($request, ?ErrorCode $errorCode, $data) {
+    private static function saveConnectionInformation($request, ?ErrorCode $errorCode, $data) {
+
+        $command = 'php ' . $_SERVER['DOCUMENT_ROOT'] . '/../artisan connection-info:save';
 
         /** @var Request $request */
-
-        $encryptedIpAddress = Encrypter::encrypt($request->ip(), 45, false);
-        $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address', $encryptedIpAddress);
-
-        /** @var IpAddress $ipAddress */
-        $ipAddress = IpAddress::whereRaw($aesDecrypt)->first();
-
-        if (!$ipAddress) {
-            $ipAddress = new IpAddress;
-            $ipAddress->ip_address = $request->ip();
-            $ipAddress->save();
-        }
+        $command .= ' "' . $request->ip() . '"';
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
         if ($user) {
-            /** @var Connection $connection */
-            $connection = $ipAddress->connections()->where('user_id', $user->id)->first();
-        } else {
-            /** @var Connection $connection */
-            $connection = $ipAddress->connections()->where('user_id', null)->first();
+            $command .= ' --userId=' . $user->id;
         }
 
-        $isMalicious = false;
+        if ($errorCode !== null) {
 
-        if (!$connection) {
-
-            $connection = new Connection;
-
-            if ($user) {
-                $connection->user_id = $user->id;
-            }
-
-            $connection->ip_address_id = $ipAddress->id;
-
-            if ($errorCode === null) {
-                $connection->successful_request_counter = 1;
-            } else if ($errorCode->getIsMalicious()) {
-                $isMalicious = true;
-                $connection->malicious_request_counter = 1;
+            if ($errorCode->getIsMalicious()) {
+                $command .= ' --isMalicious=1';
             } else {
-                $connection->failed_request_counter = 1;
+                $command .= ' --isMalicious=0';
             }
 
-        } else {
-
-            if ($errorCode === null) {
-                $connection->successful_request_counter = $connection->successful_request_counter + 1;
-            } else if ($errorCode->getIsMalicious()) {
-                $isMalicious = true;
-                $connection->malicious_request_counter = $connection->malicious_request_counter + 1;
-            } else {
-                $connection->failed_request_counter = $connection->failed_request_counter + 1;
-            }
+            $errorMessage = $errorCode->getMessage();
+            $command .= ' --errorMessage="' . $errorMessage . '"';
         }
 
-        $connection->save();
+        if ($data !== null) {
 
-        if ($isMalicious) {
+            if (is_array($data)) {
 
-            if ($connection->malicious_request_counter == 1) {
-                Mail::send(new MaliciousnessNotification($connection, 1, $errorCode, $data));
-            } else if ($connection->malicious_request_counter == 2) {
-                Mail::send(new MaliciousnessNotification($connection, 2, $errorCode, $data));
-            } else if ($connection->malicious_request_counter == 3) {
+                if (key_exists('message', $data) || key_exists('file', $data) || key_exists('line', $data)) {
 
-                $ipAddress->blocked_at = now();
-                $ipAddress->save();
+                    $errorDescription = '';
 
-                if ($user) {
-                    $user->blocked_at = now();
-                    $user->save();
+                    if (key_exists('message', $data)) {
+                        if (is_array($data['message'])) {
+                            $errorDescription .= implode(' ', $data['message']);
+                        } else {
+                            $errorDescription .= $data['message'];
+                        }
+                    }
+
+                    if (key_exists('file', $data)) {
+
+                        if (strlen($errorDescription) == 0) {
+                            $errorDescription .= 'brak<br>&emsp;Plik: ';
+                        } else {
+                            $errorDescription .= '<br>&emsp;Plik: ';
+                        }
+
+                        if (is_array($data['file'])) {
+                            $errorDescription .= implode(' ', $data['file']);
+                        } else {
+                            $errorDescription .= $data['file'];
+                        }
+                    }
+
+                    if (key_exists('line', $data)) {
+
+                        if (strlen($errorDescription) == 0) {
+                            $errorDescription .= 'brak<br>&emsp;Linia: ';
+                        } else {
+                            $errorDescription .= '<br>&emsp;Linia: ';
+                        }
+
+                        if (is_array($data['line'])) {
+                            $errorDescription .= implode(' ', $data['line']);
+                        } else {
+                            $errorDescription .= $data['line'];
+                        }
+                    }
+
+                } else {
+                    $errorDescription = implode(' ', $data);
                 }
 
-                Mail::send(new MaliciousnessNotification($connection, 3, $errorCode, $data));
-
-            } else if ($connection->malicious_request_counter == 50) {
-                Mail::send(new MaliciousnessNotification($connection, 4, $errorCode, $data));
+            } else {
+                $errorDescription = $data;
             }
+
+        } else {
+            $errorDescription = 'brak';
         }
+
+        $command .= ' "' . $errorDescription . '" >/dev/null 2>/dev/null &';
+
+        shell_exec($command);
     }
 }
