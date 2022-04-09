@@ -6,7 +6,9 @@ use App\Http\Libraries\FieldConversion;
 use App\Http\Libraries\Validation;
 use App\Models\Config;
 use App\Models\GpsLog;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Console\Command;
+use maxh\Nominatim\Exceptions\NominatimException;
 use maxh\Nominatim\Nominatim;
 
 class SaveGpsLog extends Command
@@ -42,8 +44,26 @@ class SaveGpsLog extends Command
         $config->nominatim_is_busy = true;
         $config->save();
 
-        $reverse = $nominatim->newReverse()->latlon($latitude, $longitude);
-        $result = $nominatim->find($reverse)['address'];
+        $nominatimErrorCounter = 0;
+
+        do {
+
+            $nominatimError = false;
+
+            try {
+                $reverse = $nominatim->newReverse()->latlon($latitude, $longitude);
+                $result = $nominatim->find($reverse)['address'];
+            } catch (NominatimException | GuzzleException $e) {
+
+                $nominatimError = true;
+                $nominatimErrorCounter++;
+
+                if ($nominatimErrorCounter <= 3) {
+                    sleep($nominatimErrorCounter+2);
+                }
+            }
+
+        } while ($nominatimError);
 
         $config->nominatim_is_busy = false;
         $config->nominatim_last_used_at = now();
