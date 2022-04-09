@@ -8,7 +8,6 @@ use App\Http\Libraries\Validation;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Responses\JsonResponse;
-use App\Models\GpsLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
@@ -67,7 +66,7 @@ class UserController extends Controller
             $startDate = date('Y-m-d 00:00:00');
             $endDate = date('Y-m-d 23:59:59');
 
-            /** @var GpsLog $gpsLog */
+            /** @var \App\Models\GpsLog $gpsLog */
             $gpsLog = $user->gpsLogs()->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)->first();
 
             if (!$gpsLog) {

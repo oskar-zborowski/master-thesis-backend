@@ -84,7 +84,7 @@ class RoomController extends Controller
             $room->game_mode = $request->game_mode;
         }
 
-        $room->game_config = JsonConfig::gameConfig($room, $request);
+        // $room->game_config = JsonConfig::gameConfig($room, $request);
 
         if ($request->boundary !== null) {
             $room->boundary = DB::raw("ST_GeomFromText('POLYGON((0 0,10 0,10 10,0 10,0 0))')");

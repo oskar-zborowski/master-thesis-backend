@@ -14,22 +14,16 @@ class SaveConnectionInformation extends Command
 {
     /**
      * The name and signature of the console command.
-     *
-     * @var string
      */
     protected $signature = 'connection-info:save {ipAddress} {--userId=} {--isMalicious=} {--errorMessage=} {errorDescription}';
 
     /**
      * The console command description.
-     *
-     * @var string
      */
     protected $description = 'Save the connection information';
 
     /**
      * Execute the console command.
-     *
-     * @return int
      */
     public function handle() {
 

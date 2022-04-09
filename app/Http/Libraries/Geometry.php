@@ -50,65 +50,65 @@ class Geometry
 
     public static function geometryObject(array $points, string $geometryObjectType) {
 
-        self::checkGeometryObjectType($geometryObjectType);
-        self::checkPointsFormat($points);
+        // self::checkGeometryObjectType($geometryObjectType);
+        // self::checkPointsFormat($points);
 
-        $result = '';
+        // $result = '';
 
-        foreach ($points as $point) {
+        // foreach ($points as $point) {
 
-            if ($result != '') {
-                $result .= ',';
-            }
+        //     if ($result != '') {
+        //         $result .= ',';
+        //     }
 
-            $result .= $point['lng'] . ' ' . $point['lat'];
-        }
+        //     $result .= $point['lng'] . ' ' . $point['lat'];
+        // }
 
-        if (self::checkRepeatedPoints($points, $geometryObjectType)) {
-            throw new ApiException(
-                DefaultErrorCode::FAILED_VALIDATION(),
-                __('validation.custom.repeated-points')
-            );
-        }
+        // if (self::checkRepeatedPoints($points, $geometryObjectType)) {
+        //     throw new ApiException(
+        //         DefaultErrorCode::FAILED_VALIDATION(),
+        //         __('validation.custom.repeated-points')
+        //     );
+        // }
 
-        if ($geometryObjectType == 'MULTIPOINT') {
-            $result = DB::raw("ST_GeomFromText('$geometryObjectType($result)')");
-        } else if ($geometryObjectType == 'POLYGON') {
+        // if ($geometryObjectType == 'MULTIPOINT') {
+        //     $result = DB::raw("ST_GeomFromText('$geometryObjectType($result)')");
+        // } else if ($geometryObjectType == 'POLYGON') {
 
-            if ($points[0]['lng'] != $points[$countPoints-1]['lng'] || $points[0]['lat'] != $points[$countPoints-1]['lat']) {
-                throw new ApiException(
-                    DefaultErrorCode::FAILED_VALIDATION(),
-                    __('validation.custom.boundary-not-closed')
-                );
-            }
+        //     if ($points[0]['lng'] != $points[$countPoints-1]['lng'] || $points[0]['lat'] != $points[$countPoints-1]['lat']) {
+        //         throw new ApiException(
+        //             DefaultErrorCode::FAILED_VALIDATION(),
+        //             __('validation.custom.boundary-not-closed')
+        //         );
+        //     }
 
-            for ($i=0; $i<$countAllPoints-2; $i++) {
-                for ($j=$i+1; $j<$countAllPoints-1; $j++) {
+        //     for ($i=0; $i<$countAllPoints-2; $i++) {
+        //         for ($j=$i+1; $j<$countAllPoints-1; $j++) {
 
-                    $haveCommonVertices = false;
+        //             $haveCommonVertices = false;
 
-                    if ($allPointsFloat[$i+1]['lng'] == $allPointsFloat[$j]['lng'] && $allPointsFloat[$i+1]['lat'] == $allPointsFloat[$j]['lat'] ||
-                        $allPointsFloat[$i]['lng'] == $allPointsFloat[$j+1]['lng'] && $allPointsFloat[$i]['lat'] == $allPointsFloat[$j+1]['lat'])
-                    {
-                        $haveCommonVertices = true;
-                    }
+        //             if ($allPointsFloat[$i+1]['lng'] == $allPointsFloat[$j]['lng'] && $allPointsFloat[$i+1]['lat'] == $allPointsFloat[$j]['lat'] ||
+        //                 $allPointsFloat[$i]['lng'] == $allPointsFloat[$j+1]['lng'] && $allPointsFloat[$i]['lat'] == $allPointsFloat[$j+1]['lat'])
+        //             {
+        //                 $haveCommonVertices = true;
+        //             }
 
-                    if (self::checkLineIntersection($allPointsFloat[$i], $allPointsFloat[$i+1], $allPointsFloat[$j], $allPointsFloat[$j+1], $haveCommonVertices)) {
-                        echo json_encode([
-                            $allPointsFloat[$i],
-                            $allPointsFloat[$i+1],
-                            $allPointsFloat[$j],
-                            $allPointsFloat[$j+1],
-                        ]);
-                        die;
-                    }
-                }
-            }
+        //             if (self::checkLineIntersection($allPointsFloat[$i], $allPointsFloat[$i+1], $allPointsFloat[$j], $allPointsFloat[$j+1], $haveCommonVertices)) {
+        //                 echo json_encode([
+        //                     $allPointsFloat[$i],
+        //                     $allPointsFloat[$i+1],
+        //                     $allPointsFloat[$j],
+        //                     $allPointsFloat[$j+1],
+        //                 ]);
+        //                 die;
+        //             }
+        //         }
+        //     }
 
-            $result = DB::raw("ST_GeomFromText('$objectType(($result))')");
-        }
+        //     $result = DB::raw("ST_GeomFromText('$objectType(($result))')");
+        // }
 
-        return $result;
+        // return $result;
     }
 
     private static function checkLineIntersection(array $A1, array $B1, array $A2, array $B2, bool $haveCommonVertices) {
@@ -272,29 +272,29 @@ class Geometry
         }
         
 
-        $countPoints = count($points);
+        // $countPoints = count($points);
 
-        for ($i=0; $i<$countPoints-1; $i++) {
-            for ($j=$i+1; $j<$countPoints; $j++) {
-                if ($objectTypes[$i] == 'boundary') {
+        // for ($i=0; $i<$countPoints-1; $i++) {
+        //     for ($j=$i+1; $j<$countPoints; $j++) {
+        //         if ($objectTypes[$i] == 'boundary') {
 
-                    if ($objectTypes[$i] == '') {
+        //             if ($objectTypes[$i] == '') {
 
-                    }
-                    if ($points[$i]['lng'] == $points[$j]['lng'] && $points[$i]['lat'] == $points[$j]['lat']) {
-                        $result = true;
-                    }
-                } else if ($geometryObjectTypes[$i] == 'POLYGON') {
-                    if ($i > 0 || $j < $countPoints-1) {
-                        if ($points[$i]['lng'] == $points[$j]['lng'] && $points[$i]['lat'] == $points[$j]['lat']) {
-                            $result = true;
-                        }
-                    }
-                }
-            }
-        }
+        //             }
+        //             if ($points[$i]['lng'] == $points[$j]['lng'] && $points[$i]['lat'] == $points[$j]['lat']) {
+        //                 $result = true;
+        //             }
+        //         } else if ($geometryObjectTypes[$i] == 'POLYGON') {
+        //             if ($i > 0 || $j < $countPoints-1) {
+        //                 if ($points[$i]['lng'] == $points[$j]['lng'] && $points[$i]['lat'] == $points[$j]['lat']) {
+        //                     $result = true;
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
-        return $result;
+        // return $result;
     }
 
     private function checkPoints(array $points) {

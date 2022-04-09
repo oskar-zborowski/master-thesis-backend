@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Http\Libraries\FieldConversion;
+use App\Http\Libraries\Validation;
+use App\Models\Config;
 use App\Models\GpsLog;
 use Illuminate\Console\Command;
 use maxh\Nominatim\Nominatim;
@@ -11,22 +13,16 @@ class SaveGpsLog extends Command
 {
     /**
      * The name and signature of the console command.
-     *
-     * @var string
      */
     protected $signature = 'gps-log:save {userId} {latitude} {longitude}';
 
     /**
      * The console command description.
-     *
-     * @var string
      */
     protected $description = 'Save the gps log';
 
     /**
      * Execute the console command.
-     *
-     * @return int
      */
     public function handle() {
 
@@ -37,8 +33,21 @@ class SaveGpsLog extends Command
         $url = 'https://nominatim.openstreetmap.org';
         $nominatim = new Nominatim($url);
 
+        do {
+            sleep(1);
+            $config = Config::where('id', 1)->first();
+            $nominatimIsBusy = $config->nominatim_is_busy || $config->nominatim_last_used_at !== null && Validation::timeComparison($config->nominatim_last_used_at, env('NOMINATIM_PAUSE'), '<', 'seconds');
+        } while ($nominatimIsBusy);
+
+        $config->nominatim_is_busy = true;
+        $config->save();
+
         $reverse = $nominatim->newReverse()->latlon($latitude, $longitude);
         $result = $nominatim->find($reverse)['address'];
+
+        $config->nominatim_is_busy = false;
+        $config->nominatim_last_used_at = now();
+        $config->save();
 
         $gpsLog = new GpsLog;
         $gpsLog->user_id = $userId;

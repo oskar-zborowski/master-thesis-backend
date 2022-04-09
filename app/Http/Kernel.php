@@ -47,8 +47,6 @@ class Kernel extends HttpKernel
     /**
      * The priority-sorted list of middleware.
      * Forces the listed middleware to always be in the given order.
-     *
-     * @var array
      */
     protected $middlewarePriority = [
         \Illuminate\Routing\Middleware\SubstituteBindings::class,
