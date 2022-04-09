@@ -102,16 +102,16 @@ class JsonResponse
 
     private static function saveConnectionInformation($request, ?ErrorCode $errorCode, $data) {
 
-        $command = 'php ' . $_SERVER['DOCUMENT_ROOT'] . '/../artisan connection-info:save';
+        $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan connection-info:save";
 
         /** @var Request $request */
-        $command .= ' "' . $request->ip() . '"';
+        $command .= " \"{$request->ip()}\"";
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
         if ($user) {
-            $command .= ' --userId=' . $user->id;
+            $command .= " --userId=$user->id";
         }
 
         if ($errorCode !== null) {
@@ -122,8 +122,7 @@ class JsonResponse
                 $command .= ' --isMalicious=0';
             }
 
-            $errorMessage = $errorCode->getMessage();
-            $command .= ' --errorMessage="' . $errorMessage . '"';
+            $command .= " --errorMessage=\"{$errorCode->getMessage()}\"";
         }
 
         if ($data !== null) {
@@ -184,7 +183,8 @@ class JsonResponse
             $errorDescription = 'brak';
         }
 
-        $command .= ' "' . $errorDescription . '" >/dev/null 2>/dev/null &';
+        $command .= " \"$errorDescription\"";
+        $command .= ' >/dev/null 2>/dev/null &';
 
         shell_exec($command);
     }

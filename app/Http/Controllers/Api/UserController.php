@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Libraries\Encrypter;
-use App\Http\Libraries\FieldConversion;
 use App\Http\Libraries\Validation;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -12,7 +11,6 @@ use App\Http\Responses\JsonResponse;
 use App\Models\GpsLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use maxh\Nominatim\Nominatim;
 
 class UserController extends Controller
 {
@@ -80,77 +78,17 @@ class UserController extends Controller
         JsonResponse::sendSuccess($request, $user->getData());
     }
 
-    private function saveGpsLog($latitude, $longitude) {
-
-        $url = 'https://nominatim.openstreetmap.org';
-        $nominatim = new Nominatim($url);
-
-        $reverse = $nominatim->newReverse()->latlon($latitude, $longitude);
-        $result = $nominatim->find($reverse)['address'];
+    private function saveGpsLog(string $latitude, string $longitude) {
 
         /** @var User $user */
         $user = Auth::user();
 
-        $gpsLog = new GpsLog;
-        $gpsLog->user_id = $user->id;
-        $gpsLog->gps_location = "$latitude:$longitude";
+        $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan gps-log:save";
+        $command .= " $user->id";
+        $command .= " \"$latitude\"";
+        $command .= " \"$longitude\"";
+        $command .= ' >/dev/null 2>/dev/null &';
 
-        if (isset($result['house_number'])) {
-            $gpsLog->house_number = FieldConversion::stringToUppercase($result['house_number']);
-        }
-
-        if (isset($result['road'])) {
-            $gpsLog->street = FieldConversion::stringToUppercase($result['road'], true);
-        }
-
-        if (isset($result['neighbourhood'])) {
-            $gpsLog->housing_estate = FieldConversion::stringToUppercase($result['neighbourhood'], true);
-        }
-
-        if (isset($result['suburb'])) {
-            $gpsLog->district = FieldConversion::stringToUppercase($result['suburb'], true);
-        } else if (isset($result['borough'])) {
-            $gpsLog->district = FieldConversion::stringToUppercase($result['borough'], true);
-        } else if (isset($result['hamlet'])) {
-            $gpsLog->district = FieldConversion::stringToUppercase($result['hamlet'], true);
-        }
-
-        if (isset($result['city'])) {
-            $gpsLog->city = FieldConversion::stringToUppercase($result['city'], true);
-        } else if (isset($result['town'])) {
-            $gpsLog->city = FieldConversion::stringToUppercase($result['town'], true);
-        } else if (isset($result['residential'])) {
-            $gpsLog->city = FieldConversion::stringToUppercase($result['residential'], true);
-        } else if (isset($result['village'])) {
-            $gpsLog->city = FieldConversion::stringToUppercase($result['village'], true);
-        } else if (isset($result['county'])) {
-
-            $city = FieldConversion::stringToLowercase($result['county']);
-
-            if (!str_contains($city, 'powiat')) {
-                $gpsLog->city = FieldConversion::stringToUppercase($result['county'], true);
-            } else if (isset($result['municipality'])) {
-
-                $commune = FieldConversion::stringToLowercase($result['municipality']);
-
-                if (str_contains($commune, 'gmina')) {
-                    $commune = str_replace('gmina ', '', $commune);
-                    $gpsLog->city = FieldConversion::stringToUppercase($commune, true);
-                } else {
-                    $gpsLog->city = FieldConversion::stringToUppercase($result['municipality'], true);
-                }
-            }
-        }
-
-        if (isset($result['state'])) {
-            $voivodeship = FieldConversion::stringToLowercase($result['state']);
-            $gpsLog->voivodeship = str_replace('województwo ', '', $voivodeship);
-        }
-
-        if (isset($result['country'])) {
-            $gpsLog->country = FieldConversion::stringToUppercase($result['country'], true);
-        }
-
-        $gpsLog->save();
+        shell_exec($command);
     }
 }

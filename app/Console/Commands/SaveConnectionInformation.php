@@ -33,15 +33,11 @@ class SaveConnectionInformation extends Command
      */
     public function handle() {
 
-        // sleep(10);
-
         $ipAddress = $this->argument('ipAddress');
         $userId = $this->option('userId');
         $isMalicious = $this->option('isMalicious');
         $errorMessage = $this->option('errorMessage');
         $errorDescription = $this->argument('errorDescription');
-
-        /** @var Request $request */
 
         $encryptedIpAddress = Encrypter::encrypt($ipAddress, 45, false);
         $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address', $encryptedIpAddress);
