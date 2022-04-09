@@ -18,9 +18,9 @@ return new class extends Migration
             $table->char('street', 176)->nullable(); // Kodowane automatycznie
             $table->char('housing_estate', 176)->nullable(); // Kodowane automatycznie
             $table->char('district', 176)->nullable(); // Kodowane automatycznie
-            $table->char('city', 112); // Kodowane automatycznie
-            $table->char('voivodeship', 80); // Kodowane automatycznie
-            $table->char('country', 80); // Kodowane automatycznie
+            $table->char('city', 112)->nullable(); // Kodowane automatycznie
+            $table->char('voivodeship', 80)->nullable(); // Kodowane automatycznie
+            $table->char('country', 80)->nullable(); // Kodowane automatycznie
             $table->timestamps();
         });
     }

@@ -8,6 +8,7 @@ use App\Models\Config;
 use App\Models\GpsLog;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use maxh\Nominatim\Exceptions\NominatimException;
 use maxh\Nominatim\Nominatim;
 
@@ -36,7 +37,7 @@ class SaveGpsLog extends Command
         $nominatim = new Nominatim($url);
 
         do {
-            sleep(1);
+            sleep(env('NOMINATIM_PAUSE'));
             $config = Config::where('id', 1)->first();
             $nominatimIsBusy = $config->nominatim_is_busy || $config->nominatim_last_used_at !== null && Validation::timeComparison($config->nominatim_last_used_at, env('NOMINATIM_PAUSE'), '<', 'seconds');
         } while ($nominatimIsBusy);
@@ -55,11 +56,13 @@ class SaveGpsLog extends Command
                 $result = $nominatim->find($reverse)['address'];
             } catch (NominatimException | GuzzleException $e) {
 
-                $nominatimError = true;
                 $nominatimErrorCounter++;
 
-                if ($nominatimErrorCounter <= 3) {
-                    sleep($nominatimErrorCounter+2);
+                if ($nominatimErrorCounter <= 2) {
+                    $nominatimError = true;
+                    sleep(($nominatimErrorCounter * 2) + env('NOMINATIM_PAUSE'));
+                } else {
+                    $nominatimError = false;
                 }
             }
 
@@ -130,6 +133,11 @@ class SaveGpsLog extends Command
         }
 
         $gpsLog->save();
+
+        if ($nominatimErrorCounter) {
+            $nominatimErrorCounter--;
+            Log::alert("Failed to get data from Nominati ($nominatimErrorCounter times) for ID: $gpsLog->id");
+        }
 
         return 0;
     }

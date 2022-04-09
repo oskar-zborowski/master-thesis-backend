@@ -30,16 +30,16 @@ class MaliciousnessNotification extends Mailable
             $this->message = 'Wykryto kolejną próbę złośliwego żądania!';
         } else if ($status == 3) {
 
-            $this->message = 'Zablokowano Adres Ip przychodzącego żądania';
+            $this->message = 'Zablokowano adres IP przychodzącego żądania';
 
             if ($user) {
-                $this->message .= ' oraz Konto Użytkownika';
+                $this->message .= ' oraz konto użytkownika';
             }
 
             $this->message .= '!';
 
         } else if ($status == 4) {
-            $this->message = 'Wymagana jest permanentna blokada Adresu Ip przychodzącego żądania!';
+            $this->message = 'Wymagana jest permanentna blokada adresu IP przychodzącego żądania!';
         }
 
         $this->message .= "<br><br>Informacje:<br>
@@ -54,14 +54,14 @@ class MaliciousnessNotification extends Mailable
 
         $this->message .= "
             Połączenie:<br>
-                &emsp;Id: $connection->id<br>
+                &emsp;ID: $connection->id<br>
                 &emsp;Pomyślnych żądań: $successfulRequestCounter<br>
                 &emsp;Błędnych żądań: $failedRequestCounter<br>
                 &emsp;Złośliwych żądań: $maliciousRequestCounter<br>
                 &emsp;Data utworzenia: $connection->created_at<br><br>
-            Adres Ip:<br>
-                &emsp;Id: $ipAddress->id<br>
-                &emsp;Adres Ip: $ipAddress->ip_address<br>
+            Adres IP:<br>
+                &emsp;ID: $ipAddress->id<br>
+                &emsp;Adres IP: $ipAddress->ip_address<br>
                 &emsp;Data utworzenia: $ipAddress->created_at<br>
                 &emsp;Data blokady: $ipAddressBlockedAt";
 
@@ -70,7 +70,7 @@ class MaliciousnessNotification extends Mailable
             $userBlockedAt = $user->blocked_at ? $user->blocked_at : 'brak';
 
             $this->message .= "<br><br>Użytkownik:<br>
-                &emsp;Id: $user->id<br>
+                &emsp;ID: $user->id<br>
                 &emsp;Nazwa: $user->name<br>
                 &emsp;Data utworzenia: $user->created_at<br>
                 &emsp;Data blokady: $userBlockedAt";
