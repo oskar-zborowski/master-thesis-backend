@@ -78,7 +78,7 @@ class Handler extends ExceptionHandler
             case RuntimeException::class:
                 JsonResponse::sendError(
                     $request,
-                    DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
+                    DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
                     [
                         'message' => $throwable->getMessage(),
                         'file' => $throwable->getFile(),
@@ -92,7 +92,7 @@ class Handler extends ExceptionHandler
 
                 JsonResponse::sendError(
                     $request,
-                    DefaultErrorCode::UNAUTHENTICATED(true),
+                    DefaultErrorCode::UNAUTHENTICATED(true)
                 );
                 break;
 
@@ -112,8 +112,9 @@ class Handler extends ExceptionHandler
 
                 JsonResponse::sendError(
                     $request,
-                    DefaultErrorCode::LIMIT_EXCEEDED(true),
-                    ['message' => __('validation.custom.limit-exceeded', ['seconds' => $throwable->getHeaders()['Retry-After']])]
+                    DefaultErrorCode::LIMIT_EXCEEDED(false, true),
+                    ['message' => __('validation.custom.limit-exceeded', ['seconds' => $throwable->getHeaders()['Retry-After']])],
+                    true
                 );
                 break;
 
@@ -123,14 +124,15 @@ class Handler extends ExceptionHandler
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::FAILED_VALIDATION(),
-                    ['message' => $throwable->errors()]
+                    ['message' => $throwable->errors()],
+                    true
                 );
                 break;
 
             default:
                 JsonResponse::sendError(
                     $request,
-                    DefaultErrorCode::INTERNAL_SERVER_ERROR(true),
+                    DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
                     ['message' => $class]
                 );
                 break;

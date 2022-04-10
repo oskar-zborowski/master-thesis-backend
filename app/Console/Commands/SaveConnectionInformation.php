@@ -15,7 +15,7 @@ class SaveConnectionInformation extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'connection-info:save {ipAddress} {--userId=} {--isMalicious=} {--errorMessage=} {errorDescription}';
+    protected $signature = 'connection-info:save {ipAddress} {--userId=} {--isMalicious=} {--logError=} {--errorMessage=} {errorDescription}';
 
     /**
      * The console command description.
@@ -30,6 +30,7 @@ class SaveConnectionInformation extends Command
         $ipAddress = $this->argument('ipAddress');
         $userId = $this->option('userId');
         $isMalicious = $this->option('isMalicious');
+        $logError = $this->option('logError');
         $errorMessage = $this->option('errorMessage');
         $errorDescription = $this->argument('errorDescription');
 
@@ -110,6 +111,9 @@ class SaveConnectionInformation extends Command
             } else if ($connection->malicious_request_counter == 50) {
                 Mail::send(new MaliciousnessNotification($connection, 4, $errorMessage, $errorDescription));
             }
+
+        } else if ($logError) {
+            Mail::send(new MaliciousnessNotification($connection, 0, $errorMessage, $errorDescription));
         }
 
         return 0;

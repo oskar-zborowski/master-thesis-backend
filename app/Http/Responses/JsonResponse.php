@@ -4,7 +4,6 @@ namespace App\Http\Responses;
 
 use App\Http\ErrorCodes\ErrorCode;
 use App\Http\Libraries\FieldConversion;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
@@ -104,7 +103,7 @@ class JsonResponse
 
         $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan connection-info:save";
 
-        /** @var Request $request */
+        /** @var \Illuminate\Http\Request $request */
         $command .= " \"{$request->ip()}\"";
 
         /** @var \App\Models\User $user */
@@ -120,6 +119,10 @@ class JsonResponse
                 $command .= ' --isMalicious=1';
             } else {
                 $command .= ' --isMalicious=0';
+            }
+
+            if ($errorCode->getLogError()) {
+                $command .= ' --logError=1';
             }
 
             $command .= " --errorMessage=\"{$errorCode->getMessage()}\"";

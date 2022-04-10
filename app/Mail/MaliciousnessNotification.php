@@ -12,6 +12,7 @@ class MaliciousnessNotification extends Mailable
     use Queueable, SerializesModels;
 
     private $message;
+    private $mailSubject;
 
     /**
      * Create a new message instance.
@@ -24,7 +25,12 @@ class MaliciousnessNotification extends Mailable
         /** @var \App\Models\IpAddress $ipAddress */
         $ipAddress = $connection->ipAddress;
 
-        if ($status == 1) {
+        $this->mailSubject = 'Wykryto złośliwe żądanie';
+
+        if ($status == 0) {
+            $this->mailSubject = 'Wystąpił nieoczekiwany błąd';
+            $this->message = 'Wystąpił nieoczekiwany błąd!';
+        } else if ($status == 1) {
             $this->message = 'Wykryto pierwszą próbę złośliwego żądania!';
         } else if ($status == 2) {
             $this->message = 'Wykryto kolejną próbę złośliwego żądania!';
@@ -83,7 +89,7 @@ class MaliciousnessNotification extends Mailable
     public function build() {
         return $this->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))
                     ->to('oskarzborowski@gmail.com', 'Oskar Zborowski')
-                    ->subject('Wykryto złośliwe żądanie')
+                    ->subject($this->mailSubject)
                     ->html($this->message);
     }
 }

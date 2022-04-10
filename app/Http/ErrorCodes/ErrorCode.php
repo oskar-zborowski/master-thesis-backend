@@ -11,12 +11,14 @@ class ErrorCode
     private string $message;
     private int $httpStatus;
     private bool $isMalicious;
+    private bool $logError;
 
-    public function __construct(string $code, string $message, int $httpStatus, bool $isMalicious) {
+    public function __construct(string $code, string $message, int $httpStatus, bool $isMalicious, bool $logError) {
         $this->code = $code;
         $this->message = $message;
         $this->httpStatus = $httpStatus;
         $this->isMalicious = $isMalicious;
+        $this->logError = $logError;
     }
 
     public function getCode() {
@@ -33,5 +35,9 @@ class ErrorCode
 
     public function getIsMalicious() {
         return $this->isMalicious;
+    }
+
+    public function getLogError() {
+        return $this->logError;
     }
 }

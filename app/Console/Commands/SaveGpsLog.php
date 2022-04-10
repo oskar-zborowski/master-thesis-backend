@@ -2,13 +2,18 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Libraries\Encrypter;
 use App\Http\Libraries\FieldConversion;
 use App\Http\Libraries\Validation;
+use App\Mail\MaliciousnessNotification;
 use App\Models\Config;
+use App\Models\Connection;
 use App\Models\GpsLog;
+use App\Models\IpAddress;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use maxh\Nominatim\Exceptions\NominatimException;
 use maxh\Nominatim\Nominatim;
 
@@ -17,7 +22,7 @@ class SaveGpsLog extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'gps-log:save {userId} {latitude} {longitude}';
+    protected $signature = 'gps-log:save {ipAddress} {userId} {latitude} {longitude}';
 
     /**
      * The console command description.
@@ -29,6 +34,7 @@ class SaveGpsLog extends Command
      */
     public function handle() {
 
+        $ipAddress = $this->argument('ipAddress');
         $userId = $this->argument('userId');
         $latitude = $this->argument('latitude');
         $longitude = $this->argument('longitude');
@@ -56,6 +62,7 @@ class SaveGpsLog extends Command
                 $result = $nominatim->find($reverse)['address'];
             } catch (NominatimException | GuzzleException $e) {
 
+                $errorDescription = $e->getMessage();
                 $nominatimErrorCounter++;
 
                 if ($nominatimErrorCounter <= 2) {
@@ -135,8 +142,38 @@ class SaveGpsLog extends Command
         $gpsLog->save();
 
         if ($nominatimErrorCounter) {
-            $nominatimErrorCounter--;
-            Log::alert("Failed to get data from Nominati ($nominatimErrorCounter times) for ID: $gpsLog->id");
+
+            $encryptedIpAddress = Encrypter::encrypt($ipAddress, 45, false);
+            $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address', $encryptedIpAddress);
+
+            /** @var IpAddress $ipAddressEntity */
+            $ipAddressEntity = IpAddress::whereRaw($aesDecrypt)->first();
+
+            if (!$ipAddressEntity) {
+                $ipAddressEntity = new IpAddress;
+                $ipAddressEntity->ip_address = $ipAddress;
+                $ipAddressEntity->save();
+            }
+
+            /** @var Connection $connection */
+            $connection = $ipAddressEntity->connections()->where('user_id', $userId)->first();
+
+            if (!$connection) {
+                $connection = new Connection;
+                $connection->user_id = $userId;
+                $connection->ip_address_id = $ipAddressEntity->id;
+                $connection->failed_request_counter = 1;
+            } else {
+                $connection->failed_request_counter = $connection->failed_request_counter + 1;
+            }
+
+            $connection->save();
+
+            $errorDescriptionLog = "Failed to get data from Nominati ($nominatimErrorCounter times) for ID: $gpsLog->id\n$errorDescription";
+            $errorDescriptionMail = "Failed to get data from Nominati ($nominatimErrorCounter times) for ID: $gpsLog->id<br>$errorDescription";
+
+            Log::alert($errorDescriptionLog);
+            Mail::send(new MaliciousnessNotification($connection, 0, 'INTERNAL SERVER ERROR', $errorDescriptionMail));
         }
 
         return 0;

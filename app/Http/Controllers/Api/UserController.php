@@ -32,7 +32,7 @@ class UserController extends Controller
 
         Auth::loginUsingId($user->id);
 
-        $this->saveGpsLog($request->latitude, $request->longitude);
+        $this->saveGpsLog($request->latitude, $request->longitude, $request);
 
         Encrypter::generateAuthTokens();
         JsonResponse::sendSuccess($request, $user->getData(), null, 201);
@@ -70,19 +70,22 @@ class UserController extends Controller
             $gpsLog = $user->gpsLogs()->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)->first();
 
             if (!$gpsLog) {
-                $this->saveGpsLog($request->latitude, $request->longitude);
+                $this->saveGpsLog($request->latitude, $request->longitude, $request);
             }
         }
 
         JsonResponse::sendSuccess($request, $user->getData());
     }
 
-    private function saveGpsLog(string $latitude, string $longitude) {
+    private function saveGpsLog(string $latitude, string $longitude, $request) {
 
         /** @var User $user */
         $user = Auth::user();
 
+        /** @var \Illuminate\Http\Request $request */
+
         $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan gps-log:save";
+        $command .= " \"{$request->ip()}\"";
         $command .= " $user->id";
         $command .= " \"$latitude\"";
         $command .= " \"$longitude\"";
