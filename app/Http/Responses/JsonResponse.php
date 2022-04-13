@@ -39,7 +39,7 @@ class JsonResponse
         die;
     }
 
-    public static function sendError($request, ErrorCode $errorCode, ?array $data = null, bool $attachMessage = false): void {
+    public static function sendError($request, ErrorCode $errorCode, ?array $data = null, bool $attachMessage = false, bool $dbConnectionError = false): void {
 
         header('Content-Type: application/json');
         http_response_code($errorCode->getHttpStatus());
@@ -64,7 +64,7 @@ class JsonResponse
             $response['metadata'] = __('validation.custom.malicious-request');
         }
 
-        $tokens = self::getTokens($request, $errorCode, $data);
+        $tokens = self::getTokens($request, $errorCode, $data, $dbConnectionError);
 
         if ($tokens !== null) {
             $response['tokens'] = $tokens;
@@ -76,7 +76,7 @@ class JsonResponse
         die;
     }
 
-    private static function getTokens($request, ErrorCode $errorCode = null, $data = null) {
+    private static function getTokens($request, ErrorCode $errorCode = null, $data = null, bool $dbConnectionError = false) {
 
         $result = null;
 
@@ -94,12 +94,12 @@ class JsonResponse
             ];
         }
 
-        self::saveConnectionInformation($request, $errorCode, $data);
+        self::saveConnectionInformation($request, $errorCode, $data, $dbConnectionError);
 
         return $result;
     }
 
-    private static function saveConnectionInformation($request, ?ErrorCode $errorCode, $data) {
+    private static function saveConnectionInformation($request, ?ErrorCode $errorCode, $data, bool $dbConnectionError) {
 
         $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan connection-info:save";
 
@@ -187,6 +187,11 @@ class JsonResponse
         }
 
         $command .= " \"$errorDescription\"";
+
+        if ($dbConnectionError) {
+            $command .= ' --dbConnectionError=1';
+        }
+
         $command .= ' >/dev/null 2>/dev/null &';
 
         shell_exec($command);

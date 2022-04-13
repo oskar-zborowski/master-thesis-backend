@@ -17,13 +17,20 @@ class MaliciousnessNotification extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(Connection $connection, int $status, string $errorMessage, string $errorDescription) {
+    public function __construct(?Connection $connection, int $status, string $errorMessage, string $errorDescription) {
 
-        /** @var \App\Models\User $user */
-        $user = $connection->user;
+        if ($connection) {
 
-        /** @var \App\Models\IpAddress $ipAddress */
-        $ipAddress = $connection->ipAddress;
+            /** @var \App\Models\User $user */
+            $user = $connection->user;
+
+            /** @var \App\Models\IpAddress $ipAddress */
+            $ipAddress = $connection->ipAddress;
+
+        } else {
+            $user = null;
+            $ipAddress = null;
+        }
 
         $this->mailSubject = 'Wykryto złośliwe żądanie';
 
@@ -50,26 +57,32 @@ class MaliciousnessNotification extends Mailable
 
         $this->message .= "<br><br>Informacje:<br>
             &emsp;Typ: $errorMessage<br>
-            &emsp;Opis: $errorDescription<br><br>";
+            &emsp;Opis: $errorDescription";
 
-        $successfulRequestCounter = (int) $connection->successful_request_counter;
-        $failedRequestCounter = (int) $connection->failed_request_counter;
-        $maliciousRequestCounter = (int) $connection->malicious_request_counter;
+        if ($connection) {
+            $successfulRequestCounter = (int) $connection->successful_request_counter;
+            $failedRequestCounter = (int) $connection->failed_request_counter;
+            $maliciousRequestCounter = (int) $connection->malicious_request_counter;
+        }
 
-        $ipAddressBlockedAt = $ipAddress->blocked_at ? $ipAddress->blocked_at : 'brak';
+        if ($ipAddress) {
+            $ipAddressBlockedAt = $ipAddress->blocked_at ? $ipAddress->blocked_at : 'brak';
+        }
 
-        $this->message .= "
-            Połączenie:<br>
-                &emsp;ID: $connection->id<br>
-                &emsp;Pomyślnych żądań: $successfulRequestCounter<br>
-                &emsp;Błędnych żądań: $failedRequestCounter<br>
-                &emsp;Złośliwych żądań: $maliciousRequestCounter<br>
-                &emsp;Data utworzenia: $connection->created_at<br><br>
-            Adres IP:<br>
-                &emsp;ID: $ipAddress->id<br>
-                &emsp;Adres IP: $ipAddress->ip_address<br>
-                &emsp;Data utworzenia: $ipAddress->created_at<br>
-                &emsp;Data blokady: $ipAddressBlockedAt";
+        if ($connection) {
+            $this->message .= "<br><br>
+                Połączenie:<br>
+                    &emsp;ID: $connection->id<br>
+                    &emsp;Pomyślnych żądań: $successfulRequestCounter<br>
+                    &emsp;Błędnych żądań: $failedRequestCounter<br>
+                    &emsp;Złośliwych żądań: $maliciousRequestCounter<br>
+                    &emsp;Data utworzenia: $connection->created_at<br><br>
+                Adres IP:<br>
+                    &emsp;ID: $ipAddress->id<br>
+                    &emsp;Adres IP: $ipAddress->ip_address<br>
+                    &emsp;Data utworzenia: $ipAddress->created_at<br>
+                    &emsp;Data blokady: $ipAddressBlockedAt";
+        }
 
         if ($user) {
 

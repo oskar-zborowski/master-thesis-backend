@@ -74,7 +74,6 @@ class Handler extends ExceptionHandler
             case ArgumentCountError::class:
             case ConnectException::class:
             case ErrorException::class:
-            case QueryException::class:
             case RuntimeException::class:
                 JsonResponse::sendError(
                     $request,
@@ -114,6 +113,22 @@ class Handler extends ExceptionHandler
                     $request,
                     DefaultErrorCode::LIMIT_EXCEEDED(false, true),
                     ['message' => __('validation.custom.limit-exceeded', ['seconds' => $throwable->getHeaders()['Retry-After']])],
+                    true
+                );
+                break;
+
+            case QueryException::class:
+                /** @var QueryException $throwable */
+
+                JsonResponse::sendError(
+                    $request,
+                    DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
+                    [
+                        'message' => $throwable->getMessage(),
+                        'file' => $throwable->getFile(),
+                        'line' => $throwable->getLine(),
+                    ],
+                    false,
                     true
                 );
                 break;
