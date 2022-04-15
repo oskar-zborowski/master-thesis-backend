@@ -2,11 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Libraries\Encrypter;
+use App\Http\Libraries\Log;
 use App\Mail\MaliciousnessNotification;
-use App\Models\Connection;
-use App\Models\IpAddress;
-use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 
@@ -39,61 +36,7 @@ class SaveConnectionInformation extends Command
             Mail::send(new MaliciousnessNotification(null, 0, $errorMessage, $errorDescription));
         } else {
 
-            $encryptedIpAddress = Encrypter::encrypt($ipAddress, 45, false);
-            $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address', $encryptedIpAddress);
-
-            /** @var IpAddress $ipAddressEntity */
-            $ipAddressEntity = IpAddress::whereRaw($aesDecrypt)->first();
-
-            if (!$ipAddressEntity) {
-                $ipAddressEntity = new IpAddress;
-                $ipAddressEntity->ip_address = $ipAddress;
-                $ipAddressEntity->save();
-            }
-
-            if ($userId !== null) {
-                /** @var User $user */
-                $user = User::where('id', $userId)->first();
-            }
-
-            if ($userId !== null) {
-                /** @var Connection $connection */
-                $connection = $ipAddressEntity->connections()->where('user_id', $userId)->first();
-            } else {
-                /** @var Connection $connection */
-                $connection = $ipAddressEntity->connections()->where('user_id', null)->first();
-            }
-
-            if (!$connection) {
-
-                $connection = new Connection;
-
-                if ($userId !== null) {
-                    $connection->user_id = $userId;
-                }
-
-                $connection->ip_address_id = $ipAddressEntity->id;
-
-                if ($isMalicious === null) {
-                    $connection->successful_request_counter = 1;
-                } else if ($isMalicious) {
-                    $connection->malicious_request_counter = 1;
-                } else {
-                    $connection->failed_request_counter = 1;
-                }
-
-            } else {
-
-                if ($isMalicious === null) {
-                    $connection->successful_request_counter = $connection->successful_request_counter + 1;
-                } else if ($isMalicious) {
-                    $connection->malicious_request_counter = $connection->malicious_request_counter + 1;
-                } else {
-                    $connection->failed_request_counter = $connection->failed_request_counter + 1;
-                }
-            }
-
-            $connection->save();
+            [$ipAddressEntity, $connection] = Log::prepareConnection($ipAddress, $userId, $isMalicious);
 
             if ($isMalicious) {
 
@@ -107,6 +50,8 @@ class SaveConnectionInformation extends Command
                     $ipAddressEntity->save();
 
                     if ($userId) {
+                        /** @var \App\Models\User $user */
+                        $user = $connection->user()->first();
                         $user->blocked_at = now();
                         $user->save();
                     }

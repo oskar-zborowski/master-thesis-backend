@@ -5,7 +5,6 @@ namespace App\Http\Libraries;
 use App\Exceptions\ApiException;
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Models\Room;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Klasa przetwarzająca dane geometryczne

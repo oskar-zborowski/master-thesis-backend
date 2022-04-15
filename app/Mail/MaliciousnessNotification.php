@@ -101,7 +101,7 @@ class MaliciousnessNotification extends Mailable
      */
     public function build() {
         return $this->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))
-                    ->to('oskarzborowski@gmail.com', 'Oskar Zborowski')
+                    ->to(env('MAIL_TO_ADDRESS'), env('MAIL_TO_NAME'))
                     ->subject($this->mailSubject)
                     ->html($this->message);
     }
