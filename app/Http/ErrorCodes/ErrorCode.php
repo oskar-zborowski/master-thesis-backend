@@ -8,14 +8,14 @@ namespace App\Http\ErrorCodes;
 class ErrorCode
 {
     private string $code;
-    private string $message;
+    private string $type;
     private int $httpStatus;
     private bool $isMalicious;
     private bool $logError;
 
-    public function __construct(string $code, string $message, int $httpStatus, bool $isMalicious, bool $logError) {
+    public function __construct(string $code, string $type, int $httpStatus, bool $isMalicious, bool $logError) {
         $this->code = $code;
-        $this->message = $message;
+        $this->type = $type;
         $this->httpStatus = $httpStatus;
         $this->isMalicious = $isMalicious;
         $this->logError = $logError;
@@ -25,8 +25,8 @@ class ErrorCode
         return $this->code;
     }
 
-    public function getMessage() {
-        return $this->message;
+    public function getType() {
+        return $this->type;
     }
 
     public function getHttpStatus() {

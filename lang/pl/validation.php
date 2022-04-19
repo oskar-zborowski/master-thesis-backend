@@ -151,6 +151,7 @@ return [
         'incorrect-database-search' => 'Możesz użyć jedynie dopasowań idealnych (=), albo dopasowań podobnych (LIKE).',
         'invalid-boundary-shape' => 'Nieprawidłowy kształt granicy.',
         'invalid-coordinate-format' => 'Nieprawidłowy format współrzędnych geograficznych.',
+        'invalid-log-type' => 'Możesz użyć jedynie typu loga (mail), albo (log).',
         'limit-exceeded' => 'Przekroczono limit żądań. Możesz spróbować ponownie za :seconds sekund.',
         'malicious-request' => 'Wysyłanie żądań przez podmioty niewspółpracujące jest surowo zabronione. Wszystkie próby nawiązywania połączenia są monitorowane i mogą wiązać się z konsekwencjami!',
         'monitoring-central-outside-boundary' => 'Centrala monitoringu musi się całkowicie mieścić w obszarze gry.',

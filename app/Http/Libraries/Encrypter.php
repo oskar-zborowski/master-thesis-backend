@@ -92,7 +92,8 @@ class Encrypter
         } else {
             throw new ApiException(
                 DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
-                env('APP_DEBUG') ? __('validation.custom.incorrect-database-search') : null
+                __('validation.custom.incorrect-database-search'),
+                false
             );
         }
 

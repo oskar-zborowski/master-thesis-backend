@@ -8,12 +8,12 @@ use ArgumentCountError;
 use BadMethodCallException;
 use ErrorException;
 use GuzzleHttp\Exception\ConnectException;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Validation\ValidationException;
+use ParseError;
 use Symfony\Component\Console\Exception\RuntimeException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -27,7 +27,19 @@ class Handler extends ExceptionHandler
      * @var array<int, class-string<Throwable>>
      */
     protected $dontReport = [
-        //
+        ApiException::class,
+        ArgumentCountError::class,
+        BadMethodCallException::class,
+        ConnectException::class,
+        ErrorException::class,
+        MethodNotAllowedHttpException::class,
+        ModelNotFoundException::class,
+        NotFoundHttpException::class,
+        QueryException::class,
+        ParseError::class,
+        RuntimeException::class,
+        ThrottleRequestsException::class,
+        ValidationException::class,
     ];
 
     /**
@@ -63,35 +75,12 @@ class Handler extends ExceptionHandler
                     $request,
                     $throwable->getErrorCode(),
                     [
+                        'thrower' => $class,
                         'message' => $throwable->getData(),
                         'file' => $throwable->getFile(),
                         'line' => $throwable->getLine(),
                     ],
-                    true
-                );
-                break;
-
-            case ArgumentCountError::class:
-            case ConnectException::class:
-            case ErrorException::class:
-            case RuntimeException::class:
-                JsonResponse::sendError(
-                    $request,
-                    DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
-                    [
-                        'message' => $throwable->getMessage(),
-                        'file' => $throwable->getFile(),
-                        'line' => $throwable->getLine(),
-                    ]
-                );
-                break;
-
-            case AuthenticationException::class:
-                /** @var AuthenticationException $throwable */
-
-                JsonResponse::sendError(
-                    $request,
-                    DefaultErrorCode::UNAUTHENTICATED(true)
+                    $throwable->getForwardMessage()
                 );
                 break;
 
@@ -102,7 +91,10 @@ class Handler extends ExceptionHandler
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::FAILED_VALIDATION(true),
-                    ['message' => $throwable->getMessage()]
+                    [
+                        'thrower' => $class,
+                        'message' => $throwable->getMessage(),
+                    ]
                 );
                 break;
 
@@ -112,23 +104,10 @@ class Handler extends ExceptionHandler
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::LIMIT_EXCEEDED(false, true),
-                    ['message' => __('validation.custom.limit-exceeded', ['seconds' => $throwable->getHeaders()['Retry-After']])],
-                    true
-                );
-                break;
-
-            case QueryException::class:
-                /** @var QueryException $throwable */
-
-                JsonResponse::sendError(
-                    $request,
-                    DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
                     [
-                        'message' => $throwable->getMessage(),
-                        'file' => $throwable->getFile(),
-                        'line' => $throwable->getLine(),
+                        'thrower' => $class,
+                        'message' => __('validation.custom.limit-exceeded', ['seconds' => $throwable->getHeaders()['Retry-After']]),
                     ],
-                    false,
                     true
                 );
                 break;
@@ -148,7 +127,14 @@ class Handler extends ExceptionHandler
                 JsonResponse::sendError(
                     $request,
                     DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
-                    ['message' => $class]
+                    [
+                        'thrower' => $class,
+                        'message' => $throwable->getMessage(),
+                        'file' => $throwable->getFile(),
+                        'line' => $throwable->getLine(),
+                    ],
+                    false,
+                    $class === QueryException::class
                 );
                 break;
         }

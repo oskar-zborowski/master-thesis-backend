@@ -151,6 +151,7 @@ return [
         'incorrect-database-search' => 'You can only use perfect matches (=) or similar matches (LIKE).',
         'invalid-boundary-shape' => 'Invalid boundary shape.',
         'invalid-coordinate-format' => 'Invalid geographic coordinate format.',
+        'invalid-log-type' => 'You can only use the (mail) or (log) log type.',
         'limit-exceeded' => 'The request limit has been exceeded. You can try again in :seconds seconds.',
         'malicious-request' => 'Sending requests by non-cooperators is strictly prohibited. All connection attempts are monitored and can have consequences!',
         'monitoring-central-outside-boundary' => 'The monitoring center must be completely within the play area.',

@@ -39,7 +39,7 @@ class JsonResponse
         die;
     }
 
-    public static function sendError($request, ErrorCode $errorCode, ?array $data = null, bool $attachMessage = false, bool $dbConnectionError = false): void {
+    public static function sendError($request, ErrorCode $errorCode, ?array $data = null, bool $forwardMessage = false, bool $dbConnectionError = false): void {
 
         header('Content-Type: application/json');
         http_response_code($errorCode->getHttpStatus());
@@ -47,7 +47,7 @@ class JsonResponse
         $response = [];
 
         if (env('APP_DEBUG')) {
-            $response['error_message'] = $errorCode->getMessage();
+            $response['error_message'] = $errorCode->getType();
         }
 
         $response['error_code'] = $errorCode->getCode();
@@ -55,7 +55,7 @@ class JsonResponse
         if ($data !== null) {
             if (env('APP_DEBUG')) {
                 $response['data'] = $data;
-            } else if ($attachMessage) {
+            } else if ($forwardMessage) {
                 $response['data']['message'] = $data['message'];
             }
         }
@@ -118,23 +118,25 @@ class JsonResponse
             if ($errorCode->getIsMalicious()) {
                 $command .= ' --isMalicious=1';
             } else {
+
                 $command .= ' --isMalicious=0';
+
+                if ($errorCode->getLogError()) {
+                    $command .= ' --logError=1';
+                }
             }
 
-            if ($errorCode->getLogError()) {
-                $command .= ' --logError=1';
-            }
-
-            $command .= " --errorMessage=\"{$errorCode->getMessage()}\"";
+            $command .= " --errorType=\"{$errorCode->getType()}\"";
+            $command .= " --errorThrower=\"{$data['thrower']}\"";
         }
+
+        $errorDescription = '';
 
         if ($data !== null) {
 
             if (is_array($data)) {
 
-                if (key_exists('message', $data) || key_exists('file', $data) || key_exists('line', $data)) {
-
-                    $errorDescription = '';
+                if (key_exists('message', $data) || key_exists('file', $data) || key_exists('line', $data) || key_exists('thrower', $data)) {
 
                     if (key_exists('message', $data)) {
                         if (is_array($data['message'])) {
@@ -144,52 +146,61 @@ class JsonResponse
                         }
                     }
 
+                    if (strlen(trim($errorDescription)) == 0) {
+                        $errorDescription .= 'brak';
+                    }
+
                     if (key_exists('file', $data)) {
 
-                        if (strlen($errorDescription) == 0) {
-                            $errorDescription .= 'brak<br>&emsp;Plik: ';
-                        } else {
-                            $errorDescription .= '<br>&emsp;Plik: ';
-                        }
+                        $errorDescription .= "\n    Plik: ";
+                        $fileMemory = trim($errorDescription);
 
                         if (is_array($data['file'])) {
                             $errorDescription .= implode(' ', $data['file']);
                         } else {
                             $errorDescription .= $data['file'];
                         }
+
+                        if ($fileMemory == trim($errorDescription)) {
+                            $errorDescription .= 'brak';
+                        }
                     }
 
                     if (key_exists('line', $data)) {
 
-                        if (strlen($errorDescription) == 0) {
-                            $errorDescription .= 'brak<br>&emsp;Linia: ';
-                        } else {
-                            $errorDescription .= '<br>&emsp;Linia: ';
-                        }
+                        $errorDescription .= "\n    Linia: ";
+                        $lineMemory = trim($errorDescription);
 
                         if (is_array($data['line'])) {
                             $errorDescription .= implode(' ', $data['line']);
                         } else {
                             $errorDescription .= $data['line'];
                         }
+
+                        if ($lineMemory == trim($errorDescription)) {
+                            $errorDescription .= 'brak';
+                        }
                     }
 
                 } else {
-                    $errorDescription = implode(' ', $data);
+                    $errorDescription .= implode(' ', $data);
                 }
 
             } else {
-                $errorDescription = $data;
+                $errorDescription .= $data;
             }
+        }
 
-        } else {
-            $errorDescription = 'brak';
+        if (strlen(trim($errorDescription)) == 0) {
+            $errorDescription .= 'brak';
         }
 
         $command .= " \"$errorDescription\"";
 
         if ($dbConnectionError) {
-            $command .= ' --dbConnectionError=1';
+            $command .= ' 1';
+        } else {
+            $command .= ' 0';
         }
 
         $command .= ' >/dev/null 2>/dev/null &';
