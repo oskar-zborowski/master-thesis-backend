@@ -134,7 +134,7 @@ class Handler extends ExceptionHandler
                         'line' => $throwable->getLine(),
                     ],
                     false,
-                    $class === QueryException::class
+                    $class == QueryException::class
                 );
                 break;
         }

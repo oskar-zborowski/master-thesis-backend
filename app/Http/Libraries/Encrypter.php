@@ -15,7 +15,7 @@ class Encrypter
 {
     public static function encrypt(?string $text, ?int $maxSize = null, bool $withEncryption = true) {
 
-        if ($text !== null && strlen($text) > 0) {
+        if (isset($text) && strlen($text) > 0) {
 
             $text = self::fillWithRandomCharacters($text, $maxSize);
 
@@ -34,7 +34,7 @@ class Encrypter
 
     public static function decrypt(?string $text) {
 
-        if ($text !== null) {
+        if (isset($text)) {
             $iv = substr($text, 0, 16);
             $text = substr($text, 16);
             $text = base64_encode(hex2bin($text));
@@ -51,10 +51,10 @@ class Encrypter
 
         $size -= strlen($addition);
 
-        if ($size > 0) {
+        if ($size >= 0) {
             do {
                 $token = self::fillWithRandomCharacters('', $size, true) . $addition;
-            } while ($entity !== null && $field !== null && !Validation::checkUniqueness($token, $entity, $field, true));
+            } while (isset($entity) && isset($field) && !Validation::checkUniqueness($token, $entity, $field, true));
         } else {
             $token = null;
         }

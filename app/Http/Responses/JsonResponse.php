@@ -19,17 +19,17 @@ class JsonResponse
 
         $response = [];
 
-        if ($data !== null) {
+        if (isset($data)) {
             $response['data'] = $data;
         }
 
-        if ($meta !== null) {
+        if (isset($meta)) {
             $response['metadata'] = $meta;
         }
 
         $tokens = self::getTokens($request);
 
-        if ($tokens !== null) {
+        if (isset($tokens)) {
             $response['tokens'] = $tokens;
         }
 
@@ -52,7 +52,7 @@ class JsonResponse
 
         $response['error_code'] = $errorCode->getCode();
 
-        if ($data !== null) {
+        if (isset($data)) {
             if (env('APP_DEBUG')) {
                 $response['data'] = $data;
             } else if ($forwardMessage) {
@@ -66,7 +66,7 @@ class JsonResponse
 
         $tokens = self::getTokens($request, $errorCode, $data, $dbConnectionError);
 
-        if ($tokens !== null) {
+        if (isset($tokens)) {
             $response['tokens'] = $tokens;
         }
 
@@ -83,7 +83,7 @@ class JsonResponse
         $token = Session::get('token');
         $refreshToken = Session::get('refreshToken');
 
-        if ($token !== null && $refreshToken !== null) {
+        if (isset($token) && isset($refreshToken)) {
 
             Session::remove('token');
             Session::remove('refreshToken');
@@ -113,7 +113,7 @@ class JsonResponse
             $command .= " --userId=$user->id";
         }
 
-        if ($errorCode !== null) {
+        if (isset($errorCode)) {
 
             if ($errorCode->getIsMalicious()) {
                 $command .= ' --isMalicious=1';
@@ -132,7 +132,7 @@ class JsonResponse
 
         $errorDescription = '';
 
-        if ($data !== null) {
+        if (isset($data)) {
 
             if (is_array($data)) {
 

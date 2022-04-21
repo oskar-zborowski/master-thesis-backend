@@ -62,7 +62,7 @@ class SecondAuthenticate
             );
         }
 
-        if ($token !== null && $refreshToken !== null) {
+        if (isset($token) && isset($refreshToken)) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(true),
                 __('auth.double-token-given')
@@ -71,14 +71,14 @@ class SecondAuthenticate
 
         if (!in_array($routeName, $routeNamesWhitelist)) {
 
-            if ($token === null && $refreshToken === null) {
+            if (!isset($token) && !isset($refreshToken)) {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(true),
                     __('auth.no-token-provided')
                 );
             }
 
-        } else if ($token !== null || $refreshToken !== null) {
+        } else if (isset($token) || isset($refreshToken)) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(true),
                 __('auth.tokens-not-allowed')
@@ -88,21 +88,21 @@ class SecondAuthenticate
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        if ($token !== null && !$user) {
+        if (isset($token) && !$user) {
             throw new ApiException(
                 DefaultErrorCode::UNAUTHENTICATED(true),
                 __('auth.invalid-token')
             );
         }
 
-        if ($refreshToken !== null && !$personalAccessToken) {
+        if (isset($refreshToken) && !$personalAccessToken) {
             throw new ApiException(
                 DefaultErrorCode::UNAUTHENTICATED(true),
                 __('auth.invalid-refresh-token')
             );
         }
 
-        if ($token !== null && $user) {
+        if (isset($token) && $user) {
 
             /** @var PersonalAccessToken $personalAccessToken */
             $personalAccessToken = $user->tokenable()->first();
@@ -128,13 +128,13 @@ class SecondAuthenticate
             }
         }
 
-        if ($refreshToken !== null && $personalAccessToken) {
-            if (Validation::timeComparison($personalAccessToken->created_at, env('JWT_LIFETIME'), '<=')) {
-                throw new ApiException(
-                    DefaultErrorCode::UNAUTHENTICATED(true),
-                    __('auth.token-still-valid')
-                );
-            }
+        if (isset($refreshToken) && $personalAccessToken &&
+            Validation::timeComparison($personalAccessToken->created_at, env('JWT_LIFETIME'), '<='))
+        {
+            throw new ApiException(
+                DefaultErrorCode::UNAUTHENTICATED(true),
+                __('auth.token-still-valid')
+            );
         }
 
         if ($user && $user->blocked_at) {
@@ -144,7 +144,7 @@ class SecondAuthenticate
             );
         }
 
-        if ($refreshToken !== null && $personalAccessToken) {
+        if (isset($refreshToken) && $personalAccessToken) {
             $personalAccessToken->delete();
             Encrypter::generateAuthTokens();
         }

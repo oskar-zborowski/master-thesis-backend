@@ -54,7 +54,7 @@ class Log
 
                 $connection->ip_address_id = $ipAddressEntity->id;
 
-                if ($isMalicious === null) {
+                if (!isset($isMalicious)) {
                     $connection->successful_request_counter = 1;
                 } else if ($isMalicious) {
                     $connection->malicious_request_counter = 1;
@@ -193,9 +193,6 @@ class Log
 
         if ($status == -1) {
             $message = 'Wykryto próbę wysłania złośliwego żądania!';
-        } else if ($status == 0) {
-            $mailSubject = 'Wystąpił nieoczekiwany błąd';
-            $message = 'Wystąpił nieoczekiwany błąd!';
         } else if ($status == 1) {
             $message = 'Wykryto pierwszą próbę wysłania złośliwego żądania!';
         } else if ($status == 2) {
@@ -212,6 +209,9 @@ class Log
 
         } else if ($status == 4) {
             $message = 'Wymagana jest permanentna blokada adresu IP przychodzącego żądania!';
+        } else {
+            $mailSubject = 'Wystąpił nieoczekiwany błąd';
+            $message = 'Wystąpił nieoczekiwany błąd!';
         }
 
         $message .= "$enter$enter
@@ -315,7 +315,7 @@ Użytkownik:$enter$tab
         $config->nominatim_last_used_at = now();
         $config->save();
 
-        $location = [];
+        $location = null;
 
         if (isset($result['house_number'])) {
             $location['house_number'] = FieldConversion::stringToUppercase($result['house_number']);

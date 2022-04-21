@@ -49,7 +49,7 @@ class Authenticate extends Middleware
 
         if (!in_array($routeName, $routeNamesWhitelist)) {
 
-            if ($token !== null) {
+            if (isset($token)) {
                 try {
                     $request->headers->set('Authorization', 'Bearer ' . $token);
                     $this->authenticate($request, $guards);
@@ -70,7 +70,7 @@ class Authenticate extends Middleware
 
                 Session::put('personalAccessToken', $personalAccessToken);
 
-                if ($personalAccessToken !== null && !Auth::user()) {
+                if ($personalAccessToken && !Auth::user()) {
                     Auth::loginUsingId($personalAccessToken->tokenable_id);
                 }
             }

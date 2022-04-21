@@ -121,7 +121,7 @@ class FieldConversion
 
             $fieldNames = null;
 
-            if ($data !== null && ($to === null || $from <= $to)) {
+            if (isset($data) && (!isset($to) || $from <= $to)) {
     
                 if ($current == 0) {
                     $data = json_encode($data);
@@ -132,7 +132,7 @@ class FieldConversion
 
                     if (is_array($value)) {
 
-                        if ($current >= $from && ($to === null || $current <= $to)) {
+                        if ($current >= $from && (!isset($to) || $current <= $to)) {
 
                             $convertedKey = Str::$conversionType($key);
 
@@ -162,7 +162,7 @@ class FieldConversion
 
                         if ($current >= $from) {
 
-                            if ($to === null || $current <= $to) {
+                            if (!isset($to) || $current <= $to) {
 
                                 $convertedKey = Str::$conversionType($key);
 
@@ -183,7 +183,7 @@ class FieldConversion
                 }
             }
 
-            if ($current == 0 && $fieldNames !== null) {
+            if ($current == 0 && isset($fieldNames)) {
 
                 $fN = null;
 
