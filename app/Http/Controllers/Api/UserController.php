@@ -55,23 +55,17 @@ class UserController extends Controller
             $user->os_version = $request->os_version;
         }
 
-        if ($request->app_version !== null) {
-            $user->app_version = $request->app_version;
-        }
-
+        $user->app_version = $request->app_version;
         $user->save();
 
-        if ($request->latitude !== null && $request->longitude !== null) {
+        $startDate = date('Y-m-d 00:00:00');
+        $endDate = date('Y-m-d 23:59:59');
 
-            $startDate = date('Y-m-d 00:00:00');
-            $endDate = date('Y-m-d 23:59:59');
+        /** @var \App\Models\GpsLog $gpsLog */
+        $gpsLog = $user->gpsLogs()->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)->first();
 
-            /** @var \App\Models\GpsLog $gpsLog */
-            $gpsLog = $user->gpsLogs()->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)->first();
-
-            if (!$gpsLog) {
-                $this->saveGpsLog($request->latitude, $request->longitude, $request);
-            }
+        if (!$gpsLog) {
+            $this->saveGpsLog($request->latitude, $request->longitude, $request);
         }
 
         JsonResponse::sendSuccess($request, $user->getData());

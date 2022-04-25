@@ -16,9 +16,9 @@ class UpdateUserRequest extends FormRequest
         return [
             'name' => 'nullable|string|between:1,15',
             'os_version' => 'nullable|string|between:1,10',
-            'app_version' => ['nullable', Rule::in(Validation::getAppVersions())],
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
+            'app_version' => ['required', Rule::in(Validation::getAppVersions())],
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
         ];
     }
 }
