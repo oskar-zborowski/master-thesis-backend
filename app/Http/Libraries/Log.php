@@ -22,6 +22,8 @@ class Log
 {
     public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $logError, ?string $errorType, ?string $errorThrower, string $errorDescription, bool $dbConnectionError = false, bool $saveLog = true, bool $sendMail = true) {
 
+        $ipAddress = '83.8.175.174'; // TODO Usunąć przy wdrożeniu na serwer
+
         if (!$dbConnectionError) {
 
             $encryptedIpAddress = Encrypter::encrypt($ipAddress, 45, false);
@@ -31,8 +33,94 @@ class Log
             $ipAddressEntity = IpAddress::whereRaw($aesDecrypt)->first();
 
             if (!$ipAddressEntity) {
+
+                do {
+                    sleep(env('IP_API_CONST_PAUSE'));
+                    $config = Config::where('id', 1)->first();
+                    $ipApiIsBusy = $config->ip_api_is_busy || $config->ip_api_last_used_at && Validation::timeComparison($config->ip_api_last_used_at, env('IP_API_CONST_PAUSE'), '<', 'seconds');
+                } while ($ipApiIsBusy);
+
+                $config->ip_api_is_busy = true;
+                $config->save();
+
+                $ipApiErrorCounter = 0;
+
+                do {
+
+                    $ipApiError = false;
+
+                    try {
+                        $result = file_get_contents("http://ip-api.com/json/$ipAddress?fields=status,message,country,regionName,city,isp,org,mobile");
+                        $result = json_decode($result, true);
+                    } catch (Exception $e) {
+
+                        $errorMessage = $e->getMessage();
+                        $ipApiErrorCounter++;
+
+                        if ($ipApiErrorCounter < env('IP_API_MAX_ATTEMPTS')) {
+                            $ipApiError = true;
+                            sleep(($ipApiErrorCounter * env('IP_API_VAR_PAUSE')) + env('IP_API_CONST_PAUSE'));
+                        }
+                    }
+
+                    if (!$ipApiError && $ipApiErrorCounter <= 2) {
+
+                        if (!isset($result['status']) || $result['status'] != 'success') {
+
+                            if (!isset($errorMessage)) {
+
+                                if (isset($result['message']) && is_string($result['message']) && strlen(trim($result['message'])) > 0) {
+                                    $errorMessage = $result['message'];
+                                } else {
+                                    $errorMessage = '';
+                                }
+                            }
+
+                            $ipApiErrorCounter++;
+
+                            if ($ipApiErrorCounter <= 2) {
+                                $ipApiError = true;
+                                sleep(($ipApiErrorCounter * env('IP_API_VAR_PAUSE')) + env('IP_API_CONST_PAUSE'));
+                            }
+                        }
+                    }
+
+                } while ($ipApiError);
+
+                $config->ip_api_is_busy = false;
+                $config->ip_api_last_used_at = now();
+                $config->save();
+
+                if ($ipApiErrorCounter) {
+                    $errorMessage = "Failed to get data from ip-api.com ($ipApiErrorCounter times)\n$errorMessage";
+                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', 'Exception', $errorMessage);
+                }
+
                 $ipAddressEntity = new IpAddress;
                 $ipAddressEntity->ip_address = $ipAddress;
+
+                if (isset($result['org']) && is_string($result['org']) && strlen(trim($result['org'])) > 0) {
+                    $ipAddressEntity->provider = $result['org'];
+                } else if (isset($result['isp']) && is_string($result['isp']) && strlen(trim($result['isp'])) > 0) {
+                    $ipAddressEntity->provider = $result['isp'];
+                }
+
+                if (isset($result['city']) && is_string($result['city']) && strlen(trim($result['city'])) > 0) {
+                    $ipAddressEntity->city = $result['city'];
+                }
+
+                if (isset($result['regionName']) && is_string($result['regionName']) && strlen(trim($result['regionName'])) > 0) {
+                    $ipAddressEntity->voivodeship = $result['regionName'];
+                }
+
+                if (isset($result['country']) && is_string($result['country']) && strlen(trim($result['country'])) > 0) {
+                    $ipAddressEntity->country = $result['country'];
+                }
+
+                if (isset($result['mobile']) && (is_bool($result['mobile']) || is_int($result['mobile']))) {
+                    $ipAddressEntity->is_mobile = $result['mobile'];
+                }
+
                 $ipAddressEntity->save();
             }
 
@@ -137,6 +225,15 @@ class Log
 
             if ($sendMail) {
 
+                do {
+                    sleep(env('MAIL_CONST_PAUSE'));
+                    $config = Config::where('id', 1)->first();
+                    $mailIsBusy = $config->mail_is_busy || $config->mail_last_used_at && Validation::timeComparison($config->mail_last_used_at, env('MAIL_CONST_PAUSE'), '<', 'seconds');
+                } while ($mailIsBusy);
+
+                $config->mail_is_busy = true;
+                $config->save();
+
                 $mailErrorCounter = 0;
 
                 do {
@@ -150,13 +247,17 @@ class Log
                         $errorMessage = $e->getMessage();
                         $mailErrorCounter++;
 
-                        if ($mailErrorCounter <= 2) {
+                        if ($mailErrorCounter < env('MAIL_MAX_ATTEMPTS')) {
                             $mailError = true;
-                            sleep(($mailErrorCounter * 2) + env('MAIL_PAUSE'));
+                            sleep(($mailErrorCounter * env('MAIL_VAR_PAUSE')) + env('MAIL_CONST_PAUSE'));
                         }
                     }
 
                 } while ($mailError);
+
+                $config->mail_is_busy = false;
+                $config->mail_last_used_at = now();
+                $config->save();
 
                 if ($mailErrorCounter) {
                     $errorMessage = "Failed to send the email ($mailErrorCounter times)\n$errorMessage";
@@ -280,9 +381,9 @@ Użytkownik:$enter$tab
         $nominatim = new Nominatim($url);
 
         do {
-            sleep(env('NOMINATIM_PAUSE'));
+            sleep(env('NOMINATIM_CONST_PAUSE'));
             $config = Config::where('id', 1)->first();
-            $nominatimIsBusy = $config->nominatim_is_busy || $config->nominatim_last_used_at && Validation::timeComparison($config->nominatim_last_used_at, env('NOMINATIM_PAUSE'), '<', 'seconds');
+            $nominatimIsBusy = $config->nominatim_is_busy || $config->nominatim_last_used_at && Validation::timeComparison($config->nominatim_last_used_at, env('NOMINATIM_CONST_PAUSE'), '<', 'seconds');
         } while ($nominatimIsBusy);
 
         $config->nominatim_is_busy = true;
@@ -303,9 +404,9 @@ Użytkownik:$enter$tab
                 $errorMessage = $e->getMessage();
                 $nominatimErrorCounter++;
 
-                if ($nominatimErrorCounter <= 2) {
+                if ($nominatimErrorCounter < env('NOMINATIM_MAX_ATTEMPTS')) {
                     $nominatimError = true;
-                    sleep(($nominatimErrorCounter * 2) + env('NOMINATIM_PAUSE'));
+                    sleep(($nominatimErrorCounter * env('NOMINATIM_VAR_PAUSE')) + env('NOMINATIM_CONST_PAUSE'));
                 }
             }
 
@@ -314,6 +415,11 @@ Użytkownik:$enter$tab
         $config->nominatim_is_busy = false;
         $config->nominatim_last_used_at = now();
         $config->save();
+
+        if ($nominatimErrorCounter) {
+            $errorMessage = "Failed to get data from Nominati ($nominatimErrorCounter times)\n$errorMessage";
+            self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage);
+        }
 
         $location = null;
 
@@ -371,11 +477,6 @@ Użytkownik:$enter$tab
 
         if (isset($result['country'])) {
             $location['country'] = FieldConversion::stringToUppercase($result['country'], true);
-        }
-
-        if ($nominatimErrorCounter) {
-            $errorMessage = "Failed to get data from Nominati ($nominatimErrorCounter times)\n$errorMessage";
-            self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage);
         }
 
         return $location;

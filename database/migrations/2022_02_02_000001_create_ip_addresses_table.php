@@ -13,6 +13,11 @@ return new class extends Migration
         Schema::create('ip_addresses', function (Blueprint $table) {
             $table->id();
             $table->char('ip_address', 112)->unique(); // Kodowane automatycznie
+            $table->char('provider', 208)->nullable(); // Kodowane automatycznie
+            $table->char('city', 208)->nullable(); // Kodowane automatycznie
+            $table->char('voivodeship', 208)->nullable(); // Kodowane automatycznie
+            $table->char('country', 144)->nullable(); // Kodowane automatycznie
+            $table->boolean('is_mobile')->nullable();
             $table->timestamp('blocked_at')->nullable();
             $table->timestamps();
         });

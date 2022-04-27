@@ -11,6 +11,11 @@ class IpAddress extends BaseModel
     protected $hidden = [
         'id',
         'ip_address',
+        'provider',
+        'city',
+        'voivodeship',
+        'country',
+        'is_mobile',
         'blocked_at',
         'created_at',
         'updated_at',
@@ -18,6 +23,10 @@ class IpAddress extends BaseModel
 
     protected $encryptable = [
         'ip_address' => 45,
+        'provider' => 90,
+        'city' => 90,
+        'voivodeship' => 90,
+        'country' => 60,
     ];
 
     protected $casts = [
