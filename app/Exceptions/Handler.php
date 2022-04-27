@@ -7,6 +7,7 @@ use App\Http\Responses\JsonResponse;
 use ArgumentCountError;
 use BadMethodCallException;
 use ErrorException;
+use Exception;
 use GuzzleHttp\Exception\ConnectException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
@@ -31,6 +32,7 @@ class Handler extends ExceptionHandler
         ArgumentCountError::class,
         BadMethodCallException::class,
         ConnectException::class,
+        Exception::class,
         ErrorException::class,
         MethodNotAllowedHttpException::class,
         ModelNotFoundException::class,

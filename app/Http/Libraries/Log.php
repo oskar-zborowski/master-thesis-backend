@@ -34,9 +34,10 @@ class Log
                 /** @var IpAddress $ipAddressEntity */
                 $ipAddressEntity = IpAddress::whereRaw($aesDecrypt)->first();
             } catch (QueryException $e) {
+                $errorThrower = get_class($e);
                 $errorMessage = $e->getMessage();
                 self::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorDescription, true, $saveLog, $sendMail, $checkIp);
-                self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', 'QueryException', $errorMessage, true, $saveLog, $sendMail, $checkIp);
+                self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, true, $saveLog, $sendMail, $checkIp);
                 die;
             }
 
@@ -64,6 +65,7 @@ class Log
                             $result = json_decode($result, true);
                         } catch (Exception $e) {
 
+                            $errorThrower = get_class($e);
                             $errorMessage = $e->getMessage();
                             $ipApiErrorCounter++;
 
@@ -103,7 +105,7 @@ class Log
 
                     if ($ipApiErrorCounter) {
                         $errorMessage = "Failed to get data from ip-api.com ($ipApiErrorCounter times)\n$errorMessage";
-                        self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', 'Exception', $errorMessage, $dbConnectionError, $saveLog, $sendMail, false);
+                        self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, $saveLog, $sendMail, false);
                     }
                 }
 
@@ -229,9 +231,10 @@ class Log
                     }
 
                 } catch (Exception $e) {
+                    $errorThrower = get_class($e);
                     $saveLogError = true;
                     $errorMessage = "Failed to save the log\n{$e->getMessage()}";
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', 'Exception', $errorMessage, $dbConnectionError, false, $sendMail, $checkIp);
+                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, false, $sendMail, $checkIp);
                 }
             }
 
@@ -259,6 +262,7 @@ class Log
                         Mail::send(new MaliciousnessNotification($connection, $status, $errorType, $errorThrower, $errorDescription));
                     } catch (Exception $e) {
 
+                        $errorThrower = get_class($e);
                         $errorMessage = $e->getMessage();
                         $mailErrorCounter++;
 
@@ -278,7 +282,7 @@ class Log
 
                 if ($mailErrorCounter) {
                     $errorMessage = "Failed to send the email ($mailErrorCounter times)\n$errorMessage";
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', 'Exception', $errorMessage, $dbConnectionError, !isset($saveLogError) && $saveLog, false, $checkIp);
+                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, !isset($saveLogError) && $saveLog, false, $checkIp);
                 }
             }
         }
