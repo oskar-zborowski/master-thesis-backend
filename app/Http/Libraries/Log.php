@@ -10,6 +10,7 @@ use App\Models\Connection;
 use App\Models\IpAddress;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log as FacadesLog;
 use Illuminate\Support\Facades\Mail;
 use maxh\Nominatim\Exceptions\NominatimException;
@@ -20,7 +21,7 @@ use maxh\Nominatim\Nominatim;
  */
 class Log
 {
-    public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $logError, ?string $errorType, ?string $errorThrower, string $errorDescription, bool $dbConnectionError = false, bool $saveLog = true, bool $sendMail = true) {
+    public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $logError, ?string $errorType, ?string $errorThrower, string $errorDescription, bool $dbConnectionError = false, bool $saveLog = true, bool $sendMail = true, bool $checkIp = true) {
 
         $ipAddress = '83.8.175.174'; // TODO Usunąć przy wdrożeniu na serwer
 
@@ -29,71 +30,81 @@ class Log
             $encryptedIpAddress = Encrypter::encrypt($ipAddress, 45, false);
             $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address', $encryptedIpAddress);
 
-            /** @var IpAddress $ipAddressEntity */
-            $ipAddressEntity = IpAddress::whereRaw($aesDecrypt)->first();
+            try {
+                /** @var IpAddress $ipAddressEntity */
+                $ipAddressEntity = IpAddress::whereRaw($aesDecrypt)->first();
+            } catch (QueryException $e) {
+                $errorMessage = $e->getMessage();
+                self::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorDescription, true, $saveLog, $sendMail, $checkIp);
+                self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', 'QueryException', $errorMessage, true, $saveLog, $sendMail, $checkIp);
+                die;
+            }
 
             if (!$ipAddressEntity) {
 
-                do {
-                    sleep(env('IP_API_CONST_PAUSE'));
-                    $config = Config::where('id', 1)->first();
-                    $ipApiIsBusy = $config->ip_api_is_busy || $config->ip_api_last_used_at && Validation::timeComparison($config->ip_api_last_used_at, env('IP_API_CONST_PAUSE'), '<', 'seconds');
-                } while ($ipApiIsBusy);
+                if ($checkIp) {
 
-                $config->ip_api_is_busy = true;
-                $config->save();
+                    do {
+                        sleep(env('IP_API_CONST_PAUSE'));
+                        $config = Config::where('id', 1)->first();
+                        $ipApiIsBusy = $config->ip_api_is_busy || $config->ip_api_last_used_at && Validation::timeComparison($config->ip_api_last_used_at, env('IP_API_CONST_PAUSE'), '<', 'seconds');
+                    } while ($ipApiIsBusy);
 
-                $ipApiErrorCounter = 0;
+                    $config->ip_api_is_busy = true;
+                    $config->save();
 
-                do {
+                    $ipApiErrorCounter = 0;
 
-                    $ipApiError = false;
+                    do {
 
-                    try {
-                        $result = file_get_contents("http://ip-api.com/json/$ipAddress?fields=status,message,country,regionName,city,isp,org,mobile");
-                        $result = json_decode($result, true);
-                    } catch (Exception $e) {
+                        $ipApiError = false;
 
-                        $errorMessage = $e->getMessage();
-                        $ipApiErrorCounter++;
+                        try {
+                            $result = file_get_contents("https://ip-api.com/json/$ipAddress?fields=status,message,country,regionName,city,isp,org,mobile");
+                            $result = json_decode($result, true);
+                        } catch (Exception $e) {
 
-                        if ($ipApiErrorCounter < env('IP_API_MAX_ATTEMPTS')) {
-                            $ipApiError = true;
-                            sleep(($ipApiErrorCounter * env('IP_API_VAR_PAUSE')) + env('IP_API_CONST_PAUSE'));
-                        }
-                    }
-
-                    if (!$ipApiError && $ipApiErrorCounter <= 2) {
-
-                        if (!isset($result['status']) || $result['status'] != 'success') {
-
-                            if (!isset($errorMessage)) {
-
-                                if (isset($result['message']) && is_string($result['message']) && strlen(trim($result['message'])) > 0) {
-                                    $errorMessage = $result['message'];
-                                } else {
-                                    $errorMessage = '';
-                                }
-                            }
-
+                            $errorMessage = $e->getMessage();
                             $ipApiErrorCounter++;
 
-                            if ($ipApiErrorCounter <= 2) {
+                            if ($ipApiErrorCounter < env('IP_API_MAX_ATTEMPTS')) {
                                 $ipApiError = true;
                                 sleep(($ipApiErrorCounter * env('IP_API_VAR_PAUSE')) + env('IP_API_CONST_PAUSE'));
                             }
                         }
+
+                        if (!$ipApiError && $ipApiErrorCounter < env('IP_API_MAX_ATTEMPTS')) {
+
+                            if (!isset($result['status']) || $result['status'] != 'success') {
+
+                                if (!isset($errorMessage)) {
+
+                                    if (isset($result['message']) && is_string($result['message']) && strlen(trim($result['message'])) > 0) {
+                                        $errorMessage = $result['message'];
+                                    } else {
+                                        $errorMessage = '';
+                                    }
+                                }
+
+                                $ipApiErrorCounter++;
+
+                                if ($ipApiErrorCounter < env('IP_API_MAX_ATTEMPTS')) {
+                                    $ipApiError = true;
+                                    sleep(($ipApiErrorCounter * env('IP_API_VAR_PAUSE')) + env('IP_API_CONST_PAUSE'));
+                                }
+                            }
+                        }
+
+                    } while ($ipApiError);
+
+                    $config->ip_api_is_busy = false;
+                    $config->ip_api_last_used_at = now();
+                    $config->save();
+
+                    if ($ipApiErrorCounter) {
+                        $errorMessage = "Failed to get data from ip-api.com ($ipApiErrorCounter times)\n$errorMessage";
+                        self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', 'Exception', $errorMessage, $dbConnectionError, $saveLog, $sendMail, false);
                     }
-
-                } while ($ipApiError);
-
-                $config->ip_api_is_busy = false;
-                $config->ip_api_last_used_at = now();
-                $config->save();
-
-                if ($ipApiErrorCounter) {
-                    $errorMessage = "Failed to get data from ip-api.com ($ipApiErrorCounter times)\n$errorMessage";
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', 'Exception', $errorMessage);
                 }
 
                 $ipAddressEntity = new IpAddress;
@@ -205,6 +216,7 @@ class Log
         if (isset($status)) {
 
             if ($saveLog) {
+
                 try {
 
                     $log = Log::prepareMessage('log', $connection, $status, $errorType, $errorThrower, $errorDescription);
@@ -219,20 +231,23 @@ class Log
                 } catch (Exception $e) {
                     $saveLogError = true;
                     $errorMessage = "Failed to save the log\n{$e->getMessage()}";
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', 'Exception', $errorMessage, $dbConnectionError, false, true);
+                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', 'Exception', $errorMessage, $dbConnectionError, false, $sendMail, $checkIp);
                 }
             }
 
             if ($sendMail) {
 
-                do {
-                    sleep(env('MAIL_CONST_PAUSE'));
-                    $config = Config::where('id', 1)->first();
-                    $mailIsBusy = $config->mail_is_busy || $config->mail_last_used_at && Validation::timeComparison($config->mail_last_used_at, env('MAIL_CONST_PAUSE'), '<', 'seconds');
-                } while ($mailIsBusy);
+                if (!$dbConnectionError) {
 
-                $config->mail_is_busy = true;
-                $config->save();
+                    do {
+                        sleep(env('MAIL_CONST_PAUSE'));
+                        $config = Config::where('id', 1)->first();
+                        $mailIsBusy = $config->mail_is_busy || $config->mail_last_used_at && Validation::timeComparison($config->mail_last_used_at, env('MAIL_CONST_PAUSE'), '<', 'seconds');
+                    } while ($mailIsBusy);
+
+                    $config->mail_is_busy = true;
+                    $config->save();
+                }
 
                 $mailErrorCounter = 0;
 
@@ -255,13 +270,15 @@ class Log
 
                 } while ($mailError);
 
-                $config->mail_is_busy = false;
-                $config->mail_last_used_at = now();
-                $config->save();
+                if (!$dbConnectionError) {
+                    $config->mail_is_busy = false;
+                    $config->mail_last_used_at = now();
+                    $config->save();
+                }
 
                 if ($mailErrorCounter) {
                     $errorMessage = "Failed to send the email ($mailErrorCounter times)\n$errorMessage";
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', 'Exception', $errorMessage, $dbConnectionError, !isset($saveLogError), false);
+                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', 'Exception', $errorMessage, $dbConnectionError, !isset($saveLogError) && $saveLog, false, $checkIp);
                 }
             }
         }
