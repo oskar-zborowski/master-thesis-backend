@@ -350,10 +350,29 @@ Informacje:$enter$tab
         }
 
         if ($ipAddress) {
+
+            $ipAddressProvider = $ipAddress->provider !== null && strlen(trim($ipAddress->provider)) > 0 ? $ipAddress->provider : 'brak';
+            $ipAddressCity = $ipAddress->city !== null && strlen(trim($ipAddress->city)) > 0 ? $ipAddress->city : 'brak';
+            $ipAddressVoivodeship = $ipAddress->voivodeship !== null && strlen(trim($ipAddress->voivodeship)) > 0 ? $ipAddress->voivodeship : 'brak';
+            $ipAddressCountry = $ipAddress->country !== null && strlen(trim($ipAddress->country)) > 0 ? $ipAddress->country : 'brak';
+
+            if ($ipAddress->is_mobile !== null) {
+
+                if ($ipAddress->is_mobile) {
+                    $ipAddressIsMobile = 'Tak';
+                } else {
+                    $ipAddressIsMobile = 'Nie';
+                }
+
+            } else {
+                $ipAddressIsMobile = 'brak';
+            }
+
             $ipAddressBlockedAt = $ipAddress->blocked_at ? $ipAddress->blocked_at : 'brak';
         }
 
         if ($connection) {
+
             $message .= "$enter$enter
 
 Połączenie:$enter$tab
@@ -366,11 +385,39 @@ Połączenie:$enter$tab
 Adres IP:$enter$tab
     ID: $ipAddress->id$enter$tab
     Adres IP: $ipAddress->ip_address$enter$tab
+    Dostawca: $ipAddressProvider$enter$tab
+    Miasto: $ipAddressCity$enter$tab
+    Województwo: $ipAddressVoivodeship$enter$tab
+    Kraj: $ipAddressCountry$enter$tab
+    Internet mobilny: $ipAddressIsMobile$enter$tab
     Data utworzenia: $ipAddress->created_at$enter$tab
     Data blokady: $ipAddressBlockedAt";
+
         }
 
         if ($user) {
+
+            $userName = $user->name !== null && strlen(trim($user->name)) > 0 ? $user->name : 'brak';
+
+            if ($user->producer !== null && strlen(trim($user->producer)) > 0 && $user->model !== null && strlen(trim($user->model)) > 0) {
+                $userTelephone = "$user->producer $user->model";
+            } else if ($user->producer !== null && strlen(trim($user->producer)) > 0) {
+                $userTelephone = "$user->producer";
+            } else if ($user->model !== null && strlen(trim($user->model)) > 0) {
+                $userTelephone = "$user->model";
+            } else {
+                $userTelephone = 'brak';
+            }
+
+            if ($user->os_name !== null && strlen(trim($user->os_name)) > 0 && $user->os_version !== null && strlen(trim($user->os_version)) > 0) {
+                $userOS = "$user->os_name $user->os_version";
+            } else if ($user->os_name !== null && strlen(trim($user->os_name)) > 0) {
+                $userOS = "$user->os_name";
+            } else if ($user->os_version !== null && strlen(trim($user->os_version)) > 0) {
+                $userOS = "$user->os_version";
+            } else {
+                $userOS = 'brak';
+            }
 
             $userBlockedAt = $user->blocked_at ? $user->blocked_at : 'brak';
 
@@ -378,15 +425,81 @@ Adres IP:$enter$tab
 
 Użytkownik:$enter$tab
     ID: $user->id$enter$tab
-    Nazwa: $user->name$enter$tab
+    Nazwa: $userName$enter$tab
+    Model telefonu: $userTelephone$enter$tab
+    System operacyjny: $userOS$enter$tab
+    Wersja aplikacji: $user->app_version$enter$tab
     Data utworzenia: $user->created_at$enter$tab
     Data blokady: $userBlockedAt";
+
+            /** @var \App\Models\GpsLog $gpsLog */
+            $gpsLog = $user->gpsLogs()->orderBy('id', 'desc')->first();
+
+            if ($gpsLog) {
+
+                $gpsLocation = str_replace(':', ', ', $gpsLog->gps_location);
+
+                if ($gpsLog->street !== null && strlen(trim($gpsLog->street)) > 0 && $gpsLog->house_number !== null && strlen(trim($gpsLog->house_number)) > 0) {
+                    $gpsLogStreet = "$gpsLog->street $gpsLog->house_number";
+                } else if ($gpsLog->street !== null && strlen(trim($gpsLog->street)) > 0) {
+                    $gpsLogStreet = "$gpsLog->street";
+                } else {
+                    $gpsLogStreet = 'brak';
+                }
+
+                if ($gpsLogStreet == 'brak' && $gpsLog->housing_estate !== null && strlen(trim($gpsLog->housing_estate)) > 0 && $gpsLog->house_number !== null && strlen(trim($gpsLog->house_number)) > 0) {
+                    $gpsLogHousingEstate = "$gpsLog->housing_estate $gpsLog->house_number";
+                } else if ($gpsLog->housing_estate !== null && strlen(trim($gpsLog->housing_estate)) > 0) {
+                    $gpsLogHousingEstate = "$gpsLog->housing_estate";
+                } else {
+                    $gpsLogHousingEstate = 'brak';
+                }
+
+                if ($gpsLog->district !== null && strlen(trim($gpsLog->district)) > 0) {
+                    $gpsLogDistrict = "$gpsLog->district";
+                } else {
+                    $gpsLogDistrict = 'brak';
+                }
+
+                if ($gpsLog->city !== null && strlen(trim($gpsLog->city)) > 0) {
+                    $gpsLogCity = "$gpsLog->city";
+                } else {
+                    $gpsLogCity = 'brak';
+                }
+
+                if ($gpsLog->voivodeship !== null && strlen(trim($gpsLog->voivodeship)) > 0) {
+                    $gpsLogVoivodeship = "$gpsLog->voivodeship";
+                    $gpsLogVoivodeship = FieldConversion::stringToUppercase($gpsLogVoivodeship, true);
+                } else {
+                    $gpsLogVoivodeship = 'brak';
+                }
+
+                if ($gpsLog->country !== null && strlen(trim($gpsLog->country)) > 0) {
+                    $gpsLogCountry = "$gpsLog->country";
+                } else {
+                    $gpsLogCountry = 'brak';
+                }
+
+                $message .= "$enter$enter
+
+Lokalizacja:$enter$tab
+    ID: $gpsLog->id$enter$tab
+    Współrzędne geograficzne: $gpsLocation$enter$tab
+    Ulica: $gpsLogStreet$enter$tab
+    Osiedle: $gpsLogHousingEstate$enter$tab
+    Dzielnica: $gpsLogDistrict$enter$tab
+    Miasto: $gpsLogCity$enter$tab
+    Województwo: $gpsLogVoivodeship$enter$tab
+    Kraj: $gpsLogCountry$enter$tab
+    Data utworzenia: $gpsLog->created_at";
+
+            }
         }
 
         if ($type == 'mail') {
-            return [$mailSubject, $message];
+            $result = [$mailSubject, $message];
         } else if ($type == 'log') {
-            return $message;
+            $result = $message;
         } else {
             throw new ApiException(
                 DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
@@ -394,6 +507,8 @@ Użytkownik:$enter$tab
                 false
             );
         }
+
+        return $result;
     }
 
     public static function getLocation(string $latitude, string $longitude, string $ipAddress, int $userId) {
