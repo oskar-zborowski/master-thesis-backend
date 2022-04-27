@@ -60,7 +60,7 @@ class Log
                         $ipApiError = false;
 
                         try {
-                            $result = file_get_contents("https://ip-api.com/json/$ipAddress?fields=status,message,country,regionName,city,isp,org,mobile");
+                            $result = file_get_contents("http://ip-api.com/json/$ipAddress?fields=status,message,country,regionName,city,isp,org,mobile");
                             $result = json_decode($result, true);
                         } catch (Exception $e) {
 
