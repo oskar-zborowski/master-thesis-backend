@@ -381,11 +381,13 @@ Informacje:$enter$tab
             $ipAddressIds = [];
             $ipAddressId = '';
             $ipAddressCreatedAt = null;
+            $ipAddressBlockedAt = 'brak';
             $blockedIpAddressesCounter = 0;
 
             $userIds = [];
             $userId = '';
             $userCreatedAt = null;
+            $userBlockedAt = 'brak';
             $blockedUsersCounter = 0;
 
             if ($user && $user->uuid !== null && strlen(trim($user->uuid)) > 0) {
@@ -428,7 +430,7 @@ Informacje:$enter$tab
                                 $blockedIpAddressesCounter++;
 
                                 if ($ipAddress->id == $ip->id) {
-                                    $ipAddressBlockedAt = $ip->blocked_at ? $ip->blocked_at : 'brak';
+                                    $ipAddressBlockedAt = $ip->blocked_at;
                                 }
                             }
                         }
@@ -453,7 +455,7 @@ Informacje:$enter$tab
                         $blockedUsersCounter++;
 
                         if ($user->id == $u->id) {
-                            $userBlockedAt = $u->blocked_at ? $u->blocked_at : 'brak';
+                            $userBlockedAt = $u->blocked_at;
                         }
                     }
                 }
