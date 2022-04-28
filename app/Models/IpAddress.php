@@ -29,10 +29,6 @@ class IpAddress extends BaseModel
         'country' => 60,
     ];
 
-    protected $casts = [
-        'blocked_at' => 'boolean',
-    ];
-
     public function connections() {
         return $this->hasMany(Connection::class);
     }

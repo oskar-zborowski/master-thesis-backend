@@ -7,7 +7,9 @@ use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Mail\MaliciousnessNotification;
 use App\Models\Config;
 use App\Models\Connection;
+use App\Models\GpsLog;
 use App\Models\IpAddress;
+use App\Models\User;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Database\QueryException;
@@ -188,7 +190,7 @@ class Log
                     $ipAddressEntity->save();
 
                     if ($userId) {
-                        /** @var \App\Models\User $user */
+                        /** @var User $user */
                         $user = $connection->user()->first();
                         $user->blocked_at = now();
                         $user->save();
@@ -302,7 +304,7 @@ class Log
 
         if ($connection) {
 
-            /** @var \App\Models\User $user */
+            /** @var User $user */
             $user = $connection->user;
 
             /** @var \App\Models\IpAddress $ipAddress */
@@ -343,12 +345,6 @@ Informacje:$enter$tab
     Zgłaszający: $errorThrower$enter$tab
     Opis: $errorDescription";
 
-        if ($connection) {
-            $successfulRequestCounter = (int) $connection->successful_request_counter;
-            $failedRequestCounter = (int) $connection->failed_request_counter;
-            $maliciousRequestCounter = (int) $connection->malicious_request_counter;
-        }
-
         if ($ipAddress) {
 
             $ipAddressProvider = $ipAddress->provider !== null && strlen(trim($ipAddress->provider)) > 0 ? $ipAddress->provider : 'brak';
@@ -367,30 +363,177 @@ Informacje:$enter$tab
             } else {
                 $ipAddressIsMobile = 'brak';
             }
-
-            $ipAddressBlockedAt = $ipAddress->blocked_at ? $ipAddress->blocked_at : 'brak';
         }
 
         if ($connection) {
 
+            $successfulRequestCounter = (int) $connection->successful_request_counter;
+            $failedRequestCounter = (int) $connection->failed_request_counter;
+            $maliciousRequestCounter = (int) $connection->malicious_request_counter;
+
+            $connectionIds = [];
+            $connectionId = '';
+            $successfulRequestCounterAll = 0;
+            $failedRequestCounterAll = 0;
+            $maliciousRequestCounterAll = 0;
+            $connectionCreatedAt = null;
+
+            $ipAddressIds = [];
+            $ipAddressId = '';
+            $ipAddressCreatedAt = null;
+            $blockedIpAddressesCounter = 0;
+
+            $userIds = [];
+            $userId = '';
+            $userCreatedAt = null;
+            $blockedUsersCounter = 0;
+
+            if ($user && $user->uuid !== null && strlen(trim($user->uuid)) > 0) {
+
+                $encryptedUserUuid = Encrypter::encrypt($user->uuid, 45, false);
+                $aesDecrypt = Encrypter::prepareAesDecrypt('uuid', $encryptedUserUuid);
+
+                /** @var User[] $users */
+                $users = User::whereRaw($aesDecrypt)->get();
+
+                /** @var User $u */
+                foreach ($users as $u) {
+
+                    /** @var Connection[] $connections */
+                    $connections = $u->connections()->get();
+
+                    /** @var Connection $c */
+                    foreach ($connections as $c) {
+
+                        $connectionIds[] = $c->id;
+
+                        $successfulRequestCounterAll += $c->successful_request_counter;
+                        $failedRequestCounterAll += $c->failed_request_counter;
+                        $maliciousRequestCounterAll += $c->malicious_request_counter;
+
+                        if (!$connectionCreatedAt) {
+                            $connectionCreatedAt = $c->created_at;
+                        } else if ($connectionCreatedAt > $c->created_at) {
+                            $connectionCreatedAt = $c->created_at;
+                        }
+
+                        $ip = $c->ipAddress()->first();
+
+                        if (!in_array($c->ip_address_id, $ipAddressIds)) {
+
+                            $ipAddressIds[] = $c->ip_address_id;
+
+                            if ($ip->blocked_at) {
+
+                                $blockedIpAddressesCounter++;
+
+                                if ($ipAddress->id == $ip->id) {
+                                    $ipAddressBlockedAt = $ip->blocked_at ? $ip->blocked_at : 'brak';
+                                }
+                            }
+                        }
+
+                        if (!$ipAddressCreatedAt) {
+                            $ipAddressCreatedAt = $ip->created_at;
+                        } else if ($ipAddressCreatedAt > $ip->created_at) {
+                            $ipAddressCreatedAt = $ip->created_at;
+                        }
+                    }
+
+                    $userIds[] = $u->id;
+
+                    if (!$userCreatedAt) {
+                        $userCreatedAt = $u->created_at;
+                    } else if ($userCreatedAt > $u->created_at) {
+                        $userCreatedAt = $u->created_at;
+                    }
+
+                    if ($u->blocked_at) {
+
+                        $blockedUsersCounter++;
+
+                        if ($user->id == $u->id) {
+                            $userBlockedAt = $u->blocked_at ? $u->blocked_at : 'brak';
+                        }
+                    }
+                }
+
+                asort($connectionIds);
+                asort($ipAddressIds);
+                asort($userIds);
+
+                foreach ($connectionIds as $id) {
+                    if ($id == $connection->id) {
+                        $connectionId .= "($id), ";
+                    } else {
+                        $connectionId .= "$id, ";
+                    }
+                }
+
+                foreach ($ipAddressIds as $id) {
+                    if ($id == $ipAddress->id) {
+                        $ipAddressId .= "($id), ";
+                    } else {
+                        $ipAddressId .= "$id, ";
+                    }
+                }
+
+                foreach ($userIds as $id) {
+                    if ($id == $user->id) {
+                        $userId .= "($id), ";
+                    } else {
+                        $userId .= "$id, ";
+                    }
+                }
+
+                $connectionId = substr($connectionId, 0, -2);
+                $ipAddressId = substr($ipAddressId, 0, -2);
+                $userId = substr($userId, 0, -2);
+
+                if (strpos($connectionId, ',') === false) {
+                    $connectionId = str_replace(['(', ')'], ['', ''], $connectionId);
+                } else {
+
+                    $successfulRequestCounter = "$successfulRequestCounterAll ($successfulRequestCounter)";
+                    $failedRequestCounter = "$failedRequestCounterAll ($failedRequestCounter)";
+                    $maliciousRequestCounter = "$maliciousRequestCounterAll ($maliciousRequestCounter)";
+
+                    $connectionCreatedAt = "$connectionCreatedAt ($connection->created_at)";
+                }
+
+                if (strpos($ipAddressId, ',') === false) {
+                    $ipAddressId = str_replace(['(', ')'], ['', ''], $ipAddressId);
+                } else {
+                    $ipAddressCreatedAt = "$ipAddressCreatedAt ($ipAddress->created_at)";
+                    $ipAddressBlockedAt = "$ipAddressBlockedAt ($blockedIpAddressesCounter)";
+                }
+
+                if (strpos($userId, ',') === false) {
+                    $userId = str_replace(['(', ')'], ['', ''], $userId);
+                } else {
+                    $userCreatedAt = "$userCreatedAt ($user->created_at)";
+                    $userBlockedAt = "$userBlockedAt ($blockedUsersCounter)";
+                }
+            }
+
             $message .= "$enter$enter
 
 Połączenie:$enter$tab
-    ID: $connection->id$enter$tab
+    ID: $connectionId$enter$tab
     Pomyślnych żądań: $successfulRequestCounter$enter$tab
     Błędnych żądań: $failedRequestCounter$enter$tab
     Złośliwych żądań: $maliciousRequestCounter$enter$tab
-    Data utworzenia: $connection->created_at$enter$enter
+    Data utworzenia: $connectionCreatedAt$enter$enter
 
 Adres IP:$enter$tab
-    ID: $ipAddress->id$enter$tab
+    ID: $ipAddressId$enter$tab
     Adres IP: $ipAddress->ip_address$enter$tab
     Dostawca: $ipAddressProvider$enter$tab
     Miasto: $ipAddressCity$enter$tab
     Województwo: $ipAddressVoivodeship$enter$tab
     Kraj: $ipAddressCountry$enter$tab
     Internet mobilny: $ipAddressIsMobile$enter$tab
-    Data utworzenia: $ipAddress->created_at$enter$tab
+    Data utworzenia: $ipAddressCreatedAt$enter$tab
     Data blokady: $ipAddressBlockedAt";
 
         }
@@ -419,21 +562,19 @@ Adres IP:$enter$tab
                 $userOS = 'brak';
             }
 
-            $userBlockedAt = $user->blocked_at ? $user->blocked_at : 'brak';
-
             $message .= "$enter$enter
 
 Użytkownik:$enter$tab
-    ID: $user->id$enter$tab
+    ID: $userId$enter$tab
     Nazwa: $userName$enter$tab
     Model telefonu: $userTelephone$enter$tab
     System operacyjny: $userOS$enter$tab
     Wersja aplikacji: $user->app_version$enter$tab
-    Data utworzenia: $user->created_at$enter$tab
+    Data utworzenia: $userCreatedAt$enter$tab
     Data blokady: $userBlockedAt";
 
-            /** @var \App\Models\GpsLog $gpsLog */
-            $gpsLog = $user->gpsLogs()->orderBy('id', 'desc')->first();
+            /** @var GpsLog $gpsLog */
+            $gpsLog = GpsLog::where('user_id', $userIds)->orderBy('id', 'desc')->first();
 
             if ($gpsLog) {
 
@@ -484,6 +625,7 @@ Użytkownik:$enter$tab
 
 Lokalizacja:$enter$tab
     ID: $gpsLog->id$enter$tab
+    ID użytkownika: $gpsLog->user_id$enter$tab
     Współrzędne geograficzne: $gpsLocation$enter$tab
     Ulica: $gpsLogStreet$enter$tab
     Osiedle: $gpsLogHousingEstate$enter$tab

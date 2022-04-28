@@ -27,7 +27,6 @@ class User extends Authenticatable
 
     protected $casts = [
         'id' => 'integer',
-        'blocked_at' => 'boolean',
     ];
 
     protected $encryptable = [
@@ -41,6 +40,10 @@ class User extends Authenticatable
 
     public function gpsLogs() {
         return $this->hasMany(GpsLog::class);
+    }
+
+    public function connections() {
+        return $this->hasMany(Connection::class);
     }
 
     public function getData() {
