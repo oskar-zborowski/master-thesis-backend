@@ -34,10 +34,10 @@ class Log
                 /** @var IpAddress $ipAddressEntity */
                 $ipAddressEntity = IpAddress::whereRaw($aesDecrypt)->first();
             } catch (QueryException $e) {
-                $errorThrower = get_class($e);
+                $errorThrowerDb = get_class($e);
                 $errorMessage = $e->getMessage();
                 self::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorDescription, true, $saveLog, $sendMail, $checkIp, $readLog);
-                self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, true, $saveLog, $sendMail, $checkIp, $readLog);
+                self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrowerDb, $errorMessage, true, $saveLog, $sendMail, $checkIp, $readLog);
                 die;
             }
 
