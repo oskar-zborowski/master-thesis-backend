@@ -23,9 +23,7 @@ use maxh\Nominatim\Nominatim;
  */
 class Log
 {
-    public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $logError, ?string $errorType, ?string $errorThrower, string $errorDescription, bool $dbConnectionError = false, bool $saveLog = true, bool $sendMail = true, bool $checkIp = true) {
-
-        $ipAddress = '83.8.175.174'; // TODO Usunąć przy wdrożeniu na serwer
+    public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $logError, ?string $errorType, ?string $errorThrower, string $errorDescription, bool $dbConnectionError = false, bool $saveLog = true, bool $sendMail = true, bool $checkIp = true, bool $readLog = true) {
 
         if (!$dbConnectionError) {
 
@@ -38,8 +36,8 @@ class Log
             } catch (QueryException $e) {
                 $errorThrower = get_class($e);
                 $errorMessage = $e->getMessage();
-                self::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorDescription, true, $saveLog, $sendMail, $checkIp);
-                self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, true, $saveLog, $sendMail, $checkIp);
+                self::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorDescription, true, $saveLog, $sendMail, $checkIp, $readLog);
+                self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, true, $saveLog, $sendMail, $checkIp, $readLog);
                 die;
             }
 
@@ -107,7 +105,7 @@ class Log
 
                     if ($ipApiErrorCounter) {
                         $errorMessage = "Failed to get data from ip-api.com ($ipApiErrorCounter times)\n$errorMessage";
-                        self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, $saveLog, $sendMail, false);
+                        self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, $saveLog, $sendMail, false, $readLog);
                     }
                 }
 
@@ -219,11 +217,58 @@ class Log
 
         if (isset($status)) {
 
+            $errorNumber = 'brak';
+
+            if ($readLog) {
+
+                try {
+
+                    $filepath = '../storage/logs/laravel.log';
+                    $fp = fopen($filepath, 'r');
+                    $filesize = filesize($filepath);
+
+                    if ($filesize > 0) {
+                        $logData = fread($fp, $filesize);
+                    } else if ($filesize == 0) {
+                        $errorNumber = 1;
+                    }
+
+                    fclose($fp);
+
+                } catch (Exception $e) {
+                    $errorThrower = get_class($e);
+                    $errorMessage = $e->getMessage();
+                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, $saveLog, $sendMail, $checkIp, false);
+                }
+
+                if (isset($logData)) {
+
+                    $last = 0;
+
+                    do {
+
+                        $needle = "\nNr błędu: ";
+                        $lastFoundErrorNumber = FieldConversion::findLastOccurrenceInString($logData, $needle, $last) + strlen($needle);
+                        $currentErrorNumber = 0;
+
+                        for ($i=$lastFoundErrorNumber; ord($logData[$i]) >= 48 && ord($logData[$i]) <= 57; $i++) {
+                            $currentErrorNumber *= 10;
+                            $currentErrorNumber += $logData[$i];
+                        }
+
+                        $last++;
+
+                    } while ($lastFoundErrorNumber && !$currentErrorNumber);
+
+                    $errorNumber = $currentErrorNumber + 1;
+                }
+            }
+
             if ($saveLog) {
 
                 try {
 
-                    $log = Log::prepareMessage('log', $connection, $status, $errorType, $errorThrower, $errorDescription);
+                    $log = Log::prepareMessage('log', $connection, $status, $errorType, $errorThrower, $errorDescription, $errorNumber);
                     $log .= "\n\n------------------------------------------------------------------------------------------------------\n";
 
                     if ($errorType == 'INTERNAL SERVER ERROR') {
@@ -236,7 +281,7 @@ class Log
                     $errorThrower = get_class($e);
                     $saveLogError = true;
                     $errorMessage = "Failed to save the log\n{$e->getMessage()}";
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, false, $sendMail, $checkIp);
+                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, false, $sendMail, $checkIp, $readLog);
                 }
             }
 
@@ -261,7 +306,7 @@ class Log
                     $mailError = false;
 
                     try {
-                        Mail::send(new MaliciousnessNotification($connection, $status, $errorType, $errorThrower, $errorDescription));
+                        Mail::send(new MaliciousnessNotification($connection, $status, $errorType, $errorThrower, $errorDescription, $errorNumber));
                     } catch (Exception $e) {
 
                         $errorThrower = get_class($e);
@@ -284,22 +329,38 @@ class Log
 
                 if ($mailErrorCounter) {
                     $errorMessage = "Failed to send the email ($mailErrorCounter times)\n$errorMessage";
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, !isset($saveLogError) && $saveLog, false, $checkIp);
+                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, !isset($saveLogError) && $saveLog, false, $checkIp, $readLog);
                 }
             }
         }
     }
 
-    public static function prepareMessage(string $type, ?Connection $connection, int $status, string $errorType, string $errorThrower, string $errorDescription) {
+    public static function prepareMessage(string $type, ?Connection $connection, int $status, string $errorType, string $errorThrower, string $errorDescription, $errorNumber) {
+
+        $values['errorType'] = $errorType;
+        $values['errorThrower'] = $errorThrower;
+        $values['errorDescription'] = $errorDescription;
+        $values['errorNumber'] = $errorNumber;
 
         if ($type == 'mail') {
-            $mailSubject = 'Wykryto złośliwe żądanie';
-            $errorDescription = str_replace(["\n", '    '], ['<br>', '&emsp;&nbsp;'], $errorDescription);
+            $values['errorDescription'] = str_replace(["\n", '    '], ['<br>', '&emsp;&nbsp;'], $values['errorDescription']);
             $enter = '<br>';
             $tab = '&emsp;';
-        } else {
+        } else if ($type == 'log') {
             $enter = '';
             $tab = '';
+        } else {
+            throw new ApiException(
+                DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
+                __('validation.custom.invalid-log-type'),
+                false
+            );
+        }
+
+        if ($status == 0) {
+            $mailSubject = 'Wystąpił nieoczekiwany błąd';
+        } else {
+            $mailSubject = 'Wykryto złośliwe żądanie';
         }
 
         if ($connection) {
@@ -310,87 +371,57 @@ class Log
             /** @var \App\Models\IpAddress $ipAddress */
             $ipAddress = $connection->ipAddress;
 
+            $connectionIds = [];
+            $values['connectionId'] = '';
+            $values['successfulRequestCounter'] = (int) $connection->successful_request_counter;
+            $values['failedRequestCounter'] = (int) $connection->failed_request_counter;
+            $values['maliciousRequestCounter'] = (int) $connection->malicious_request_counter;
+            $successfulRequestCounterAll = 0;
+            $failedRequestCounterAll = 0;
+            $maliciousRequestCounterAll = 0;
+            $values['connectionCreatedAt'] = null;
+
         } else {
             $user = null;
             $ipAddress = null;
         }
 
-        if ($status == -1) {
-            $message = 'Wykryto próbę wysłania złośliwego żądania!';
-        } else if ($status == 1) {
-            $message = 'Wykryto pierwszą próbę wysłania złośliwego żądania!';
-        } else if ($status == 2) {
-            $message = 'Wykryto kolejną próbę wysłania złośliwego żądania!';
-        } else if ($status == 3) {
-
-            $message = 'Zablokowano adres IP przychodzącego żądania';
-
-            if ($user) {
-                $message .= ' oraz konto użytkownika';
-            }
-
-            $message .= '!';
-
-        } else if ($status == 4) {
-            $message = 'Wymagana jest permanentna blokada adresu IP przychodzącego żądania!';
-        } else {
-            $mailSubject = 'Wystąpił nieoczekiwany błąd';
-            $message = 'Wystąpił nieoczekiwany błąd!';
-        }
-
-        $message .= "$enter$enter
-
-Informacje:$enter$tab
-    Typ: $errorType$enter$tab
-    Zgłaszający: $errorThrower$enter$tab
-    Opis: $errorDescription";
-
         if ($ipAddress) {
 
-            $ipAddressProvider = $ipAddress->provider !== null && strlen(trim($ipAddress->provider)) > 0 ? $ipAddress->provider : 'brak';
-            $ipAddressCity = $ipAddress->city !== null && strlen(trim($ipAddress->city)) > 0 ? $ipAddress->city : 'brak';
-            $ipAddressVoivodeship = $ipAddress->voivodeship !== null && strlen(trim($ipAddress->voivodeship)) > 0 ? $ipAddress->voivodeship : 'brak';
-            $ipAddressCountry = $ipAddress->country !== null && strlen(trim($ipAddress->country)) > 0 ? $ipAddress->country : 'brak';
+            $ipAddressIds = [];
+            $values['ipAddressId'] = '';
+            $values['ipAddressIpAddress'] = strlen(trim($ipAddress->ip_address)) > 0 ? $ipAddress->ip_address : 'brak';
+            $values['ipAddressProvider'] = $ipAddress->provider !== null && strlen(trim($ipAddress->provider)) > 0 ? $ipAddress->provider : 'brak';
+            $values['ipAddressCity'] = $ipAddress->city !== null && strlen(trim($ipAddress->city)) > 0 ? $ipAddress->city : 'brak';
+            $values['ipAddressVoivodeship'] = $ipAddress->voivodeship !== null && strlen(trim($ipAddress->voivodeship)) > 0 ? $ipAddress->voivodeship : 'brak';
+            $values['ipAddressCountry'] = $ipAddress->country !== null && strlen(trim($ipAddress->country)) > 0 ? $ipAddress->country : 'brak';
 
             if ($ipAddress->is_mobile !== null) {
 
                 if ($ipAddress->is_mobile) {
-                    $ipAddressIsMobile = 'Tak';
+                    $values['ipAddressIsMobile'] = 'Tak';
                 } else {
-                    $ipAddressIsMobile = 'Nie';
+                    $values['ipAddressIsMobile'] = 'Nie';
                 }
 
             } else {
-                $ipAddressIsMobile = 'brak';
+                $values['ipAddressIsMobile'] = 'brak';
             }
+
+            $values['ipAddressCreatedAt'] = null;
+            $values['ipAddressBlockedAt'] = 'brak';
+            $blockedIpAddressesCounter = 0;
         }
 
-        if ($connection) {
-
-            $successfulRequestCounter = (int) $connection->successful_request_counter;
-            $failedRequestCounter = (int) $connection->failed_request_counter;
-            $maliciousRequestCounter = (int) $connection->malicious_request_counter;
-
-            $connectionIds = [];
-            $connectionId = '';
-            $successfulRequestCounterAll = 0;
-            $failedRequestCounterAll = 0;
-            $maliciousRequestCounterAll = 0;
-            $connectionCreatedAt = null;
-
-            $ipAddressIds = [];
-            $ipAddressId = '';
-            $ipAddressCreatedAt = null;
-            $ipAddressBlockedAt = 'brak';
-            $blockedIpAddressesCounter = 0;
+        if ($user) {
 
             $userIds = [];
-            $userId = '';
-            $userCreatedAt = null;
-            $userBlockedAt = 'brak';
+            $values['userId'] = '';
+            $values['userCreatedAt'] = null;
+            $values['userBlockedAt'] = 'brak';
             $blockedUsersCounter = 0;
 
-            if ($user && $user->uuid !== null && strlen(trim($user->uuid)) > 0) {
+            if ($user->uuid !== null && strlen(trim($user->uuid)) > 0) {
 
                 $encryptedUserUuid = Encrypter::encrypt($user->uuid, 45, false);
                 $aesDecrypt = Encrypter::prepareAesDecrypt('uuid', $encryptedUserUuid);
@@ -413,41 +444,44 @@ Informacje:$enter$tab
                         $failedRequestCounterAll += $c->failed_request_counter;
                         $maliciousRequestCounterAll += $c->malicious_request_counter;
 
-                        if (!$connectionCreatedAt) {
-                            $connectionCreatedAt = $c->created_at;
-                        } else if ($connectionCreatedAt > $c->created_at) {
-                            $connectionCreatedAt = $c->created_at;
+                        if (!$values['connectionCreatedAt']) {
+                            $values['connectionCreatedAt'] = $c->created_at;
+                        } else if ($values['connectionCreatedAt'] > $c->created_at) {
+                            $values['connectionCreatedAt'] = $c->created_at;
                         }
 
-                        $ip = $c->ipAddress()->first();
+                        $ip = $c->ipAddress;
 
-                        if (!in_array($c->ip_address_id, $ipAddressIds)) {
+                        if ($ip) {
 
-                            $ipAddressIds[] = $c->ip_address_id;
+                            if (!in_array($ip->id, $ipAddressIds)) {
 
-                            if ($ip->blocked_at) {
-
-                                $blockedIpAddressesCounter++;
-
-                                if ($ipAddress->id == $ip->id) {
-                                    $ipAddressBlockedAt = $ip->blocked_at;
+                                $ipAddressIds[] = $ip->id;
+    
+                                if ($ip->blocked_at) {
+    
+                                    $blockedIpAddressesCounter++;
+    
+                                    if ($ipAddress->id == $ip->id) {
+                                        $values['ipAddressBlockedAt'] = $ip->blocked_at;
+                                    }
                                 }
                             }
-                        }
 
-                        if (!$ipAddressCreatedAt) {
-                            $ipAddressCreatedAt = $ip->created_at;
-                        } else if ($ipAddressCreatedAt > $ip->created_at) {
-                            $ipAddressCreatedAt = $ip->created_at;
+                            if (!$values['ipAddressCreatedAt']) {
+                                $values['ipAddressCreatedAt'] = $ip->created_at;
+                            } else if ($values['ipAddressCreatedAt'] > $ip->created_at) {
+                                $values['ipAddressCreatedAt'] = $ip->created_at;
+                            }
                         }
                     }
 
                     $userIds[] = $u->id;
 
-                    if (!$userCreatedAt) {
-                        $userCreatedAt = $u->created_at;
-                    } else if ($userCreatedAt > $u->created_at) {
-                        $userCreatedAt = $u->created_at;
+                    if (!$values['userCreatedAt']) {
+                        $values['userCreatedAt'] = $u->created_at;
+                    } else if ($values['userCreatedAt'] > $u->created_at) {
+                        $values['userCreatedAt'] = $u->created_at;
                     }
 
                     if ($u->blocked_at) {
@@ -455,7 +489,7 @@ Informacje:$enter$tab
                         $blockedUsersCounter++;
 
                         if ($user->id == $u->id) {
-                            $userBlockedAt = $u->blocked_at;
+                            $values['userBlockedAt'] = $u->blocked_at;
                         }
                     }
                 }
@@ -465,180 +499,171 @@ Informacje:$enter$tab
                 asort($userIds);
 
                 foreach ($connectionIds as $id) {
-                    if ($id == $connection->id) {
-                        $connectionId .= "($id), ";
+                    if ($connection && $id == $connection->id) {
+                        $values['connectionId'] .= "($id), ";
                     } else {
-                        $connectionId .= "$id, ";
+                        $values['connectionId'] .= "$id, ";
                     }
                 }
 
                 foreach ($ipAddressIds as $id) {
-                    if ($id == $ipAddress->id) {
-                        $ipAddressId .= "($id), ";
+                    if ($ipAddress && $id == $ipAddress->id) {
+                        $values['ipAddressId'] .= "($id), ";
                     } else {
-                        $ipAddressId .= "$id, ";
+                        $values['ipAddressId'] .= "$id, ";
                     }
                 }
 
                 foreach ($userIds as $id) {
                     if ($id == $user->id) {
-                        $userId .= "($id), ";
+                        $values['userId'] .= "($id), ";
                     } else {
-                        $userId .= "$id, ";
+                        $values['userId'] .= "$id, ";
                     }
                 }
 
-                $connectionId = substr($connectionId, 0, -2);
-                $ipAddressId = substr($ipAddressId, 0, -2);
-                $userId = substr($userId, 0, -2);
+                $values['connectionId'] = substr($values['connectionId'], 0, -2);
+                $values['ipAddressId'] = substr($values['ipAddressId'], 0, -2);
+                $values['userId'] = substr($values['userId'], 0, -2);
 
-                if (strpos($connectionId, ',') === false) {
-                    $connectionId = str_replace(['(', ')'], ['', ''], $connectionId);
+                if (strpos($values['connectionId'], ',') === false) {
+                    $values['connectionId'] = str_replace(['(', ')'], ['', ''], $values['connectionId']);
                 } else {
 
-                    $successfulRequestCounter = "$successfulRequestCounterAll ($successfulRequestCounter)";
-                    $failedRequestCounter = "$failedRequestCounterAll ($failedRequestCounter)";
-                    $maliciousRequestCounter = "$maliciousRequestCounterAll ($maliciousRequestCounter)";
+                    $values['successfulRequestCounter'] = "$successfulRequestCounterAll ({$values['successfulRequestCounter']})";
+                    $values['failedRequestCounter'] = "$failedRequestCounterAll ({$values['failedRequestCounter']})";
+                    $values['maliciousRequestCounter'] = "$maliciousRequestCounterAll ({$values['maliciousRequestCounter']})";
 
-                    $connectionCreatedAt = "$connectionCreatedAt ($connection->created_at)";
+                    if ($values['connectionCreatedAt'] && $connection && $connection->created_at) {
+                        $values['connectionCreatedAt'] = "{$values['connectionCreatedAt']} ($connection->created_at)";
+                    } else if ($values['connectionCreatedAt']) {
+                        $values['connectionCreatedAt'] = "{$values['connectionCreatedAt']} (brak)";
+                    } else {
+                        $values['connectionCreatedAt'] = 'brak';
+                    }
                 }
 
-                if (strpos($ipAddressId, ',') === false) {
-                    $ipAddressId = str_replace(['(', ')'], ['', ''], $ipAddressId);
+                if (strpos($values['ipAddressId'], ',') === false) {
+
+                    $values['ipAddressId'] = str_replace(['(', ')'], ['', ''], $values['ipAddressId']);
+
+                    if (!$values['ipAddressCreatedAt']) {
+                        $values['ipAddressCreatedAt'] = 'brak';
+                    }
+
                 } else {
-                    $ipAddressCreatedAt = "$ipAddressCreatedAt ($ipAddress->created_at)";
-                    $ipAddressBlockedAt = "$ipAddressBlockedAt ($blockedIpAddressesCounter)";
+
+                    if ($values['ipAddressCreatedAt'] && $ipAddress && $ipAddress->created_at) {
+                        $values['ipAddressCreatedAt'] = "{$values['ipAddressCreatedAt']} ($ipAddress->created_at)";
+                    } else if ($values['ipAddressCreatedAt']) {
+                        $values['ipAddressCreatedAt'] = "{$values['ipAddressCreatedAt']} (brak)";
+                    } else {
+                        $values['ipAddressCreatedAt'] = 'brak';
+                    }
+                    
+                    $values['ipAddressBlockedAt'] = "{$values['ipAddressBlockedAt']} ($blockedIpAddressesCounter)";
                 }
 
-                if (strpos($userId, ',') === false) {
-                    $userId = str_replace(['(', ')'], ['', ''], $userId);
+                if (strpos($values['userId'], ',') === false) {
+
+                    $values['userId'] = str_replace(['(', ')'], ['', ''], $values['userId']);
+
+                    if (!$values['userCreatedAt']) {
+                        $values['userCreatedAt'] = 'brak';
+                    }
+
                 } else {
-                    $userCreatedAt = "$userCreatedAt ($user->created_at)";
-                    $userBlockedAt = "$userBlockedAt ($blockedUsersCounter)";
+
+                    if ($values['userCreatedAt'] && $user->created_at) {
+                        $values['userCreatedAt'] = "{$values['userCreatedAt']} ($user->created_at)";
+                    } else if ($values['userCreatedAt']) {
+                        $values['userCreatedAt'] = "{$values['userCreatedAt']} (brak)";
+                    } else {
+                        $values['userCreatedAt'] = 'brak';
+                    }
+
+                    $values['userBlockedAt'] = "{$values['userBlockedAt']} ($blockedUsersCounter)";
                 }
             }
 
-            $message .= "$enter$enter
-
-Połączenie:$enter$tab
-    ID: $connectionId$enter$tab
-    Pomyślnych żądań: $successfulRequestCounter$enter$tab
-    Błędnych żądań: $failedRequestCounter$enter$tab
-    Złośliwych żądań: $maliciousRequestCounter$enter$tab
-    Data utworzenia: $connectionCreatedAt$enter$enter
-
-Adres IP:$enter$tab
-    ID: $ipAddressId$enter$tab
-    Adres IP: $ipAddress->ip_address$enter$tab
-    Dostawca: $ipAddressProvider$enter$tab
-    Miasto: $ipAddressCity$enter$tab
-    Województwo: $ipAddressVoivodeship$enter$tab
-    Kraj: $ipAddressCountry$enter$tab
-    Internet mobilny: $ipAddressIsMobile$enter$tab
-    Data utworzenia: $ipAddressCreatedAt$enter$tab
-    Data blokady: $ipAddressBlockedAt";
-
-        }
-
-        if ($user) {
-
-            $userName = $user->name !== null && strlen(trim($user->name)) > 0 ? $user->name : 'brak';
+            $values['userName'] = $user->name !== null && strlen(trim($user->name)) > 0 ? $user->name : 'brak';
 
             if ($user->producer !== null && strlen(trim($user->producer)) > 0 && $user->model !== null && strlen(trim($user->model)) > 0) {
-                $userTelephone = "$user->producer $user->model";
+                $values['userTelephone'] = "$user->producer $user->model";
             } else if ($user->producer !== null && strlen(trim($user->producer)) > 0) {
-                $userTelephone = "$user->producer";
+                $values['userTelephone'] = $user->producer;
             } else if ($user->model !== null && strlen(trim($user->model)) > 0) {
-                $userTelephone = "$user->model";
+                $values['userTelephone'] = $user->model;
             } else {
-                $userTelephone = 'brak';
+                $values['userTelephone'] = 'brak';
             }
 
             if ($user->os_name !== null && strlen(trim($user->os_name)) > 0 && $user->os_version !== null && strlen(trim($user->os_version)) > 0) {
-                $userOS = "$user->os_name $user->os_version";
+                $values['userOS'] = "$user->os_name $user->os_version";
             } else if ($user->os_name !== null && strlen(trim($user->os_name)) > 0) {
-                $userOS = "$user->os_name";
+                $values['userOS'] = $user->os_name;
             } else if ($user->os_version !== null && strlen(trim($user->os_version)) > 0) {
-                $userOS = "$user->os_version";
+                $values['userOS'] = $user->os_version;
             } else {
-                $userOS = 'brak';
+                $values['userOS'] = 'brak';
             }
 
-            $message .= "$enter$enter
-
-Użytkownik:$enter$tab
-    ID: $userId$enter$tab
-    Nazwa: $userName$enter$tab
-    Model telefonu: $userTelephone$enter$tab
-    System operacyjny: $userOS$enter$tab
-    Wersja aplikacji: $user->app_version$enter$tab
-    Data utworzenia: $userCreatedAt$enter$tab
-    Data blokady: $userBlockedAt";
+            $values['userAppVersion'] = strlen(trim($user->app_version)) > 0 ? $user->app_version : 'brak';
 
             /** @var GpsLog $gpsLog */
             $gpsLog = GpsLog::where('user_id', $userIds)->orderBy('id', 'desc')->first();
 
             if ($gpsLog) {
 
-                $gpsLocation = str_replace(':', ', ', $gpsLog->gps_location);
+                $values['gpsLogId'] = $gpsLog->id;
+                $values['gpsLogUserId'] = $gpsLog->user_id !== null ? $gpsLog->user_id : 'brak';
+                $values['gpsLogLocation'] = strlen(trim($gpsLog->gps_location)) > 0 ? str_replace(':', ', ', $gpsLog->gps_location) : 'brak';
 
                 if ($gpsLog->street !== null && strlen(trim($gpsLog->street)) > 0 && $gpsLog->house_number !== null && strlen(trim($gpsLog->house_number)) > 0) {
-                    $gpsLogStreet = "$gpsLog->street $gpsLog->house_number";
+                    $values['gpsLogStreet'] = "$gpsLog->street $gpsLog->house_number";
                 } else if ($gpsLog->street !== null && strlen(trim($gpsLog->street)) > 0) {
-                    $gpsLogStreet = "$gpsLog->street";
+                    $values['gpsLogStreet'] = $gpsLog->street;
                 } else {
-                    $gpsLogStreet = 'brak';
+                    $values['gpsLogStreet'] = 'brak';
                 }
 
-                if ($gpsLogStreet == 'brak' && $gpsLog->housing_estate !== null && strlen(trim($gpsLog->housing_estate)) > 0 && $gpsLog->house_number !== null && strlen(trim($gpsLog->house_number)) > 0) {
-                    $gpsLogHousingEstate = "$gpsLog->housing_estate $gpsLog->house_number";
+                if ($values['gpsLogStreet'] == 'brak' && $gpsLog->housing_estate !== null && strlen(trim($gpsLog->housing_estate)) > 0 && $gpsLog->house_number !== null && strlen(trim($gpsLog->house_number)) > 0) {
+                    $values['gpsLogHousingEstate'] = "$gpsLog->housing_estate $gpsLog->house_number";
                 } else if ($gpsLog->housing_estate !== null && strlen(trim($gpsLog->housing_estate)) > 0) {
-                    $gpsLogHousingEstate = "$gpsLog->housing_estate";
+                    $values['gpsLogHousingEstate'] = $gpsLog->housing_estate;
                 } else {
-                    $gpsLogHousingEstate = 'brak';
+                    $values['gpsLogHousingEstate'] = 'brak';
                 }
 
                 if ($gpsLog->district !== null && strlen(trim($gpsLog->district)) > 0) {
-                    $gpsLogDistrict = "$gpsLog->district";
+                    $values['gpsLogDistrict'] = $gpsLog->district;
                 } else {
-                    $gpsLogDistrict = 'brak';
+                    $values['gpsLogDistrict'] = 'brak';
                 }
 
                 if ($gpsLog->city !== null && strlen(trim($gpsLog->city)) > 0) {
-                    $gpsLogCity = "$gpsLog->city";
+                    $values['gpsLogCity'] = $gpsLog->city;
                 } else {
-                    $gpsLogCity = 'brak';
+                    $values['gpsLogCity'] = 'brak';
                 }
 
                 if ($gpsLog->voivodeship !== null && strlen(trim($gpsLog->voivodeship)) > 0) {
-                    $gpsLogVoivodeship = "$gpsLog->voivodeship";
-                    $gpsLogVoivodeship = FieldConversion::stringToUppercase($gpsLogVoivodeship, true);
+                    $values['gpsLogVoivodeship'] = FieldConversion::stringToUppercase($gpsLog->voivodeship, true);
                 } else {
-                    $gpsLogVoivodeship = 'brak';
+                    $values['gpsLogVoivodeship'] = 'brak';
                 }
 
                 if ($gpsLog->country !== null && strlen(trim($gpsLog->country)) > 0) {
-                    $gpsLogCountry = "$gpsLog->country";
+                    $values['gpsLogCountry'] = $gpsLog->country;
                 } else {
-                    $gpsLogCountry = 'brak';
+                    $values['gpsLogCountry'] = 'brak';
                 }
 
-                $message .= "$enter$enter
-
-Lokalizacja:$enter$tab
-    ID: $gpsLog->id$enter$tab
-    ID użytkownika: $gpsLog->user_id$enter$tab
-    Współrzędne geograficzne: $gpsLocation$enter$tab
-    Ulica: $gpsLogStreet$enter$tab
-    Osiedle: $gpsLogHousingEstate$enter$tab
-    Dzielnica: $gpsLogDistrict$enter$tab
-    Miasto: $gpsLogCity$enter$tab
-    Województwo: $gpsLogVoivodeship$enter$tab
-    Kraj: $gpsLogCountry$enter$tab
-    Data utworzenia: $gpsLog->created_at";
-
+                $values['gpsLogCreatedAt'] = $gpsLog->created_at !== null ? $gpsLog->created_at : 'brak';
             }
         }
+
+        $message = self::getMessageTemplate($status, $values, $enter, $tab);
 
         if ($type == 'mail') {
             $result = [$mailSubject, $message];
@@ -760,5 +785,104 @@ Lokalizacja:$enter$tab
         }
 
         return $location;
+    }
+
+    private static function getMessageTemplate(int $status, array $values, string $enter, string $tab) {
+
+        if ($status == -1) {
+            $message = 'Wykryto próbę wysłania złośliwego żądania!';
+        } else if ($status == 1) {
+            $message = 'Wykryto pierwszą próbę wysłania złośliwego żądania!';
+        } else if ($status == 2) {
+            $message = 'Wykryto kolejną próbę wysłania złośliwego żądania!';
+        } else if ($status == 3) {
+
+            $message = 'Zablokowano adres IP przychodzącego żądania';
+
+            if (isset($values['userId'])) {
+                $message .= ' oraz konto użytkownika';
+            }
+
+            $message .= '!';
+
+        } else if ($status == 4) {
+            $message = 'Wymagana jest permanentna blokada adresu IP przychodzącego żądania!';
+        } else {
+            $message = 'Wystąpił nieoczekiwany błąd!';
+        }
+
+        $message .= "$enter$enter
+
+Nr błędu: {$values['errorNumber']}$enter$enter
+
+Informacje:$enter$tab
+    Typ: {$values['errorType']}$enter$tab
+    Zgłaszający: {$values['errorThrower']}$enter$tab
+    Opis: {$values['errorDescription']}";
+
+        if (isset($values['connectionId'])) {
+
+            $message .= "$enter$enter
+
+Połączenie:$enter$tab
+    ID: {$values['connectionId']}$enter$tab
+    Pomyślnych żądań: {$values['successfulRequestCounter']}$enter$tab
+    Błędnych żądań: {$values['failedRequestCounter']}$enter$tab
+    Złośliwych żądań: {$values['maliciousRequestCounter']}$enter$tab
+    Data utworzenia: {$values['connectionCreatedAt']}";
+
+        }
+
+        if (isset($values['ipAddressId'])) {
+
+            $message .= "$enter$enter
+
+Adres IP:$enter$tab
+    ID: {$values['ipAddressId']}$enter$tab
+    Adres IP: {$values['ipAddressIpAddress']}$enter$tab
+    Dostawca: {$values['ipAddressProvider']}$enter$tab
+    Miasto: {$values['ipAddressCity']}$enter$tab
+    Województwo: {$values['ipAddressVoivodeship']}$enter$tab
+    Kraj: {$values['ipAddressCountry']}$enter$tab
+    Internet mobilny: {$values['ipAddressIsMobile']}$enter$tab
+    Data utworzenia: {$values['ipAddressCreatedAt']}$enter$tab
+    Data blokady: {$values['ipAddressBlockedAt']}";
+
+        }
+
+        if (isset($values['userId'])) {
+
+            $message .= "$enter$enter
+
+Użytkownik:$enter$tab
+    ID: {$values['userId']}$enter$tab
+    Nazwa: {$values['userName']}$enter$tab
+    Model telefonu: {$values['userTelephone']}$enter$tab
+    System operacyjny: {$values['userOS']}$enter$tab
+    Wersja aplikacji: {$values['userAppVersion']}$enter$tab
+    Data utworzenia: {$values['userCreatedAt']}$enter$tab
+    Data blokady: {$values['userBlockedAt']}";
+
+        }
+
+        if (isset($values['gpsLogId'])) {
+
+            $message .= "$enter$enter
+
+Lokalizacja:$enter$tab
+    ID: {$values['gpsLogId']}$enter$tab
+    ID użytkownika: {$values['gpsLogUserId']}$enter$tab
+    Współrzędne geograficzne: {$values['gpsLogLocation']}$enter$tab
+    Ulica: {$values['gpsLogStreet']}$enter$tab
+    Osiedle: {$values['gpsLogHousingEstate']}$enter$tab
+    Dzielnica: {$values['gpsLogDistrict']}$enter$tab
+    Miasto: {$values['gpsLogCity']}$enter$tab
+    Województwo: {$values['gpsLogVoivodeship']}$enter$tab
+    Kraj: {$values['gpsLogCountry']}$enter$tab
+    Data utworzenia: {$values['gpsLogCreatedAt']}";
+
+        }
+
+        return $message;
     }
 }

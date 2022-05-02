@@ -115,6 +115,33 @@ class FieldConversion
         return $result;
     }
 
+    public static function findAllOccurrencesInString(string $haystack, string $needle) {
+
+        $lastPosition = 0;
+        $positions = [];
+
+        while (($lastPosition = strpos($haystack, $needle, $lastPosition)) !== false) {
+            $positions[] = $lastPosition;
+            $lastPosition = $lastPosition + strlen($needle);
+        }
+
+        return $positions;
+    }
+
+    public static function findLastOccurrenceInString(string $haystack, string $needle, int $last) {
+
+        $positions = self::findAllOccurrencesInString($haystack, $needle);
+        $lastOccurrence = count($positions) - $last - 1;
+
+        if (isset($positions[$lastOccurrence])) {
+            $result = $positions[$lastOccurrence];
+        } else {
+            $result = false;
+        }
+
+        return $result;
+    }
+
     private static function convertByDefault(string $conversionType, $data, int $from, ?int $to, int $current = 0) {
 
         if (is_array($data) || $current > 0) {
