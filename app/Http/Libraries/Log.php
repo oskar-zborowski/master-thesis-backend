@@ -544,13 +544,7 @@ class Log
                 }
 
                 if (strpos($values['ipAddressId'], ',') === false) {
-
                     $values['ipAddressId'] = str_replace(['(', ')'], ['', ''], $values['ipAddressId']);
-
-                    if (!$values['ipAddressCreatedAt']) {
-                        $values['ipAddressCreatedAt'] = 'brak';
-                    }
-
                 } else {
 
                     if ($values['ipAddressCreatedAt'] && $ipAddress && $ipAddress->created_at) {
@@ -661,6 +655,14 @@ class Log
 
                 $values['gpsLogCreatedAt'] = $gpsLog->created_at !== null ? $gpsLog->created_at : 'brak';
             }
+        }
+
+        if (isset($values['connectionCreatedAt']) && !$values['connectionCreatedAt']) {
+            $values['connectionCreatedAt'] = 'brak';
+        }
+
+        if (isset($values['ipAddressCreatedAt']) && !$values['ipAddressCreatedAt']) {
+            $values['ipAddressCreatedAt'] = 'brak';
         }
 
         $message = self::getMessageTemplate($status, $values, $enter, $tab);
