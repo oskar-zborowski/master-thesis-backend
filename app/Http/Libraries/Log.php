@@ -65,7 +65,7 @@ class Log
                             $result = json_decode($result, true);
                         } catch (Exception $e) {
 
-                            $errorThrower = get_class($e);
+                            $errorThrowerIpApi = get_class($e);
                             $errorMessage = $e->getMessage();
                             $ipApiErrorCounter++;
 
@@ -105,7 +105,7 @@ class Log
 
                     if ($ipApiErrorCounter) {
                         $errorMessage = "Failed to get data from ip-api.com ($ipApiErrorCounter times)\n$errorMessage";
-                        self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, $saveLog, $sendMail, false, $readLog);
+                        self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrowerIpApi, $errorMessage, $dbConnectionError, $saveLog, $sendMail, false, $readLog);
                     }
                 }
 
@@ -236,9 +236,9 @@ class Log
                     fclose($fp);
 
                 } catch (Exception $e) {
-                    $errorThrower = get_class($e);
+                    $errorThrowerRL = get_class($e);
                     $errorMessage = $e->getMessage();
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, $saveLog, $sendMail, $checkIp, false);
+                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrowerRL, $errorMessage, $dbConnectionError, $saveLog, $sendMail, $checkIp, false);
                 }
 
                 if (isset($logData)) {
@@ -278,10 +278,10 @@ class Log
                     }
 
                 } catch (Exception $e) {
-                    $errorThrower = get_class($e);
+                    $errorThrowerSL = get_class($e);
                     $saveLogError = true;
                     $errorMessage = "Failed to save the log\n{$e->getMessage()}";
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, false, $sendMail, $checkIp, $readLog);
+                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrowerSL, $errorMessage, $dbConnectionError, false, $sendMail, $checkIp, $readLog);
                 }
             }
 
@@ -309,7 +309,7 @@ class Log
                         Mail::send(new MaliciousnessNotification($connection, $status, $errorType, $errorThrower, $errorDescription, $errorNumber));
                     } catch (Exception $e) {
 
-                        $errorThrower = get_class($e);
+                        $errorThrowerMail = get_class($e);
                         $errorMessage = $e->getMessage();
                         $mailErrorCounter++;
 
@@ -329,7 +329,7 @@ class Log
 
                 if ($mailErrorCounter) {
                     $errorMessage = "Failed to send the email ($mailErrorCounter times)\n$errorMessage";
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage, $dbConnectionError, !isset($saveLogError) && $saveLog, false, $checkIp, $readLog);
+                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrowerMail, $errorMessage, $dbConnectionError, !isset($saveLogError) && $saveLog, false, $checkIp, $readLog);
                 }
             }
         }
@@ -366,10 +366,10 @@ class Log
         if ($connection) {
 
             /** @var User $user */
-            $user = $connection->user;
+            $user = $connection->user()->first();
 
-            /** @var \App\Models\IpAddress $ipAddress */
-            $ipAddress = $connection->ipAddress;
+            /** @var IpAddress $ipAddress */
+            $ipAddress = $connection->ipAddress()->first();
 
             $connectionIds = [];
             $values['connectionId'] = '';
@@ -379,7 +379,7 @@ class Log
             $successfulRequestCounterAll = 0;
             $failedRequestCounterAll = 0;
             $maliciousRequestCounterAll = 0;
-            $values['connectionCreatedAt'] = null;
+            $values['connectionCreatedAt'] = 0;
 
         } else {
             $user = null;
@@ -408,8 +408,8 @@ class Log
                 $values['ipAddressIsMobile'] = 'brak';
             }
 
-            $values['ipAddressCreatedAt'] = null;
-            $values['ipAddressBlockedAt'] = 'brak';
+            $values['ipAddressCreatedAt'] = 0;
+            $values['ipAddressBlockedAt'] = $ipAddress->blocked_at ? $ipAddress->blocked_at : 'brak';
             $blockedIpAddressesCounter = 0;
         }
 
@@ -417,8 +417,8 @@ class Log
 
             $userIds = [];
             $values['userId'] = '';
-            $values['userCreatedAt'] = null;
-            $values['userBlockedAt'] = 'brak';
+            $values['userCreatedAt'] = 0;
+            $values['userBlockedAt'] = $user->blocked_at ? $user->blocked_at : 'brak';
             $blockedUsersCounter = 0;
 
             if ($user->uuid !== null && strlen(trim($user->uuid)) > 0) {
@@ -444,10 +444,12 @@ class Log
                         $failedRequestCounterAll += $c->failed_request_counter;
                         $maliciousRequestCounterAll += $c->malicious_request_counter;
 
-                        if (!$values['connectionCreatedAt']) {
-                            $values['connectionCreatedAt'] = $c->created_at;
-                        } else if ($values['connectionCreatedAt'] > $c->created_at) {
-                            $values['connectionCreatedAt'] = $c->created_at;
+                        if ($c->created_at) {
+                            if (!$values['connectionCreatedAt']) {
+                                $values['connectionCreatedAt'] = $c->created_at;
+                            } else if ($values['connectionCreatedAt'] > $c->created_at) {
+                                $values['connectionCreatedAt'] = $c->created_at;
+                            }
                         }
 
                         $ip = $c->ipAddress;
@@ -457,40 +459,34 @@ class Log
                             if (!in_array($ip->id, $ipAddressIds)) {
 
                                 $ipAddressIds[] = $ip->id;
-    
+
                                 if ($ip->blocked_at) {
-    
                                     $blockedIpAddressesCounter++;
-    
-                                    if ($ipAddress->id == $ip->id) {
-                                        $values['ipAddressBlockedAt'] = $ip->blocked_at;
-                                    }
                                 }
                             }
 
-                            if (!$values['ipAddressCreatedAt']) {
-                                $values['ipAddressCreatedAt'] = $ip->created_at;
-                            } else if ($values['ipAddressCreatedAt'] > $ip->created_at) {
-                                $values['ipAddressCreatedAt'] = $ip->created_at;
+                            if ($ip->created_at) {
+                                if (!$values['ipAddressCreatedAt']) {
+                                    $values['ipAddressCreatedAt'] = $ip->created_at;
+                                } else if ($values['ipAddressCreatedAt'] > $ip->created_at) {
+                                    $values['ipAddressCreatedAt'] = $ip->created_at;
+                                }
                             }
                         }
                     }
 
                     $userIds[] = $u->id;
 
-                    if (!$values['userCreatedAt']) {
-                        $values['userCreatedAt'] = $u->created_at;
-                    } else if ($values['userCreatedAt'] > $u->created_at) {
-                        $values['userCreatedAt'] = $u->created_at;
+                    if ($u->created_at) {
+                        if (!$values['userCreatedAt']) {
+                            $values['userCreatedAt'] = $u->created_at;
+                        } else if ($values['userCreatedAt'] > $u->created_at) {
+                            $values['userCreatedAt'] = $u->created_at;
+                        }
                     }
 
                     if ($u->blocked_at) {
-
                         $blockedUsersCounter++;
-
-                        if ($user->id == $u->id) {
-                            $values['userBlockedAt'] = $u->blocked_at;
-                        }
                     }
                 }
 
@@ -499,7 +495,7 @@ class Log
                 asort($userIds);
 
                 foreach ($connectionIds as $id) {
-                    if ($connection && $id == $connection->id) {
+                    if ($id == $connection->id) {
                         $values['connectionId'] .= "($id), ";
                     } else {
                         $values['connectionId'] .= "$id, ";
@@ -507,7 +503,7 @@ class Log
                 }
 
                 foreach ($ipAddressIds as $id) {
-                    if ($ipAddress && $id == $ipAddress->id) {
+                    if ($id == $ipAddress->id) {
                         $values['ipAddressId'] .= "($id), ";
                     } else {
                         $values['ipAddressId'] .= "$id, ";
@@ -534,12 +530,10 @@ class Log
                     $values['failedRequestCounter'] = "$failedRequestCounterAll ({$values['failedRequestCounter']})";
                     $values['maliciousRequestCounter'] = "$maliciousRequestCounterAll ({$values['maliciousRequestCounter']})";
 
-                    if ($values['connectionCreatedAt'] && $connection && $connection->created_at) {
+                    if ($values['connectionCreatedAt'] && $connection->created_at) {
                         $values['connectionCreatedAt'] = "{$values['connectionCreatedAt']} ($connection->created_at)";
                     } else if ($values['connectionCreatedAt']) {
                         $values['connectionCreatedAt'] = "{$values['connectionCreatedAt']} (brak)";
-                    } else {
-                        $values['connectionCreatedAt'] = 'brak';
                     }
                 }
 
@@ -547,33 +541,23 @@ class Log
                     $values['ipAddressId'] = str_replace(['(', ')'], ['', ''], $values['ipAddressId']);
                 } else {
 
-                    if ($values['ipAddressCreatedAt'] && $ipAddress && $ipAddress->created_at) {
+                    if ($values['ipAddressCreatedAt'] && $ipAddress->created_at) {
                         $values['ipAddressCreatedAt'] = "{$values['ipAddressCreatedAt']} ($ipAddress->created_at)";
                     } else if ($values['ipAddressCreatedAt']) {
                         $values['ipAddressCreatedAt'] = "{$values['ipAddressCreatedAt']} (brak)";
-                    } else {
-                        $values['ipAddressCreatedAt'] = 'brak';
                     }
-                    
+
                     $values['ipAddressBlockedAt'] = "{$values['ipAddressBlockedAt']} ($blockedIpAddressesCounter)";
                 }
 
                 if (strpos($values['userId'], ',') === false) {
-
                     $values['userId'] = str_replace(['(', ')'], ['', ''], $values['userId']);
-
-                    if (!$values['userCreatedAt']) {
-                        $values['userCreatedAt'] = 'brak';
-                    }
-
                 } else {
 
                     if ($values['userCreatedAt'] && $user->created_at) {
                         $values['userCreatedAt'] = "{$values['userCreatedAt']} ($user->created_at)";
                     } else if ($values['userCreatedAt']) {
                         $values['userCreatedAt'] = "{$values['userCreatedAt']} (brak)";
-                    } else {
-                        $values['userCreatedAt'] = 'brak';
                     }
 
                     $values['userBlockedAt'] = "{$values['userBlockedAt']} ($blockedUsersCounter)";
@@ -657,12 +641,32 @@ class Log
             }
         }
 
+        if (isset($values['connectionId']) && $values['connectionId'] == '') {
+            $values['connectionId'] = $connection->id;
+        }
+
         if (isset($values['connectionCreatedAt']) && !$values['connectionCreatedAt']) {
-            $values['connectionCreatedAt'] = 'brak';
+            if ($connection->created_at) {
+                $values['connectionCreatedAt'] = $connection->created_at;
+            } else {
+                $values['connectionCreatedAt'] = 'brak';
+            }
+        }
+
+        if (isset($values['ipAddressId']) && $values['ipAddressId'] == '') {
+            $values['ipAddressId'] = $ipAddress->id;
         }
 
         if (isset($values['ipAddressCreatedAt']) && !$values['ipAddressCreatedAt']) {
-            $values['ipAddressCreatedAt'] = 'brak';
+            if ($ipAddress->created_at) {
+                $values['ipAddressCreatedAt'] = $ipAddress->created_at;
+            } else {
+                $values['ipAddressCreatedAt'] = 'brak';
+            }
+        }
+
+        if (isset($values['userCreatedAt']) && !$values['userCreatedAt']) {
+            $values['userCreatedAt'] = 'brak';
         }
 
         $message = self::getMessageTemplate($status, $values, $enter, $tab);
