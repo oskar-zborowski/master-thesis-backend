@@ -35,7 +35,8 @@ class SecondAuthenticate
         $personalAccessToken = Session::get('personalAccessToken');
         Session::remove('personalAccessToken');
 
-        $encryptedIpAddress = Encrypter::encrypt($request->ip(), 45, false);
+        // $encryptedIpAddress = Encrypter::encrypt($request->ip(), 45, false); // TODO Odkomentować przy wdrożeniu na serwer
+        $encryptedIpAddress = Encrypter::encrypt('83.8.175.174', 45, false); // TODO Zakomentować przy wdrożeniu na serwer
         $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address', $encryptedIpAddress);
 
         /** @var IpAddress $ipAddress */

@@ -441,13 +441,24 @@ class Log
                 /** @var User $u */
                 foreach ($users as $u) {
 
+                    $isUserMalicious = false;
+                    $isUserFailed = false;
+
                     /** @var Connection[] $connections */
                     $connections = $u->connections()->get();
 
                     /** @var Connection $c */
                     foreach ($connections as $c) {
 
-                        $connectionIds[] = $c->id;
+                        if ($c->malicious_request_counter > 0) {
+                            $connectionIds[] = "{$c->id}M";
+                            $isUserMalicious = true;
+                        } else if ($c->failed_request_counter > 0) {
+                            $connectionIds[] = "{$c->id}F";
+                            $isUserFailed = true;
+                        } else {
+                            $connectionIds[] = $c->id;
+                        }
 
                         $successfulRequestCounterAll += $c->successful_request_counter;
                         $failedRequestCounterAll += $c->failed_request_counter;
@@ -461,13 +472,35 @@ class Log
                             }
                         }
 
-                        $ip = $c->ipAddress;
+                        /** @var IpAddress $ip */
+                        $ip = $c->ipAddress()->first();
 
                         if ($ip) {
 
+                            $isIpAddressMalicious = false;
+                            $isIpAddressFailed = false;
+
+                            /** @var Connection[] $cnns */
+                            $cnns = $ip->connections()->get();
+
+                            /** @var Connection $cn */
+                            foreach ($cnns as $cn) {
+                                if ($cn->malicious_request_counter > 0) {
+                                    $isIpAddressMalicious = true;
+                                } else if ($cn->failed_request_counter > 0) {
+                                    $isIpAddressFailed = true;
+                                }
+                            }
+
                             if (!in_array($ip->id, $ipAddressIds)) {
 
-                                $ipAddressIds[] = $ip->id;
+                                if ($isIpAddressMalicious) {
+                                    $ipAddressIds[] = "{$ip->id}M";
+                                } else if ($isIpAddressFailed) {
+                                    $ipAddressIds[] = "{$ip->id}F";
+                                } else {
+                                    $ipAddressIds[] = $ip->id;
+                                }
 
                                 if ($ip->blocked_at) {
                                     $blockedIpAddressesCounter++;
@@ -484,7 +517,13 @@ class Log
                         }
                     }
 
-                    $userIds[] = $u->id;
+                    if ($isUserMalicious) {
+                        $userIds[] = "{$u->id}M";
+                    } else if ($isUserFailed) {
+                        $userIds[] = "{$u->id}F";
+                    } else {
+                        $userIds[] = $u->id;
+                    }
 
                     if ($u->created_at) {
                         if (!$values['userCreatedAt']) {
@@ -504,24 +543,33 @@ class Log
                 asort($userIds);
 
                 foreach ($connectionIds as $id) {
-                    if ($id == $connection->id) {
-                        $values['connectionId'] .= "($id), ";
+
+                    $onlyId = str_replace(['M', 'F'], ['', ''], $id);
+
+                    if ($onlyId == $connection->id) {
+                        $values['connectionId'] .= "[$id], ";
                     } else {
                         $values['connectionId'] .= "$id, ";
                     }
                 }
 
                 foreach ($ipAddressIds as $id) {
-                    if ($id == $ipAddress->id) {
-                        $values['ipAddressId'] .= "($id), ";
+
+                    $onlyId = str_replace(['M', 'F'], ['', ''], $id);
+
+                    if ($onlyId == $ipAddress->id) {
+                        $values['ipAddressId'] .= "[$id], ";
                     } else {
                         $values['ipAddressId'] .= "$id, ";
                     }
                 }
 
                 foreach ($userIds as $id) {
-                    if ($id == $user->id) {
-                        $values['userId'] .= "($id), ";
+
+                    $onlyId = str_replace(['M', 'F'], ['', ''], $id);
+
+                    if ($onlyId == $user->id) {
+                        $values['userId'] .= "[$id], ";
                     } else {
                         $values['userId'] .= "$id, ";
                     }
@@ -532,44 +580,44 @@ class Log
                 $values['userId'] = substr($values['userId'], 0, -2);
 
                 if (strpos($values['connectionId'], ',') === false) {
-                    $values['connectionId'] = str_replace(['(', ')'], ['', ''], $values['connectionId']);
+                    $values['connectionId'] = str_replace(['[', ']'], ['', ''], $values['connectionId']);
                 } else {
 
-                    $values['successfulRequestCounter'] = "$successfulRequestCounterAll ({$values['successfulRequestCounter']})";
-                    $values['failedRequestCounter'] = "$failedRequestCounterAll ({$values['failedRequestCounter']})";
-                    $values['maliciousRequestCounter'] = "$maliciousRequestCounterAll ({$values['maliciousRequestCounter']})";
+                    $values['successfulRequestCounter'] = "$successfulRequestCounterAll [{$values['successfulRequestCounter']}]";
+                    $values['failedRequestCounter'] = "$failedRequestCounterAll [{$values['failedRequestCounter']}]";
+                    $values['maliciousRequestCounter'] = "$maliciousRequestCounterAll [{$values['maliciousRequestCounter']}]";
 
                     if ($values['connectionCreatedAt'] && $connection->created_at) {
-                        $values['connectionCreatedAt'] = "{$values['connectionCreatedAt']} ($connection->created_at)";
+                        $values['connectionCreatedAt'] = "{$values['connectionCreatedAt']} [$connection->created_at]";
                     } else if ($values['connectionCreatedAt']) {
-                        $values['connectionCreatedAt'] = "{$values['connectionCreatedAt']} (brak)";
+                        $values['connectionCreatedAt'] = "{$values['connectionCreatedAt']} [brak]";
                     }
                 }
 
                 if (strpos($values['ipAddressId'], ',') === false) {
-                    $values['ipAddressId'] = str_replace(['(', ')'], ['', ''], $values['ipAddressId']);
+                    $values['ipAddressId'] = str_replace(['[', ']'], ['', ''], $values['ipAddressId']);
                 } else {
 
                     if ($values['ipAddressCreatedAt'] && $ipAddress->created_at) {
-                        $values['ipAddressCreatedAt'] = "{$values['ipAddressCreatedAt']} ($ipAddress->created_at)";
+                        $values['ipAddressCreatedAt'] = "{$values['ipAddressCreatedAt']} [$ipAddress->created_at]";
                     } else if ($values['ipAddressCreatedAt']) {
-                        $values['ipAddressCreatedAt'] = "{$values['ipAddressCreatedAt']} (brak)";
+                        $values['ipAddressCreatedAt'] = "{$values['ipAddressCreatedAt']} [brak]";
                     }
 
-                    $values['ipAddressBlockedAt'] = "{$values['ipAddressBlockedAt']} ($blockedIpAddressesCounter)";
+                    $values['ipAddressBlockedAt'] = "{$values['ipAddressBlockedAt']} [$blockedIpAddressesCounter]";
                 }
 
                 if (strpos($values['userId'], ',') === false) {
-                    $values['userId'] = str_replace(['(', ')'], ['', ''], $values['userId']);
+                    $values['userId'] = str_replace(['[', ']'], ['', ''], $values['userId']);
                 } else {
 
                     if ($values['userCreatedAt'] && $user->created_at) {
-                        $values['userCreatedAt'] = "{$values['userCreatedAt']} ($user->created_at)";
+                        $values['userCreatedAt'] = "{$values['userCreatedAt']} [$user->created_at]";
                     } else if ($values['userCreatedAt']) {
-                        $values['userCreatedAt'] = "{$values['userCreatedAt']} (brak)";
+                        $values['userCreatedAt'] = "{$values['userCreatedAt']} [brak]";
                     }
 
-                    $values['userBlockedAt'] = "{$values['userBlockedAt']} ($blockedUsersCounter)";
+                    $values['userBlockedAt'] = "{$values['userBlockedAt']} [$blockedUsersCounter]";
                 }
             }
 
