@@ -44,28 +44,32 @@ class SecondAuthenticate
         if ($ipAddress) {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
-                __('auth.ip-blocked')
+                __('auth.ip-blocked'),
+                __FUNCTION__
             );
         }
 
         if ($request->token !== null) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(true),
-                __('auth.invalid-token-format')
+                __('auth.invalid-token-format'),
+                __FUNCTION__
             );
         }
 
         if ($request->refresh_token !== null) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(true),
-                __('auth.invalid-refresh-token-format')
+                __('auth.invalid-refresh-token-format'),
+                __FUNCTION__
             );
         }
 
         if (isset($token) && isset($refreshToken)) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(true),
-                __('auth.double-token-given')
+                __('auth.double-token-given'),
+                __FUNCTION__
             );
         }
 
@@ -74,14 +78,16 @@ class SecondAuthenticate
             if (!isset($token) && !isset($refreshToken)) {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(true),
-                    __('auth.no-token-provided')
+                    __('auth.no-token-provided'),
+                    __FUNCTION__
                 );
             }
 
         } else if (isset($token) || isset($refreshToken)) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(true),
-                __('auth.tokens-not-allowed')
+                __('auth.tokens-not-allowed'),
+                __FUNCTION__
             );
         }
 
@@ -91,14 +97,16 @@ class SecondAuthenticate
         if (isset($token) && !$user) {
             throw new ApiException(
                 DefaultErrorCode::UNAUTHENTICATED(true),
-                __('auth.invalid-token')
+                __('auth.invalid-token'),
+                __FUNCTION__
             );
         }
 
         if (isset($refreshToken) && !$personalAccessToken) {
             throw new ApiException(
                 DefaultErrorCode::UNAUTHENTICATED(true),
-                __('auth.invalid-refresh-token')
+                __('auth.invalid-refresh-token'),
+                __FUNCTION__
             );
         }
 
@@ -116,13 +124,15 @@ class SecondAuthenticate
 
                     throw new ApiException(
                         DefaultErrorCode::UNAUTHENTICATED(),
-                        __('auth.token-expired')
+                        __('auth.token-expired'),
+                        __FUNCTION__
                     );
 
                 } else {
                     throw new ApiException(
                         DefaultErrorCode::UNAUTHENTICATED(true),
-                        __('auth.token-expired')
+                        __('auth.token-expired'),
+                        __FUNCTION__
                     );
                 }
             }
@@ -133,14 +143,16 @@ class SecondAuthenticate
         {
             throw new ApiException(
                 DefaultErrorCode::UNAUTHENTICATED(true),
-                __('auth.token-still-valid')
+                __('auth.token-still-valid'),
+                __FUNCTION__
             );
         }
 
         if ($user && $user->blocked_at) {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
-                __('auth.user-blocked')
+                __('auth.user-blocked'),
+                __FUNCTION__
             );
         }
 

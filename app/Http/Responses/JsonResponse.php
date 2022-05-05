@@ -27,7 +27,7 @@ class JsonResponse
             $response['metadata'] = $meta;
         }
 
-        $tokens = self::getTokens($request);
+        $tokens = self::getTokens($request, $data);
 
         if (isset($tokens)) {
             $response['tokens'] = $tokens;
@@ -39,7 +39,7 @@ class JsonResponse
         die;
     }
 
-    public static function sendError($request, ErrorCode $errorCode, ?array $data = null, bool $forwardMessage = false, bool $dbConnectionError = false): void {
+    public static function sendError($request, ?array $data = null, ErrorCode $errorCode, bool $forwardMessage = false, bool $dbConnectionError = false): void {
 
         header('Content-Type: application/json');
         http_response_code($errorCode->getHttpStatus());
@@ -47,16 +47,23 @@ class JsonResponse
         $response = [];
 
         if (env('APP_DEBUG')) {
-            $response['error_message'] = $errorCode->getType();
+            $response['error_type'] = $errorCode->getType();
         }
 
         $response['error_code'] = $errorCode->getCode();
 
         if (isset($data)) {
+
             if (env('APP_DEBUG')) {
                 $response['data'] = $data;
             } else if ($forwardMessage) {
                 $response['data']['message'] = $data['message'];
+            }
+
+            foreach ($response['data'] as &$r) {
+                if (strlen(trim($r)) == 0) {
+                    $r = null;
+                }
             }
         }
 
@@ -64,7 +71,7 @@ class JsonResponse
             $response['metadata'] = __('validation.custom.malicious-request');
         }
 
-        $tokens = self::getTokens($request, $errorCode, $data, $dbConnectionError);
+        $tokens = self::getTokens($request, $data, $errorCode, $dbConnectionError);
 
         if (isset($tokens)) {
             $response['tokens'] = $tokens;
@@ -76,7 +83,7 @@ class JsonResponse
         die;
     }
 
-    private static function getTokens($request, ErrorCode $errorCode = null, $data = null, bool $dbConnectionError = false) {
+    private static function getTokens($request, $data, ErrorCode $errorCode = null, bool $dbConnectionError = false) {
 
         $result = null;
 
@@ -94,12 +101,12 @@ class JsonResponse
             ];
         }
 
-        self::saveConnectionInformation($request, $errorCode, $data, $dbConnectionError);
+        self::saveConnectionInformation($request, $data, $errorCode, $dbConnectionError);
 
         return $result;
     }
 
-    private static function saveConnectionInformation($request, ?ErrorCode $errorCode, $data, bool $dbConnectionError) {
+    private static function saveConnectionInformation($request, $data, ?ErrorCode $errorCode, bool $dbConnectionError) {
 
         $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan connection-info:save";
 
@@ -127,76 +134,53 @@ class JsonResponse
                 }
             }
 
-            $command .= " --errorType=\"{$errorCode->getType()}\"";
-            $command .= " --errorThrower=\"{$data['thrower']}\"";
+            $command .= " \"{$errorCode->getType()}\"";
+
+        } else {
+            $command .= ' "brak"';
         }
 
-        $errorDescription = '';
+        if (isset($data['thrower'])) {
+            $command .= " \"{$data['thrower']}\"";
+        } else {
+            $command .= ' "brak"';
+        }
 
-        if (isset($data)) {
+        if (isset($data['file'])) {
+            $command .= " \"{$data['file']}\"";
+        } else {
+            $command .= ' "brak"';
+        }
 
-            if (is_array($data)) {
+        if (isset($data['method'])) {
+            $command .= " \"{$data['method']}\"";
+        } else {
+            $command .= ' "brak"';
+        }
 
-                if (key_exists('message', $data) || key_exists('file', $data) || key_exists('line', $data) || key_exists('thrower', $data)) {
+        if (isset($data['line'])) {
+            $command .= " \"{$data['line']}\"";
+        } else {
+            $command .= ' "brak"';
+        }
 
-                    if (key_exists('message', $data)) {
-                        if (is_array($data['message'])) {
-                            $errorDescription .= implode(' ', $data['message']);
-                        } else {
-                            $errorDescription .= $data['message'];
-                        }
-                    }
+        if (isset($data['message'])) {
 
-                    if (strlen(trim($errorDescription)) == 0) {
-                        $errorDescription .= 'brak';
-                    }
-
-                    if (key_exists('file', $data)) {
-
-                        $errorDescription .= "\n    Plik: ";
-                        $fileMemory = trim($errorDescription);
-
-                        if (is_array($data['file'])) {
-                            $errorDescription .= implode(' ', $data['file']);
-                        } else {
-                            $errorDescription .= $data['file'];
-                        }
-
-                        if ($fileMemory == trim($errorDescription)) {
-                            $errorDescription .= 'brak';
-                        }
-                    }
-
-                    if (key_exists('line', $data)) {
-
-                        $errorDescription .= "\n    Linia: ";
-                        $lineMemory = trim($errorDescription);
-
-                        if (is_array($data['line'])) {
-                            $errorDescription .= implode(' ', $data['line']);
-                        } else {
-                            $errorDescription .= $data['line'];
-                        }
-
-                        if ($lineMemory == trim($errorDescription)) {
-                            $errorDescription .= 'brak';
-                        }
-                    }
-
-                } else {
-                    $errorDescription .= implode(' ', $data);
-                }
-
+            if (is_array($data['message'])) {
+                $errorMessage = implode(' ', $data['message']);
             } else {
-                $errorDescription .= $data;
+                $errorMessage = $data['message'];
             }
-        }
 
-        if (strlen(trim($errorDescription)) == 0) {
-            $errorDescription .= 'brak';
-        }
+            if (strlen(trim($errorMessage)) == 0) {
+                $errorMessage = 'brak';
+            }
 
-        $command .= " \"$errorDescription\"";
+            $command .= " \"$errorMessage\"";
+
+        } else {
+            $command .= ' "brak"';
+        }
 
         if ($dbConnectionError) {
             $command .= ' 1';

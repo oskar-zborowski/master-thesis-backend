@@ -12,12 +12,14 @@ class ApiException extends Exception
 {
     private ErrorCode $errorCode;
     private $data;
+    private $method;
     private $forwardMessage;
 
-    public function __construct(ErrorCode $errorCode, $data = null, bool $forwardMessage = true) {
+    public function __construct(ErrorCode $errorCode, $data = null, string $method, bool $forwardMessage = true) {
         parent::__construct();
         $this->errorCode = $errorCode;
         $this->data = $data;
+        $this->method = $method;
         $this->forwardMessage = $forwardMessage;
     }
 
@@ -27,6 +29,10 @@ class ApiException extends Exception
 
     public function getData() {
         return $this->data;
+    }
+
+    public function getMethod() {
+        return $this->method;
     }
 
     public function getForwardMessage() {

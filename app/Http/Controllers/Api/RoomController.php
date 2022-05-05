@@ -61,7 +61,8 @@ class RoomController extends Controller
         if ($room->host_id != $user->id) {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
-                __('validation.custom.no-permission')
+                __('validation.custom.no-permission'),
+                __FUNCTION__
             );
         }
 
@@ -73,7 +74,8 @@ class RoomController extends Controller
             if ($newHost === null) {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(true),
-                    __('validation.custom.user-is-not-in-room')
+                    __('validation.custom.user-is-not-in-room'),
+                    __FUNCTION__
                 );
             }
 
@@ -119,14 +121,16 @@ class RoomController extends Controller
         if (!$player) {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
-                __('validation.custom.no-permission')
+                __('validation.custom.no-permission'),
+                __FUNCTION__
             );
         }
 
         if ($player->status == 'BLOCKED') {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(),
-                __('validation.custom.you-have-been-banned')
+                __('validation.custom.you-have-been-banned'),
+                __FUNCTION__
             );
         }
 

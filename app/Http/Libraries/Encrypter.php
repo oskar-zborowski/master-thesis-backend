@@ -93,6 +93,7 @@ class Encrypter
             throw new ApiException(
                 DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
                 __('validation.custom.incorrect-database-search'),
+                __FUNCTION__,
                 false
             );
         }

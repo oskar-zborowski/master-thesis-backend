@@ -23,7 +23,7 @@ use maxh\Nominatim\Nominatim;
  */
 class Log
 {
-    public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $logError, ?string $errorType, ?string $errorThrower, string $errorDescription, bool $dbConnectionError = false, bool $saveLog = true, bool $sendMail = true, bool $checkIp = true, bool $readLog = true) {
+    public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $logError, string $errorType, string $errorThrower, string $errorFile, string $errorMethod, string $errorLine, string $errorMessage, bool $dbConnectionError = false, bool $saveLog = true, bool $sendMail = true, bool $checkIp = true, bool $readLog = true) {
 
         if (!$dbConnectionError) {
 
@@ -34,10 +34,11 @@ class Log
                 /** @var IpAddress $ipAddressEntity */
                 $ipAddressEntity = IpAddress::whereRaw($aesDecrypt)->first();
             } catch (QueryException $e) {
+                $errorTypeDb = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                 $errorThrowerDb = get_class($e);
-                $errorMessage = $e->getMessage();
-                self::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorDescription, true, $saveLog, $sendMail, $checkIp, $readLog);
-                self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrowerDb, $errorMessage, true, $saveLog, $sendMail, $checkIp, $readLog);
+                $errorMessageDb = strlen(trim($e->getMessage())) > 0 ? $e->getMessage() : 'brak';
+                self::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, true, $saveLog, $sendMail, $checkIp, $readLog);
+                self::prepareConnection($ipAddress, $userId, false, true, $errorTypeDb, $errorThrowerDb, __FILE__, __FUNCTION__, __LINE__, $errorMessageDb, true, $saveLog, $sendMail, $checkIp, $readLog);
                 die;
             }
 
@@ -65,8 +66,9 @@ class Log
                             $result = json_decode($result, true);
                         } catch (Exception $e) {
 
+                            $errorTypeIpApi = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                             $errorThrowerIpApi = get_class($e);
-                            $errorMessage = $e->getMessage();
+                            $errorMessageIpApi = $e->getMessage();
                             $ipApiErrorCounter++;
 
                             if ($ipApiErrorCounter < env('IP_API_MAX_ATTEMPTS')) {
@@ -79,12 +81,12 @@ class Log
 
                             if (!isset($result['status']) || $result['status'] != 'success') {
 
-                                if (!isset($errorMessage)) {
+                                if (!isset($errorMessageIpApi)) {
 
                                     if (isset($result['message']) && is_string($result['message']) && strlen(trim($result['message'])) > 0) {
-                                        $errorMessage = $result['message'];
+                                        $errorMessageIpApi = $result['message'];
                                     } else {
-                                        $errorMessage = '';
+                                        $errorMessageIpApi = '';
                                     }
                                 }
 
@@ -104,8 +106,8 @@ class Log
                     $config->save();
 
                     if ($ipApiErrorCounter) {
-                        $errorMessage = "Failed to get data from ip-api.com ($ipApiErrorCounter times)\n$errorMessage";
-                        self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrowerIpApi, $errorMessage, $dbConnectionError, $saveLog, $sendMail, false, $readLog);
+                        $errorMessageIpApi = strlen(trim($errorMessageIpApi)) > 0 ? "Failed to get data from ip-api.com ($ipApiErrorCounter times).\n$errorMessageIpApi" : "Failed to get data from ip-api.com ($ipApiErrorCounter times).";
+                        self::prepareConnection($ipAddress, $userId, false, true, $errorTypeIpApi, $errorThrowerIpApi, __FILE__, __FUNCTION__, __LINE__, $errorMessageIpApi, $dbConnectionError, $saveLog, $sendMail, false, $readLog);
                     }
                 }
 
@@ -236,9 +238,10 @@ class Log
                     fclose($fp);
 
                 } catch (Exception $e) {
+                    $errorTypeRL = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                     $errorThrowerRL = get_class($e);
-                    $errorMessage = $e->getMessage();
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrowerRL, $errorMessage, $dbConnectionError, $saveLog, $sendMail, $checkIp, false);
+                    $errorMessageRL = strlen(trim($e->getMessage())) > 0 ? $e->getMessage() : 'brak';
+                    self::prepareConnection($ipAddress, $userId, false, true, $errorTypeRL, $errorThrowerRL, __FILE__, __FUNCTION__, __LINE__, $errorMessageRL, $dbConnectionError, $saveLog, $sendMail, $checkIp, false);
                 }
 
                 if (isset($logData)) {
@@ -268,20 +271,21 @@ class Log
 
                 try {
 
-                    $log = Log::prepareMessage('log', $connection, $status, $errorType, $errorThrower, $errorDescription, $errorNumber);
+                    $log = Log::prepareMessage('log', $status, $connection, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $errorNumber);
                     $log .= "\n\n------------------------------------------------------------------------------------------------------\n";
 
-                    if ($errorType == 'INTERNAL SERVER ERROR') {
+                    if ($errorType == DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType()) {
                         FacadesLog::error($log);
                     } else {
                         FacadesLog::alert($log);
                     }
 
                 } catch (Exception $e) {
+                    $errorTypeSL = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                     $errorThrowerSL = get_class($e);
+                    $errorMessageSL = strlen(trim($e->getMessage())) > 0 ? "Failed to save the log.\n{$e->getMessage()}" : "Failed to save the log.";
                     $saveLogError = true;
-                    $errorMessage = "Failed to save the log\n{$e->getMessage()}";
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrowerSL, $errorMessage, $dbConnectionError, false, $sendMail, $checkIp, $readLog);
+                    self::prepareConnection($ipAddress, $userId, false, true, $errorTypeSL, $errorThrowerSL, __FILE__, __FUNCTION__, __LINE__, $errorMessageSL, $dbConnectionError, false, $sendMail, $checkIp, $readLog);
                 }
             }
 
@@ -306,11 +310,12 @@ class Log
                     $mailError = false;
 
                     try {
-                        Mail::send(new MaliciousnessNotification($connection, $status, $errorType, $errorThrower, $errorDescription, $errorNumber));
+                        Mail::send(new MaliciousnessNotification($status, $connection, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $errorNumber));
                     } catch (Exception $e) {
 
+                        $errorTypeMail = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                         $errorThrowerMail = get_class($e);
-                        $errorMessage = $e->getMessage();
+                        $errorMessageMail = $e->getMessage();
                         $mailErrorCounter++;
 
                         if ($mailErrorCounter < env('MAIL_MAX_ATTEMPTS')) {
@@ -328,22 +333,25 @@ class Log
                 }
 
                 if ($mailErrorCounter) {
-                    $errorMessage = "Failed to send the email ($mailErrorCounter times)\n$errorMessage";
-                    self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrowerMail, $errorMessage, $dbConnectionError, !isset($saveLogError) && $saveLog, false, $checkIp, $readLog);
+                    $errorMessageMail = strlen(trim($errorMessageMail)) > 0 ? "Failed to send the email ($mailErrorCounter times).\n$errorMessageMail" : "Failed to send the email ($mailErrorCounter times).";
+                    self::prepareConnection($ipAddress, $userId, false, true, $errorTypeMail, $errorThrowerMail, __FILE__, __FUNCTION__, __LINE__, $errorMessageMail, $dbConnectionError, !isset($saveLogError) && $saveLog, false, $checkIp, $readLog);
                 }
             }
         }
     }
 
-    public static function prepareMessage(string $type, ?Connection $connection, int $status, string $errorType, string $errorThrower, string $errorDescription, $errorNumber) {
+    public static function prepareMessage(string $type, int $status, ?Connection $connection, string $errorType, string $errorThrower, string $errorFile, string $errorMethod, string $errorLine, string $errorMessage, $errorNumber) {
 
         $values['errorType'] = $errorType;
         $values['errorThrower'] = $errorThrower;
-        $values['errorDescription'] = $errorDescription;
+        $values['errorFile'] = $errorFile;
+        $values['errorMethod'] = $errorMethod;
+        $values['errorLine'] = $errorLine;
+        $values['errorMessage'] = $errorMessage;
         $values['errorNumber'] = $errorNumber;
 
         if ($type == 'mail') {
-            $values['errorDescription'] = str_replace(["\n", '    '], ['<br>', '&emsp;&nbsp;'], $values['errorDescription']);
+            $values['errorMessage'] = str_replace(["\n", '    '], ['<br>', '&emsp;&nbsp;'], $values['errorMessage']);
             $enter = '<br>';
             $tab = '&emsp;';
         } else if ($type == 'log') {
@@ -353,6 +361,7 @@ class Log
             throw new ApiException(
                 DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
                 __('validation.custom.invalid-log-type'),
+                __FUNCTION__,
                 false
             );
         }
@@ -679,6 +688,7 @@ class Log
             throw new ApiException(
                 DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
                 __('validation.custom.invalid-log-type'),
+                __FUNCTION__,
                 false
             );
         }
@@ -711,6 +721,7 @@ class Log
                 $result = $nominatim->find($reverse)['address'];
             } catch (NominatimException | GuzzleException $e) {
 
+                $errorType = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                 $errorThrower = get_class($e);
                 $errorMessage = $e->getMessage();
                 $nominatimErrorCounter++;
@@ -728,8 +739,8 @@ class Log
         $config->save();
 
         if ($nominatimErrorCounter) {
-            $errorMessage = "Failed to get data from Nominati ($nominatimErrorCounter times)\n$errorMessage";
-            self::prepareConnection($ipAddress, $userId, false, true, 'INTERNAL SERVER ERROR', $errorThrower, $errorMessage);
+            $errorMessage = strlen(trim($errorMessage)) > 0 ? "Failed to get data from Nominati ($nominatimErrorCounter times).\n$errorMessage" : "Failed to get data from Nominati ($nominatimErrorCounter times).";
+            self::prepareConnection($ipAddress, $userId, false, true, $errorType, $errorThrower, __FILE__, __FUNCTION__, __LINE__, $errorMessage);
         }
 
         $location = null;
@@ -824,7 +835,10 @@ Nr błędu: {$values['errorNumber']}$enter$enter
 Informacje:$enter$tab
     Typ: {$values['errorType']}$enter$tab
     Zgłaszający: {$values['errorThrower']}$enter$tab
-    Opis: {$values['errorDescription']}";
+    Plik: {$values['errorFile']}$enter$tab
+    Metoda: {$values['errorMethod']}$enter$tab
+    Linia: {$values['errorLine']}$enter$tab
+    Opis: {$values['errorMessage']}";
 
         if (isset($values['connectionId'])) {
 

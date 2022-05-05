@@ -18,8 +18,8 @@ class MaliciousnessNotification extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(?Connection $connection, int $status, string $errorType, string $errorThrower, string $errorDescription, $errorNumber) {
-        [$this->mailSubject, $this->message] = Log::prepareMessage('mail', $connection, $status, $errorType, $errorThrower, $errorDescription, $errorNumber);
+    public function __construct(int $status, ?Connection $connection, string $errorType, string $errorThrower, string $errorFile, string $errorMethod, string $errorLine, string $errorMessage, $errorNumber) {
+        [$this->mailSubject, $this->message] = Log::prepareMessage('mail', $status, $connection, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $errorNumber);
     }
 
     /**

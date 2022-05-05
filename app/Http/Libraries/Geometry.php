@@ -42,7 +42,8 @@ class Geometry
         } else {
             throw new ApiException(
                 DefaultErrorCode::INTERNAL_SERVER_ERROR(),
-                env('APP_DEBUG') ? __('validation.custom.invalid-object-type') : null
+                env('APP_DEBUG') ? __('validation.custom.invalid-object-type') : null,
+                __FUNCTION__
             );
         }
     }
@@ -66,7 +67,8 @@ class Geometry
         // if (self::checkRepeatedPoints($points, $geometryObjectType)) {
         //     throw new ApiException(
         //         DefaultErrorCode::FAILED_VALIDATION(),
-        //         __('validation.custom.repeated-points')
+        //         __('validation.custom.repeated-points'),
+        //         __FUNCTION__
         //     );
         // }
 
@@ -77,7 +79,8 @@ class Geometry
         //     if ($points[0]['lng'] != $points[$countPoints-1]['lng'] || $points[0]['lat'] != $points[$countPoints-1]['lat']) {
         //         throw new ApiException(
         //             DefaultErrorCode::FAILED_VALIDATION(),
-        //             __('validation.custom.boundary-not-closed')
+        //             __('validation.custom.boundary-not-closed'),
+        //             __FUNCTION__
         //         );
         //     }
 
@@ -303,7 +306,8 @@ class Geometry
             {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(true),
-                    env('APP_DEBUG') ? __('validation.custom.invalid-coordinate-format') : null
+                    env('APP_DEBUG') ? __('validation.custom.invalid-coordinate-format') : null,
+                    __FUNCTION__
                 );
             }
         }

@@ -75,13 +75,14 @@ class Handler extends ExceptionHandler
 
                 JsonResponse::sendError(
                     $request,
-                    $throwable->getErrorCode(),
                     [
                         'thrower' => $class,
-                        'message' => $throwable->getData(),
                         'file' => $throwable->getFile(),
+                        'method' => $throwable->getMethod(),
                         'line' => $throwable->getLine(),
+                        'message' => $throwable->getData(),
                     ],
+                    $throwable->getErrorCode(),
                     $throwable->getForwardMessage()
                 );
                 break;
@@ -92,11 +93,11 @@ class Handler extends ExceptionHandler
             case NotFoundHttpException::class:
                 JsonResponse::sendError(
                     $request,
-                    DefaultErrorCode::FAILED_VALIDATION(true),
                     [
                         'thrower' => $class,
                         'message' => $throwable->getMessage(),
-                    ]
+                    ],
+                    DefaultErrorCode::FAILED_VALIDATION(true)
                 );
                 break;
 
@@ -105,11 +106,11 @@ class Handler extends ExceptionHandler
 
                 JsonResponse::sendError(
                     $request,
-                    DefaultErrorCode::LIMIT_EXCEEDED(false, true),
                     [
                         'thrower' => $class,
                         'message' => __('validation.custom.limit-exceeded', ['seconds' => $throwable->getHeaders()['Retry-After']]),
                     ],
+                    DefaultErrorCode::LIMIT_EXCEEDED(false, true),
                     true
                 );
                 break;
@@ -119,8 +120,8 @@ class Handler extends ExceptionHandler
 
                 JsonResponse::sendError(
                     $request,
-                    DefaultErrorCode::FAILED_VALIDATION(),
                     ['message' => $throwable->errors()],
+                    DefaultErrorCode::FAILED_VALIDATION(),
                     true
                 );
                 break;
@@ -128,13 +129,13 @@ class Handler extends ExceptionHandler
             default:
                 JsonResponse::sendError(
                     $request,
-                    DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
                     [
                         'thrower' => $class,
-                        'message' => $throwable->getMessage(),
                         'file' => $throwable->getFile(),
                         'line' => $throwable->getLine(),
+                        'message' => $throwable->getMessage(),
                     ],
+                    DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
                     false,
                     $class == QueryException::class
                 );

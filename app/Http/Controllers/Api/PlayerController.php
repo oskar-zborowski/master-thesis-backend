@@ -27,7 +27,8 @@ class PlayerController extends Controller
         if (!$room) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(),
-                __('validation.custom.incorrect-code')
+                __('validation.custom.incorrect-code'),
+                __FUNCTION__
             );
         }
 
@@ -41,12 +42,14 @@ class PlayerController extends Controller
             if ($player->status == 'BLOCKED') {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(),
-                    __('validation.custom.you-have-been-banned')
+                    __('validation.custom.you-have-been-banned'),
+                    __FUNCTION__
                 );
             } else {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(true),
-                    __('validation.custom.you-are-already-in-room')
+                    __('validation.custom.you-are-already-in-room'),
+                    __FUNCTION__
                 );
             }
         }
@@ -54,7 +57,8 @@ class PlayerController extends Controller
         if ($room->status != 'WAITING_IN_ROOM') {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(),
-                __('validation.custom.game-already-started')
+                __('validation.custom.game-already-started'),
+                __FUNCTION__
             );
         }
 
