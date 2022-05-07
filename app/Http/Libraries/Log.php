@@ -23,7 +23,11 @@ use maxh\Nominatim\Nominatim;
  */
 class Log
 {
-    public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $logError, string $errorType, string $errorThrower, string $errorFile, string $errorMethod, string $errorLine, string $errorMessage, bool $dbConnectionError = false, bool $saveLog = true, bool $sendMail = true, bool $checkIp = true, bool $readLog = true) {
+    public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $logError, string $errorType, string $errorThrower, string $errorFile, string $errorMethod, string $errorLine, string $errorMessage, bool $dbConnectionError = false, bool $saveLog = true, bool $sendMail = true, bool $checkIp = true, bool $readLog = true, ?array $saveDbConnectionError = null) {
+
+        if ($saveDbConnectionError) {
+            self::prepareConnection($ipAddress, $userId, false, true, $saveDbConnectionError['errorTypeDb'], $saveDbConnectionError['errorThrowerDb'], $saveDbConnectionError['errorFileDb'], $saveDbConnectionError['errorFunctionDb'], $saveDbConnectionError['errorLineDb'], $saveDbConnectionError['errorMessageDb'], $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
+        }
 
         if (!$dbConnectionError) {
 
@@ -35,11 +39,13 @@ class Log
                 $ipAddressEntity = IpAddress::whereRaw($aesDecrypt)->first();
             } catch (QueryException $e) {
                 $dbConnectionError = true;
-                $errorTypeDb = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
-                $errorThrowerDb = get_class($e);
-                $errorMessageDb = strlen(trim($e->getMessage())) > 0 ? "A database error has occurred.\n{$e->getMessage()}" : 'A database error has occurred.';
-                self::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
-                self::prepareConnection($ipAddress, $userId, false, true, $errorTypeDb, $errorThrowerDb, __FILE__, __FUNCTION__, __LINE__, $errorMessageDb, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
+                $saveDbConnectionError['errorTypeDb'] = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
+                $saveDbConnectionError['errorThrowerDb'] = get_class($e);
+                $saveDbConnectionError['errorMessageDb'] = strlen(trim($e->getMessage())) > 0 ? "A database error has occurred.\n{$e->getMessage()}" : 'A database error has occurred.';
+                $saveDbConnectionError['errorFileDb'] = __FILE__;
+                $saveDbConnectionError['errorFunctionDb'] = __FUNCTION__;
+                $saveDbConnectionError['errorLineDb'] = __LINE__;
+                self::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog, $saveDbConnectionError);
                 die;
             }
 
