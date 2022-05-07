@@ -25,10 +25,6 @@ class Log
 {
     public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $logError, string $errorType, string $errorThrower, string $errorFile, string $errorMethod, string $errorLine, string $errorMessage, bool $dbConnectionError = false, bool $saveLog = true, bool $sendMail = true, bool $checkIp = true, bool $readLog = true, ?array $saveDbConnectionError = null) {
 
-        if ($saveDbConnectionError) {
-            self::prepareConnection($ipAddress, $userId, false, true, $saveDbConnectionError['errorTypeDb'], $saveDbConnectionError['errorThrowerDb'], $saveDbConnectionError['errorFileDb'], $saveDbConnectionError['errorFunctionDb'], $saveDbConnectionError['errorLineDb'], $saveDbConnectionError['errorMessageDb'], $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
-        }
-
         if (!$dbConnectionError) {
 
             $encryptedIpAddress = Encrypter::encrypt($ipAddress, 45, false);
@@ -354,6 +350,10 @@ class Log
                     self::prepareConnection($ipAddress, $userId, false, true, $errorTypeMail, $errorThrowerMail, __FILE__, __FUNCTION__, __LINE__, $errorMessageMail, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
                 }
             }
+        }
+
+        if (isset($saveDbConnectionError)) {
+            self::prepareConnection($ipAddress, $userId, false, true, $saveDbConnectionError['errorTypeDb'], $saveDbConnectionError['errorThrowerDb'], $saveDbConnectionError['errorFileDb'], $saveDbConnectionError['errorFunctionDb'], $saveDbConnectionError['errorLineDb'], $saveDbConnectionError['errorMessageDb'], $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
         }
     }
 
