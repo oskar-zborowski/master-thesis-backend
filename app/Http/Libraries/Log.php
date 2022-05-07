@@ -34,11 +34,12 @@ class Log
                 /** @var IpAddress $ipAddressEntity */
                 $ipAddressEntity = IpAddress::whereRaw($aesDecrypt)->first();
             } catch (QueryException $e) {
+                $dbConnectionError = true;
                 $errorTypeDb = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                 $errorThrowerDb = get_class($e);
-                $errorMessageDb = strlen(trim($e->getMessage())) > 0 ? $e->getMessage() : 'brak';
-                self::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, true, $saveLog, $sendMail, $checkIp, $readLog);
-                self::prepareConnection($ipAddress, $userId, false, true, $errorTypeDb, $errorThrowerDb, __FILE__, __FUNCTION__, __LINE__, $errorMessageDb, true, $saveLog, $sendMail, $checkIp, $readLog);
+                $errorMessageDb = strlen(trim($e->getMessage())) > 0 ? "A database error has occurred.\n{$e->getMessage()}" : 'A database error has occurred.';
+                self::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
+                self::prepareConnection($ipAddress, $userId, false, true, $errorTypeDb, $errorThrowerDb, __FILE__, __FUNCTION__, __LINE__, $errorMessageDb, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
                 die;
             }
 
@@ -106,8 +107,9 @@ class Log
                     $config->save();
 
                     if ($ipApiErrorCounter) {
+                        $checkIp = false;
                         $errorMessageIpApi = strlen(trim($errorMessageIpApi)) > 0 ? "Failed to get data from ip-api.com ($ipApiErrorCounter times).\n$errorMessageIpApi" : "Failed to get data from ip-api.com ($ipApiErrorCounter times).";
-                        self::prepareConnection($ipAddress, $userId, false, true, $errorTypeIpApi, $errorThrowerIpApi, __FILE__, __FUNCTION__, __LINE__, $errorMessageIpApi, $dbConnectionError, $saveLog, $sendMail, false, $readLog);
+                        self::prepareConnection($ipAddress, $userId, false, true, $errorTypeIpApi, $errorThrowerIpApi, __FILE__, __FUNCTION__, __LINE__, $errorMessageIpApi, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
                     }
                 }
 
@@ -238,10 +240,11 @@ class Log
                     fclose($fp);
 
                 } catch (Exception $e) {
+                    $readLog = false;
                     $errorTypeRL = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                     $errorThrowerRL = get_class($e);
-                    $errorMessageRL = strlen(trim($e->getMessage())) > 0 ? $e->getMessage() : 'brak';
-                    self::prepareConnection($ipAddress, $userId, false, true, $errorTypeRL, $errorThrowerRL, __FILE__, __FUNCTION__, __LINE__, $errorMessageRL, $dbConnectionError, $saveLog, $sendMail, $checkIp, false);
+                    $errorMessageRL = strlen(trim($e->getMessage())) > 0 ? "There was an error opening the log file.\n{$e->getMessage()}" : 'There was an error opening the log file.';
+                    self::prepareConnection($ipAddress, $userId, false, true, $errorTypeRL, $errorThrowerRL, __FILE__, __FUNCTION__, __LINE__, $errorMessageRL, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
                 }
 
                 if (isset($logData)) {
@@ -281,11 +284,18 @@ class Log
                     }
 
                 } catch (Exception $e) {
+
+                    $saveLog = false;
                     $errorTypeSL = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                     $errorThrowerSL = get_class($e);
-                    $errorMessageSL = strlen(trim($e->getMessage())) > 0 ? "Failed to save the log.\n{$e->getMessage()}" : "Failed to save the log.";
-                    $saveLogError = true;
-                    self::prepareConnection($ipAddress, $userId, false, true, $errorTypeSL, $errorThrowerSL, __FILE__, __FUNCTION__, __LINE__, $errorMessageSL, $dbConnectionError, false, $sendMail, $checkIp, $readLog);
+                    $strpos = strpos($e->getMessage(), 'The exception occurred while attempting to log:');
+
+                    if ($strpos !== false) {
+                        $errorMessageSL = substr($e->getMessage(), 0, $strpos-1);
+                    }
+
+                    $errorMessageSL = strlen(trim($errorMessageSL)) > 0 ? "Failed to save the log.\n$errorMessageSL" : 'Failed to save the log.';
+                    self::prepareConnection($ipAddress, $userId, false, true, $errorTypeSL, $errorThrowerSL, __FILE__, __FUNCTION__, __LINE__, $errorMessageSL, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
                 }
             }
 
@@ -333,8 +343,9 @@ class Log
                 }
 
                 if ($mailErrorCounter) {
+                    $sendMail = false;
                     $errorMessageMail = strlen(trim($errorMessageMail)) > 0 ? "Failed to send the email ($mailErrorCounter times).\n$errorMessageMail" : "Failed to send the email ($mailErrorCounter times).";
-                    self::prepareConnection($ipAddress, $userId, false, true, $errorTypeMail, $errorThrowerMail, __FILE__, __FUNCTION__, __LINE__, $errorMessageMail, $dbConnectionError, !isset($saveLogError) && $saveLog, false, $checkIp, $readLog);
+                    self::prepareConnection($ipAddress, $userId, false, true, $errorTypeMail, $errorThrowerMail, __FILE__, __FUNCTION__, __LINE__, $errorMessageMail, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
                 }
             }
         }
