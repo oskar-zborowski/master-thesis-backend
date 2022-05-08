@@ -12,6 +12,7 @@ return new class extends Migration
     public function up() {
         Schema::create('configs', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('log_counter')->default(0);
             $table->boolean('nominatim_is_busy')->default(false);
             $table->boolean('ip_api_is_busy')->default(false);
             $table->boolean('mail_is_busy')->default(false);

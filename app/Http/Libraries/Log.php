@@ -7,6 +7,7 @@ use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Mail\MaliciousnessNotification;
 use App\Models\Config;
 use App\Models\Connection;
+use App\Models\ErrorLog;
 use App\Models\GpsLog;
 use App\Models\IpAddress;
 use App\Models\User;
@@ -223,9 +224,24 @@ class Log
 
         if (isset($status)) {
 
-            $errorNumber = 'brak';
+            if (!$dbConnectionError) {
 
-            if ($readLog) {
+                /** @var Config $config */
+                $config = Config::where('id', 1)->first();
+                $errorNumber = $config->log_counter;
+
+                /** @var ErrorLog $lastErrorLog */
+                $lastErrorLog = ErrorLog::whereNotNull('number')->orderBy('id', 'desc')->first();
+
+                if ($lastErrorLog && $errorNumber < $lastErrorLog->number) {
+                    $errorNumber = $lastErrorLog->number;
+                }
+
+            } else {
+                $errorNumber = 'brak';
+            }
+
+            if ($readLog && $errorNumber != 'brak') {
 
                 try {
 
@@ -236,12 +252,13 @@ class Log
                     if ($filesize > 0) {
                         $logData = fread($fp, $filesize);
                     } else if ($filesize == 0) {
-                        $errorNumber = 1;
+                        $errorNumber = 0;
                     }
 
                     fclose($fp);
 
                 } catch (Exception $e) {
+                    $errorNumber = 'brak';
                     $readLog = false;
                     $errorTypeRL = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                     $errorThrowerRL = get_class($e);
@@ -256,20 +273,36 @@ class Log
                     do {
 
                         $needle = "\nNr błędu: ";
-                        $lastFoundErrorNumber = FieldConversion::findLastOccurrenceInString($logData, $needle, $last) + strlen($needle);
+                        $lastFoundErrorNumber = FieldConversion::findLastOccurrenceInString($logData, $needle, $last);
+
+                        if ($lastFoundErrorNumber !== false) {
+                            $lastFoundErrorNumber += strlen($needle);
+                        }
+
                         $currentErrorNumber = 0;
 
-                        for ($i=$lastFoundErrorNumber; ord($logData[$i]) >= 48 && ord($logData[$i]) <= 57; $i++) {
-                            $currentErrorNumber *= 10;
-                            $currentErrorNumber += $logData[$i];
+                        if ($lastFoundErrorNumber !== false) {
+                            for ($i=$lastFoundErrorNumber; ord($logData[$i]) >= 48 && ord($logData[$i]) <= 57; $i++) {
+                                $currentErrorNumber *= 10;
+                                $currentErrorNumber += $logData[$i];
+                            }
                         }
 
                         $last++;
 
                     } while ($lastFoundErrorNumber && !$currentErrorNumber);
 
-                    $errorNumber = $currentErrorNumber + 1;
+                    if ($errorNumber < $currentErrorNumber) {
+                        $errorNumber = $currentErrorNumber;
+                    }
                 }
+
+            } else {
+                $errorNumber = 'brak';
+            }
+
+            if ($errorNumber != 'brak') {
+                $errorNumber++;
             }
 
             if ($saveLog) {
@@ -348,6 +381,44 @@ class Log
                     $sendMail = false;
                     $errorMessageMail = strlen(trim($errorMessageMail)) > 0 ? "Failed to send the email ($mailErrorCounter times).\n$errorMessageMail" : "Failed to send the email ($mailErrorCounter times).";
                     self::prepareConnection($ipAddress, $userId, false, true, $errorTypeMail, $errorThrowerMail, __FILE__, __FUNCTION__, __LINE__, $errorMessageMail, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
+                }
+            }
+
+            if (!$dbConnectionError) {
+
+                $newErrorLog = new ErrorLog;
+
+                if ($errorNumber != 'brak') {
+                    $newErrorLog->number = $errorNumber;
+                }
+
+                $newErrorLog->connection_id = $connection->id;
+                $newErrorLog->type = $errorType;
+                $newErrorLog->thrower = $errorThrower;
+
+                if ($errorFile != 'brak') {
+                    $newErrorLog->file = $errorFile;
+                }
+
+                if ($errorMethod != 'brak') {
+                    $newErrorLog->method = $errorMethod;
+                }
+
+                if ($errorLine != 'brak') {
+                    $newErrorLog->line = $errorLine;
+                }
+
+                if ($errorMessage != 'brak') {
+                    $newErrorLog->message = $errorMessage;
+                }
+
+                $newErrorLog->save();
+
+                if ($errorNumber != 'brak') {
+                    /** @var Config $config */
+                    $config = Config::where('id', 1)->first();
+                    $config->log_counter = $errorNumber;
+                    $config->save();
                 }
             }
         }

@@ -6,11 +6,19 @@ class ErrorLog extends BaseModel
 {
     protected $hidden = [
         'id',
+        'number',
         'connection_id',
         'type',
         'thrower',
-        'description',
+        'file',
+        'method',
+        'line',
+        'message',
         'created_at',
         'updated_at',
+    ];
+
+    protected $casts = [
+        'number' => 'integer',
     ];
 }

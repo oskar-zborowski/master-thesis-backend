@@ -12,9 +12,6 @@ class ConfigSeeder extends Seeder
      */
     public function run() {
         Config::insert([
-            'nominatim_is_busy' => false,
-            'ip_api_is_busy' => false,
-            'mail_is_busy' => false,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

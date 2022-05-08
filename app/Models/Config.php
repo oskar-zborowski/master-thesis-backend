@@ -6,6 +6,7 @@ class Config extends BaseModel
 {
     protected $hidden = [
         'id',
+        'log_counter',
         'nominatim_is_busy',
         'ip_api_is_busy',
         'mail_is_busy',
@@ -17,6 +18,7 @@ class Config extends BaseModel
     ];
 
     protected $casts = [
+        'log_counter' => 'integer',
         'nominatim_is_busy' => 'boolean',
         'ip_api_is_busy' => 'boolean',
         'mail_is_busy' => 'boolean',
