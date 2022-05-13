@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\ApiException;
+use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Libraries\Encrypter;
 use App\Models\PersonalAccessToken;
 use Closure;
@@ -29,15 +31,39 @@ class Authenticate extends Middleware
      * Handle an incoming request.
      *
      * @param \Illuminate\Http\Request $request
-     * @param \Closure $next
+     * @param Closure $next
      * @param string[] ...$guards
      */
     public function handle($request, Closure $next, ...$guards) {
 
         // SET @@GLOBAL.block_encryption_mode = 'aes-256-cbc';
 
-        $token = $request->header('token');
-        $refreshToken = $request->header('refreshToken');
+        if ($request->header('token') !== null && !is_string($request->header('token'))) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(true),
+                __('auth.invalid-token-format'),
+                __FUNCTION__
+            );
+        }
+
+        if ($request->header('refreshToken') !== null && !is_string($request->header('refreshToken'))) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(true),
+                __('auth.invalid-refresh-token-format'),
+                __FUNCTION__
+            );
+        }
+
+        $tokens[] = $request->header('token');
+        $refreshTokens[] = $request->header('refreshToken');
+
+        if ($request->token !== null && is_string($request->token)) {
+            $tokens[] = $request->token;
+        }
+
+        if ($request->refreshToken !== null && is_string($request->refreshToken)) {
+            $refreshTokens[] = $request->refreshToken;
+        }
 
         $routeName = Route::currentRouteName();
 
@@ -49,16 +75,28 @@ class Authenticate extends Middleware
 
         if (!in_array($routeName, $routeNamesWhitelist)) {
 
-            if (isset($token)) {
-                try {
-                    $request->headers->set('Authorization', 'Bearer ' . $token);
-                    $this->authenticate($request, $guards);
-                } catch (AuthenticationException $e) {
-                    // nic się nie dzieje
+            $authenticationSuccess = true;
+
+            foreach ($tokens as $token) {
+
+                if ($token !== null) {
+
+                    try {
+                        $request->headers->set('Authorization', 'Bearer ' . $token);
+                        $this->authenticate($request, $guards);
+                    } catch (AuthenticationException $e) {
+                        $authenticationSuccess = false;
+                    }
+
+                    if ($authenticationSuccess) {
+                        break;
+                    }
                 }
             }
 
-            if ($refreshToken !== null) {
+            $i = 0;
+
+            foreach ($refreshTokens as $refreshToken) {
 
                 $aesDecrypt = Encrypter::prepareAesDecrypt('refresh_token', $refreshToken);
 
@@ -68,11 +106,15 @@ class Authenticate extends Middleware
                     'name' => 'JWT',
                 ])->first();
 
-                Session::put('personalAccessToken', $personalAccessToken);
+                if ($i == 0) {
+                    Session::put('personalAccessToken', $personalAccessToken);
+                }
 
                 if ($personalAccessToken && !Auth::user()) {
                     Auth::loginUsingId($personalAccessToken->tokenable_id);
                 }
+
+                $i++;
             }
         }
 

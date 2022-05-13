@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Libraries\Validation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreatePlayerRequest extends FormRequest
@@ -11,8 +12,6 @@ class CreatePlayerRequest extends FormRequest
     }
 
     public function rules() {
-        return [
-            'code' => 'required|string|size:6',
-        ];
+        return Validation::player_createPlayer();
     }
 }

@@ -142,10 +142,8 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
-        ],
         'boundary-not-closed' => 'The boundary has not been closed.',
+        'endpoint-name-not-found' => 'Endpoint name not found.',
         'game-already-started' => 'The game has already started.',
         'incorrect-code' => 'Incorrect code.',
         'incorrect-database-search' => 'You can only use perfect matches (=) or similar matches (LIKE).',
@@ -162,6 +160,7 @@ return [
         'number-of-internal-vertices-exceeded' => 'The maximum number of vertices in the inner boundary has been exceeded.',
         'overlapping-monitoring-centrals' => 'The monitoring centrals cannot overlap perfectly.',
         'overlapping-monitorings' => 'The monitoring cameras cannot overlap perfectly.',
+        'undefined-request-fields-detected' => 'Undefined request fields detected: fields.',
         'user-is-not-in-room' => 'The specified user is not in the room.',
         'you-are-already-in-room' => 'You are already in the room.',
         'you-have-been-banned' => 'You have been banned from this room.',

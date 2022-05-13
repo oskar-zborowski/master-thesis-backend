@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use App\Http\ErrorCodes\DefaultErrorCode;
+use App\Http\Libraries\Validation;
 use App\Http\Responses\JsonResponse;
 use ArgumentCountError;
 use BadMethodCallException;
@@ -69,7 +70,12 @@ class Handler extends ExceptionHandler
 
         $class = get_class($throwable);
 
+        if ($class != ApiException::class) {
+            Validation::secondAuthenticate($request, true);
+        }
+
         switch ($class) {
+
             case ApiException::class:
                 /** @var ApiException $throwable */
 

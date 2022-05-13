@@ -142,10 +142,8 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
-        ],
         'boundary-not-closed' => 'Granica nie została zamknięta.',
+        'endpoint-name-not-found' => 'Nie znaleziono nazwy endpointu.',
         'game-already-started' => 'Gra już się rozpoczęła.',
         'incorrect-code' => 'Nieprawidłowy kod.',
         'incorrect-database-search' => 'Możesz użyć jedynie dopasowań idealnych (=), albo dopasowań podobnych (LIKE).',
@@ -154,14 +152,15 @@ return [
         'invalid-log-type' => 'Możesz użyć jedynie typu loga (mail), albo (log).',
         'limit-exceeded' => 'Przekroczono limit żądań. Możesz spróbować ponownie za :seconds sekund.',
         'malicious-request' => 'Wysyłanie żądań przez podmioty niewspółpracujące jest surowo zabronione. Wszystkie próby nawiązywania połączenia są monitorowane i mogą wiązać się z konsekwencjami!',
-        'monitoring-central-outside-boundary' => 'Centrala monitoringu musi się całkowicie mieścić w obszarze gry.',
-        'monitoring-outside-boundary' => 'Kamery monitoringu muszą się całkowicie mieścić w obszarze gry.',
+        'monitoring-central-outside-boundary' => 'Centrala monitoringu musi mieścić się całkowicie w obszarze gry.',
+        'monitoring-outside-boundary' => 'Kamery monitoringu muszą mieścić się całkowicie w obszarze gry.',
         'no-permission' => 'Nie masz uprawnień do danego zasobu.',
         'number-of-external-vertices-exceeded' => 'Przekroczono maksymalną liczbę wierzchołków zewnętrznej granicy.',
         'number-of-internal-boundaries-exceeded' => 'Przekroczono maksymalną liczbę wewnętrznych granic.',
         'number-of-internal-vertices-exceeded' => 'Przekroczono maksymalną liczbę wierzchołków wewnętrznej granicy.',
         'overlapping-monitoring-centrals' => 'Centrale monitoringu nie mogą się idealnie pokrywać.',
         'overlapping-monitorings' => 'Kamery monitoringu nie mogą się idealnie pokrywać.',
+        'undefined-request-fields-detected' => 'Wykryto niezdefiniowane pola żądania: :fields.',
         'user-is-not-in-room' => 'Podany użytkownik nie znajduje się w pokoju.',
         'you-are-already-in-room' => 'Już jesteś w pokoju.',
         'you-have-been-banned' => 'Zostałeś/aś zbanowany/a w tym pokoju.',
