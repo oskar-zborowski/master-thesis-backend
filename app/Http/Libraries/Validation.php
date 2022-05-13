@@ -168,6 +168,12 @@ class Validation
         ];
     }
 
+    public static function getRouteNamesWhitelist() {
+        return [
+            'user-createUser',
+        ];
+    }
+
     public static function checkUniqueness(string $value, $entity, string $field, bool $isEncrypted = false) {
 
         if ($isEncrypted) {
@@ -299,9 +305,7 @@ class Validation
             $refreshToken = $request->header('refreshToken');
 
             $routeName = Route::currentRouteName();
-
-            $routeNamesWhitelist = Session::get('routeNamesWhitelist');
-            Session::remove('routeNamesWhitelist');
+            $routeNamesWhitelist = self::getRouteNamesWhitelist();
 
             $personalAccessToken = Session::get('personalAccessToken');
             Session::remove('personalAccessToken');

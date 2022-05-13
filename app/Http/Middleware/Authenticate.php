@@ -65,38 +65,30 @@ class Authenticate extends Middleware
             $refreshTokens[] = $request->refreshToken;
         }
 
-        $routeName = Route::currentRouteName();
+        $authenticationSuccess = true;
 
-        $routeNamesWhitelist = [
-            'user-createUser',
-        ];
+        foreach ($tokens as $token) {
 
-        Session::put('routeNamesWhitelist', $routeNamesWhitelist);
+            if ($token !== null) {
 
-        if (!in_array($routeName, $routeNamesWhitelist)) {
+                try {
+                    $request->headers->set('Authorization', 'Bearer ' . $token);
+                    $this->authenticate($request, $guards);
+                } catch (AuthenticationException $e) {
+                    $authenticationSuccess = false;
+                }
 
-            $authenticationSuccess = true;
-
-            foreach ($tokens as $token) {
-
-                if ($token !== null) {
-
-                    try {
-                        $request->headers->set('Authorization', 'Bearer ' . $token);
-                        $this->authenticate($request, $guards);
-                    } catch (AuthenticationException $e) {
-                        $authenticationSuccess = false;
-                    }
-
-                    if ($authenticationSuccess) {
-                        break;
-                    }
+                if ($authenticationSuccess) {
+                    break;
                 }
             }
+        }
 
-            $i = 0;
+        $i = 0;
 
-            foreach ($refreshTokens as $refreshToken) {
+        foreach ($refreshTokens as $refreshToken) {
+
+            if (isset($refreshToken)) {
 
                 $aesDecrypt = Encrypter::prepareAesDecrypt('refresh_token', $refreshToken);
 
@@ -113,9 +105,9 @@ class Authenticate extends Middleware
                 if ($personalAccessToken && !Auth::user()) {
                     Auth::loginUsingId($personalAccessToken->tokenable_id);
                 }
-
-                $i++;
             }
+
+            $i++;
         }
 
         return $next($request);
