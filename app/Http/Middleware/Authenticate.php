@@ -69,7 +69,7 @@ class Authenticate extends Middleware
 
         foreach ($tokens as $token) {
 
-            if ($token !== null) {
+            if (isset($token)) {
 
                 try {
                     $request->headers->set('Authorization', 'Bearer ' . $token);
