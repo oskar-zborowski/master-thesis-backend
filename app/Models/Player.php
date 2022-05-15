@@ -25,6 +25,7 @@ class Player extends BaseModel
         'protected_disclosure',
         'is_bot',
         'status',
+        'action_status',
         'warning_number',
         'average_ping',
         'standard_deviation',

@@ -161,10 +161,18 @@ class Validation
 
     public static function getPlayerStatuses() {
         return [
-            'DETECTED_BY_CAMERA',
-            'BORDER_CROSSED',
+            'CONNECTED',
             'DISCONNECTED',
             'BLOCKED',
+            'LEFT',
+            'LEFT_PERMANENTLY',
+        ];
+    }
+
+    public static function getActionStatuses() {
+        return [
+            'DETECTED_BY_CAMERA',
+            'BORDER_CROSSED',
         ];
     }
 

@@ -27,6 +27,17 @@ class RoomController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
+        /** @var Player $userInAnotherRoom */
+        $userInAnotherRoom = $user->players()->where('status', '!=', 'BLOCKED')->first();
+
+        if ($userInAnotherRoom) {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(true),
+                __('validation.custom.no-permission'),
+                __FUNCTION__
+            );
+        }
+
         /** @var Room $room */
         $room = new Room;
         $room->host_id = $user->id;

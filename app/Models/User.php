@@ -46,6 +46,10 @@ class User extends Authenticatable
         return $this->hasMany(Connection::class);
     }
 
+    public function players() {
+        return $this->hasMany(Player::class);
+    }
+
     public function getData() {
         return [
             'User' => $this

@@ -28,7 +28,8 @@ return new class extends Migration
             $table->unsignedTinyInteger('hide_stock')->default(0); // określa ile odkryć w przód złodziej ma ochronę przed ujawnieniem pozycji
             $table->boolean('protected_disclosure')->default(false); // określa czy złodziej cały czas znajduje się w miejscu, które powinno ujawnić jego pozycję, gdyby nie black_ticket
             $table->boolean('is_bot')->default(false);
-            $table->enum('status', Validation::getPlayerStatuses())->nullable();
+            $table->enum('status', Validation::getPlayerStatuses())->default(Validation::getPlayerStatuses()[0]);
+            $table->enum('action_status', Validation::getActionStatuses())->nullable();
             $table->unsignedTinyInteger('warning_number')->default(0);
             $table->unsignedSmallInteger('average_ping')->default(0); // wyrażone w [ms]
             $table->unsignedSmallInteger('standard_deviation')->default(0); // wyrażone w [ms]
