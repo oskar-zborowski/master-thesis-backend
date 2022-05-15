@@ -162,7 +162,9 @@ return [
         'overlapping-monitorings' => 'Kamery monitoringu nie mogą się idealnie pokrywać.',
         'undefined-request-fields-detected' => 'Wykryto niezdefiniowane pola żądania: :fields.',
         'user-is-not-in-room' => 'Podany użytkownik nie znajduje się w pokoju.',
-        'you-are-already-in-room' => 'Już jesteś w pokoju.',
+        'you-are-already-in-this-room' => 'Już jesteś w tym pokoju.',
+        'you-are-already-in-another-room' => 'Nadal jesteś w innym pokoju. Musisz najpierw go opuścić.',
+        'you-must-set-player-name' => 'Musisz najpierw ustawić nazwę gracza.',
         'you-have-been-banned' => 'Zostałeś/aś zbanowany/a w tym pokoju.',
     ],
 ];

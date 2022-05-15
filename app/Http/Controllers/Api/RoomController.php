@@ -27,18 +27,35 @@ class RoomController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        /** @var Player $userInAnotherRoom */
-        $userInAnotherRoom = $user->players()->where('status', '!=', 'BLOCKED')->first();
-
-        if ($userInAnotherRoom) {
+        if ($user->name === null) {
             throw new ApiException(
-                DefaultErrorCode::PERMISSION_DENIED(true),
-                __('validation.custom.no-permission'),
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.you-must-set-player-name'),
                 __FUNCTION__
             );
         }
 
-        /** @var Room $room */
+        /** @var Player[] $players */
+        $players = $user->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+
+        foreach ($players as $player) {
+
+            /** @var Room $room */
+            $room = $player->room()->first();
+
+            if ($room && $room->status != 'GAME_OVER') {
+                $userInAnotherRoom = true;
+            }
+        }
+
+        if (isset($userInAnotherRoom)) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.you-are-already-in-another-room'),
+                __FUNCTION__
+            );
+        }
+
         $room = new Room;
         $room->host_id = $user->id;
         $room->code = Encrypter::generateToken(6, Room::class, 'code');
@@ -46,15 +63,14 @@ class RoomController extends Controller
         $room->save();
 
         $now = date('Y-m-d H:i:s');
-        $expirationDate = date('Y-m-d H:i:s', strtotime('+5 seconds', strtotime($now)));
+        $expectedTimeAt = date('Y-m-d H:i:s', strtotime('+5 seconds', strtotime($now)));
 
-        /** @var Player $player */
         $player = new Player;
         $player->room_id = $room->id;
         $player->user_id = $user->id;
         $player->avatar = $user->default_avatar;
         $player->player_config = JsonConfig::getDefaultPlayerConfig();
-        $player->expected_time_at = $expirationDate;
+        $player->expected_time_at = $expectedTimeAt;
         $player->save();
 
         JsonResponse::sendSuccess($request, $room->getData(), null, 201);
@@ -129,7 +145,7 @@ class RoomController extends Controller
         /** @var Player $player */
         $player = $room->players()->where('user_id', $user->id)->first();
 
-        if (!$player) {
+        if (!$player || $player->status == 'LEFT' || $player->status == 'LEFT_PERMANENTLY') {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
                 __('validation.custom.no-permission'),

@@ -526,7 +526,6 @@ class Log
                 /** @var User[] $users */
                 $users = User::whereRaw($aesDecrypt)->get();
 
-                /** @var User $u */
                 foreach ($users as $u) {
 
                     $isUserMalicious = false;
@@ -535,7 +534,6 @@ class Log
                     /** @var Connection[] $connections */
                     $connections = $u->connections()->get();
 
-                    /** @var Connection $c */
                     foreach ($connections as $c) {
 
                         if ($c->malicious_request_counter > 0) {
@@ -571,7 +569,6 @@ class Log
                             /** @var Connection[] $cnns */
                             $cnns = $ip->connections()->get();
 
-                            /** @var Connection $cn */
                             foreach ($cnns as $cn) {
                                 if ($cn->malicious_request_counter > 0) {
                                     $isIpAddressMalicious = true;

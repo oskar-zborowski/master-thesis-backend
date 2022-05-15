@@ -162,7 +162,9 @@ return [
         'overlapping-monitorings' => 'The monitoring cameras cannot overlap perfectly.',
         'undefined-request-fields-detected' => 'Undefined request fields detected: :fields.',
         'user-is-not-in-room' => 'The specified user is not in the room.',
-        'you-are-already-in-room' => 'You are already in the room.',
+        'you-are-already-in-this-room' => 'You are already in this room.',
+        'you-are-already-in-another-room' => "You're still in another room. You have to leave it first.",
+        'you-must-set-player-name' => 'You must first set a player name.',
         'you-have-been-banned' => 'You have been banned from this room.',
     ],
 ];

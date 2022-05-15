@@ -65,7 +65,6 @@ class PlayerController extends Controller
         $now = date('Y-m-d H:i:s');
         $expirationDate = date('Y-m-d H:i:s', strtotime('+5 seconds', strtotime($now)));
 
-        /** @var Player $player */
         $player = new Player;
         $player->room_id = $room->id;
         $player->user_id = $user->id;
