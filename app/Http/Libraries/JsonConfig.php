@@ -25,6 +25,7 @@ class JsonConfig
                 'saboteur' => [
                     'number' => 0,
                     'probability' => 0.5,
+                    'show_number' => false,
                 ],
             ],
             'game_duration' => [
@@ -36,6 +37,7 @@ class JsonConfig
                 'number' => 3,
                 'radius' => 100,
                 'time' => 10,
+                'uninterrupted' => true,
             ],
             'disclosure' => [
                 'interval' => 300,
@@ -46,6 +48,7 @@ class JsonConfig
                 'policeman_sees_agent' => true,
                 'saboteur_sees_thief' => false,
                 'thief_knows_saboteur' => false,
+                'while_completing_mission' => true,
                 'after_crossing_border' => false,
             ],
             'mission' => [
@@ -113,6 +116,10 @@ class JsonConfig
             $gameConfig['actor']['saboteur']['probability'] = $request->actor_saboteur_probability;
         }
 
+        if ($request->actor_saboteur_show_number !== null) {
+            $gameConfig['actor']['saboteur']['show_number'] = $request->actor_saboteur_show_number;
+        }
+
         if ($request->game_duration_scheduled !== null) {
             $gameConfig['game_duration']['scheduled'] = $request->game_duration_scheduled;
         }
@@ -131,6 +138,10 @@ class JsonConfig
 
         if ($request->catching_time !== null) {
             $gameConfig['catching']['time'] = $request->catching_time;
+        }
+
+        if ($request->catching_uninterrupted !== null) {
+            $gameConfig['catching']['uninterrupted'] = $request->catching_uninterrupted;
         }
 
         if ($request->disclosure_interval !== null) {
@@ -163,6 +174,10 @@ class JsonConfig
 
         if ($request->disclosure_thief_knows_saboteur !== null) {
             $gameConfig['disclosure']['thief_knows_saboteur'] = $request->disclosure_thief_knows_saboteur;
+        }
+
+        if ($request->disclosure_while_completing_mission !== null) {
+            $gameConfig['disclosure']['while_completing_mission'] = $request->disclosure_while_completing_mission;
         }
 
         if ($request->disclosure_after_crossing_border !== null) {

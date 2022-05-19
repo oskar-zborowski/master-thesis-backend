@@ -26,6 +26,7 @@ return new class extends Migration
             $table->float('direction')->default(0);
             $table->unsignedTinyInteger('mission_performed')->nullable();
             $table->unsignedTinyInteger('hide_stock')->default(0); // określa ile odkryć w przód złodziej ma ochronę przed ujawnieniem pozycji
+            $table->unsignedTinyInteger('catch_duration')->default(0);
             $table->boolean('protected_disclosure')->default(false); // określa czy złodziej cały czas znajduje się w miejscu, które powinno ujawnić jego pozycję, gdyby nie black_ticket
             $table->boolean('is_bot')->default(false);
             $table->enum('status', Validation::getPlayerStatuses())->default(Validation::getPlayerStatuses()[0]);

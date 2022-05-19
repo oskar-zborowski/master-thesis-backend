@@ -65,7 +65,8 @@ return new class extends Migration
 //         },
 //         "saboteur": {
 //             "number": 0,
-//             "probability": 0.5
+//             "probability": 0.5,
+//             "show_number": false
 //         }
 //     },
 //     "game_duration": {
@@ -76,7 +77,8 @@ return new class extends Migration
 //     "catching": {
 //         "number": 3,
 //         "radius": 100,
-//         "time": 10
+//         "time": 10,
+//         "uninterrupted": true
 //     },
 //     "disclosure": {
 //         "interval": 300,
@@ -87,6 +89,7 @@ return new class extends Migration
 //         "policeman_sees_agent": true,
 //         "saboteur_sees_thief": false,
 //         "thief_knows_saboteur": false,
+//         "while_completing_mission": true,
 //         "after_crossing_border": false
 //     },
 //     "mission": {
