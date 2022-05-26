@@ -21,6 +21,13 @@ class IpAddress extends BaseModel
         'updated_at',
     ];
 
+    protected $casts = [
+        'id' => 'integer',
+        'is_mobile' => 'boolean',
+        'blocked_at' => 'string',
+        'created_at' => 'string',
+    ];
+
     protected $encryptable = [
         'ip_address' => 45,
         'provider' => 90,

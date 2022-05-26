@@ -10,7 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use Encryptable, HasApiTokens, HasFactory, Notifiable;
+    use Encryptable, HasFactory, Notifiable, HasApiTokens;
 
     protected $hidden = [
         'default_avatar',
@@ -27,6 +27,8 @@ class User extends Authenticatable
 
     protected $casts = [
         'id' => 'integer',
+        'blocked_at' => 'string',
+        'created_at' => 'string',
     ];
 
     protected $encryptable = [
