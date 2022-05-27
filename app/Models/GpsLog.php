@@ -23,6 +23,12 @@ class GpsLog extends BaseModel
         'updated_at',
     ];
 
+    protected $casts = [
+        'id' => 'integer',
+        'user_id' => 'integer',
+        'created_at' => 'string',
+    ];
+
     protected $encryptable = [
         'gps_location' => 22,
         'house_number' => 10,

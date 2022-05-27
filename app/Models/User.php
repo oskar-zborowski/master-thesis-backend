@@ -40,12 +40,12 @@ class User extends Authenticatable
         return $this->morphOne(PersonalAccessToken::class, 'tokenable');
     }
 
-    public function gpsLogs() {
-        return $this->hasMany(GpsLog::class);
-    }
-
     public function connections() {
         return $this->hasMany(Connection::class);
+    }
+
+    public function gpsLogs() {
+        return $this->hasMany(GpsLog::class);
     }
 
     public function players() {

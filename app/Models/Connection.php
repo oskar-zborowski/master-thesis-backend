@@ -16,22 +16,18 @@ class Connection extends BaseModel
     ];
 
     protected $casts = [
+        'id' => 'integer',
         'successful_request_counter' => 'integer',
         'failed_request_counter' => 'integer',
         'malicious_request_counter' => 'integer',
-        'updated_at' => 'string',
+        'created_at' => 'string',
     ];
-
-    protected $with = [
-        'user',
-        'ipAddress',
-    ];
-
-    public function user() {
-        return $this->belongsTo(User::class);
-    }
 
     public function ipAddress() {
         return $this->belongsTo(IpAddress::class);
+    }
+
+    public function user() {
+        return $this->belongsTo(User::class);
     }
 }
