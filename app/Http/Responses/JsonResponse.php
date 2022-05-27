@@ -60,11 +60,7 @@ class JsonResponse
                 $response['data']['message'] = $data['message'];
             }
 
-            foreach ($response['data'] as &$r) {
-                if (strlen(trim($r)) == 0) {
-                    $r = null;
-                }
-            }
+            $response['data'] = FieldConversion::setEmptyToNull($response['data']);
         }
 
         if ($errorCode->getIsMalicious()) {
@@ -166,11 +162,7 @@ class JsonResponse
 
         if (isset($data['message'])) {
 
-            if (is_array($data['message'])) {
-                $errorMessage = implode(' ', $data['message']);
-            } else {
-                $errorMessage = $data['message'];
-            }
+            $errorMessage = FieldConversion::multidimensionalImplode($data['message']);
 
             if (strlen(trim($errorMessage)) == 0) {
                 $errorMessage = 'brak';

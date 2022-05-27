@@ -142,6 +142,41 @@ class FieldConversion
         return $result;
     }
 
+    public static function setEmptyToNull($data) {
+
+        if (is_array($data)) {
+
+            foreach ($data as &$d) {
+                if (is_array($d)) {
+                    $d = self::setEmptyToNull($d);
+                } else if (is_string($d) && strlen(trim($d)) == 0) {
+                    $d = null;
+                }
+            }
+
+        } else if (is_string($data) && strlen(trim($data)) == 0) {
+            $data = null;
+        }
+
+        return $data;
+    }
+
+    public static function multidimensionalImplode($data) {
+
+        if (is_array($data)) {
+
+            foreach ($data as &$d) {
+                if (is_array($d)) {
+                    $d = self::multidimensionalImplode($d);
+                }
+            }
+
+            $data = implode(' ', $data);
+        }
+
+        return $data;
+    }
+
     private static function convertByDefault(string $conversionType, $data, int $from, ?int $to, int $current = 0) {
 
         if (is_array($data) || $current > 0) {
@@ -163,7 +198,7 @@ class FieldConversion
 
                             $convertedKey = Str::$conversionType($key);
 
-                            if (ctype_upper($key[0])) {
+                            if (is_string($key) && ctype_upper($key[0])) {
                                 $convertedKey = ucfirst($convertedKey);
                             }
 
@@ -177,7 +212,7 @@ class FieldConversion
 
                                 $convertedKey = Str::$conversionType($k);
 
-                                if (ctype_upper($k[0])) {
+                                if (is_string($k) && ctype_upper($k[0])) {
                                     $convertedKey = ucfirst($convertedKey);
                                 }
 
@@ -193,7 +228,7 @@ class FieldConversion
 
                                 $convertedKey = Str::$conversionType($key);
 
-                                if (ctype_upper($key[0])) {
+                                if (is_string($key) && ctype_upper($key[0])) {
                                     $convertedKey = ucfirst($convertedKey);
                                 }
 
