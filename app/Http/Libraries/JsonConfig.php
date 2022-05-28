@@ -15,79 +15,57 @@ class JsonConfig
             'actor' => [
                 'policeman' => [
                     'number' => 5,
+                    'catching' => [
+                        'number' => 3,
+                        'radius' => 100,
+                    ],
                 ],
                 'thief' => [
                     'number' => 1,
+                    'escape_duration' => 300,
+                    'disclosure_interval' => 300,
+                    'black_ticket' => [
+                        'number' => 0,
+                        'probability' => 0.5,
+                        'duration' => 300,
+                    ],
+                    'fake_position' => [
+                        'number' => 0,
+                        'probability' => 0.5,
+                        'duration' => 300,
+                    ],
                 ],
                 'agent' => [
                     'number' => 0,
                 ],
-                'saboteur' => [
+                'pegasus' => [
                     'number' => 0,
                     'probability' => 0.5,
-                    'show_number' => false,
+                    'white_ticket' => [
+                        'number' => 0,
+                        'probability' => 0.5,
+                    ],
+                ],
+                'fatty_man' => [
+                    'number' => 0,
+                    'probability' => 0.5,
+                ],
+                'eagle' => [
+                    'number' => 0,
+                    'probability' => 0.5,
                 ],
             ],
-            'game_duration' => [
+            'duration' => [
                 'scheduled' => 3600,
-                'escape_time' => 600,
                 'real' => 0,
             ],
-            'catching' => [
-                'number' => 3,
-                'radius' => 100,
-                'time' => 10,
-                'uninterrupted' => true,
-            ],
-            'disclosure' => [
-                'interval' => 300,
-                'after_starting' => false,
-                'thief_direction' => false,
-                'short_distance' => true,
-                'thief_knows_when' => true,
-                'policeman_sees_agent' => true,
-                'saboteur_sees_thief' => false,
-                'thief_knows_saboteur' => false,
-                'while_completing_mission' => true,
-                'after_crossing_border' => false,
-            ],
-            'mission' => [
-                'number' => 5,
-                'radius' => 50,
-                'time' => 10,
-                'all_visible' => true,
-            ],
-            'monitoring' => [
-                'number' => 0,
-                'radius' => 50,
-                'central' => [
-                    'number' => 0,
-                    'radius' => 50,
-                ],
-            ],
-            'ticket' => [
-                'black' => [
-                    'number' => 0,
-                    'probability' => 0.5,
-                ],
-                'white' => [
-                    'number' => 0,
-                    'probability' => 0.5,
-                ],
-            ],
-            'fake_position' => [
-                'number' => 0,
-                'probability' => 0.5,
-            ],
-            'game_pause' => [
-                'after_disconnecting' => true,
-                'after_crossing_border' => false,
-            ],
             'other' => [
-                'warning_number' => 2,
-                'crossing_border_countdown' => 30,
-                'max_speed' => 6,
                 'bot_speed' => 2.5,
+                'max_speed' => 15,
+                'warning_number' => 2,
+                'pause_after_disconnecting' => true,
+                'disconnecting_countdown' => 60,
+                'crossing_border_countdown' => 60,
             ],
         ];
     }

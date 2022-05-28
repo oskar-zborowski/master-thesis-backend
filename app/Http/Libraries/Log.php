@@ -737,7 +737,7 @@ class Log
 
                 $values['gpsLogId'] = $gpsLog->id;
                 $values['gpsLogUserId'] = $gpsLog->user_id !== null ? $gpsLog->user_id : 'brak';
-                $values['gpsLogLocation'] = strlen(trim($gpsLog->gps_location)) > 0 ? str_replace(':', ', ', $gpsLog->gps_location) : 'brak';
+                $values['gpsLogLocation'] = strlen(trim($gpsLog->gps_location)) > 0 ? $gpsLog->gps_location : 'brak';
 
                 if ($gpsLog->street !== null && strlen(trim($gpsLog->street)) > 0 && $gpsLog->house_number !== null && strlen(trim($gpsLog->house_number)) > 0) {
                     $values['gpsLogStreet'] = "$gpsLog->street $gpsLog->house_number";
@@ -829,7 +829,11 @@ class Log
         return $result;
     }
 
-    public static function getLocation(string $latitude, string $longitude, string $ipAddress, int $userId) {
+    public static function getLocation(string $gpsLocation, string $ipAddress, int $userId) {
+
+        $gpsLocation = explode(' ', $gpsLocation);
+        $longitude = $gpsLocation[0];
+        $latitude = $gpsLocation[1];
 
         $url = 'https://nominatim.openstreetmap.org';
         $nominatim = new Nominatim($url);

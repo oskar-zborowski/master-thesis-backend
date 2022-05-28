@@ -32,7 +32,7 @@ class UserController extends Controller
 
         Auth::loginUsingId($user->id);
 
-        $this->saveGpsLog($request->latitude, $request->longitude, $request);
+        $this->saveGpsLog($request->gps_location, $request);
 
         Encrypter::generateAuthTokens();
         JsonResponse::sendSuccess($request, $user->getData(), null, 201);
@@ -65,13 +65,13 @@ class UserController extends Controller
         $gpsLog = $user->gpsLogs()->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)->first();
 
         if (!$gpsLog) {
-            $this->saveGpsLog($request->latitude, $request->longitude, $request);
+            $this->saveGpsLog($request->gps_location, $request);
         }
 
         JsonResponse::sendSuccess($request, $user->getData());
     }
 
-    private function saveGpsLog(string $latitude, string $longitude, $request) {
+    private function saveGpsLog(string $gpsLocation, $request) {
 
         /** @var User $user */
         $user = Auth::user();
@@ -82,8 +82,7 @@ class UserController extends Controller
         // $command .= " \"{$request->ip()}\""; // TODO Odkomentować przy wdrożeniu na serwer
         $command .= ' "83.8.175.174"'; // TODO Zakomentować przy wdrożeniu na serwer
         $command .= " $user->id";
-        $command .= " \"$latitude\"";
-        $command .= " \"$longitude\"";
+        $command .= " \"$gpsLocation\"";
         $command .= ' >/dev/null 2>/dev/null &';
 
         shell_exec($command);

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Http\Traits\Encryptable;
-use MatanYadaev\EloquentSpatial\Objects\MultiPolygon;
 use MatanYadaev\EloquentSpatial\Objects\Polygon;
 use MatanYadaev\EloquentSpatial\SpatialBuilder;
 
@@ -21,14 +20,7 @@ class Room extends BaseModel
         'city',
         'voivodeship',
         'country',
-        'boundary_points',
         'boundary_polygon',
-        'mission_points',
-        'mission_polygons',
-        'monitoring_camera_points',
-        'monitoring_camera_polygons',
-        'monitoring_central_points',
-        'monitoring_central_polygons',
         'created_at',
         'updated_at',
     ];
@@ -37,10 +29,6 @@ class Room extends BaseModel
         'id' => 'integer',
         'game_config' => 'array',
         'boundary_polygon' => Polygon::class,
-        'mission_polygons' => MultiPolygon::class,
-        'monitoring_camera_polygons' => MultiPolygon::class,
-        'monitoring_central_polygons' => MultiPolygon::class,
-        'geometries_confirmed' => 'boolean',
         'game_started_at' => 'string',
         'game_ended_at' => 'string',
         'next_disclosure_at' => 'string',
@@ -52,7 +40,7 @@ class Room extends BaseModel
 
     protected $encryptable = [
         'code' => 6,
-        'gps_location' => 22,
+        'gps_location' => 20,
         'house_number' => 10,
         'street' => 70,
         'housing_estate' => 70,
@@ -60,10 +48,7 @@ class Room extends BaseModel
         'city' => 40,
         'voivodeship' => 20,
         'country' => 30,
-        'boundary_points' => 14949,
-        'mission_points' => 1149,
-        'monitoring_camera_points' => 229,
-        'monitoring_central_points' => 114,
+        'boundary_points' => 419,
     ];
 
     public function host() {
@@ -80,7 +65,8 @@ class Room extends BaseModel
 
     public function getData() {
         return [
-            'Room' => 'test'
+            'Room' => $this,
+            // Przysyłać dodatkowo informację o UTC żeby aplikacja wiedziała o ile skorygować czas względem czasu serwera
         ];
     }
 }

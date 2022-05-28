@@ -24,8 +24,7 @@ class Validation
             'os_version' => 'nullable|string|between:1,10',
             'app_version' => ['required', Rule::in(self::getAppVersions())],
             'uuid' => 'nullable|string|between:1,45',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
+            'gps_location' => 'required|string|between:3,20',
         ];
     }
 
@@ -34,15 +33,13 @@ class Validation
             'name' => 'nullable|string|between:1,15',
             'os_version' => 'nullable|string|between:1,10',
             'app_version' => ['required', Rule::in(self::getAppVersions())],
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
+            'gps_location' => 'required|string|between:3,20',
         ];
     }
 
     public static function room_updateRoom() {
         return [
             'host_id' => 'nullable|integer|exists:users,id',
-            'game_mode' => ['nullable', Rule::in(self::getGameModes())],
             'actor_policeman_number' => 'nullable|integer|between:1,25',
             'actor_thief_number' => 'nullable|integer|between:1,5',
             'actor_agent_number' => 'nullable|integer|between:0,25',
@@ -128,13 +125,6 @@ class Validation
         ];
     }
 
-    public static function getGameModes() {
-        return [
-            'SCOTLAND_YARD',
-            'MISSION_IMPOSSIBLE',
-        ];
-    }
-
     public static function getRoomStatuses() {
         return [
             'WAITING_IN_ROOM',
@@ -147,8 +137,6 @@ class Validation
     public static function getGameResults() {
         return [
             'POLICEMEN_WON_BY_CATCHING',
-            'POLICEMEN_WON_ON_TIME',
-            'THIEVES_WON_BY_COMPLETING_MISSIONS',
             'THIEVES_WON_ON_TIME',
         ];
     }
@@ -158,7 +146,9 @@ class Validation
             'POLICEMAN',
             'THIEF',
             'AGENT',
-            'SABOTEUR',
+            'PEGASUS',
+            'FATTY_MAN',
+            'EAGLE,'
         ];
     }
 
@@ -174,7 +164,6 @@ class Validation
 
     public static function getActionStatuses() {
         return [
-            'DETECTED_BY_CAMERA',
             'BORDER_CROSSED',
         ];
     }

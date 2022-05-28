@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('host_id')->nullable()->references('id')->on('users')->nullOnDelete();
             $table->char('code', 48)->unique(); // Kodowane automatycznie
-            $table->char('gps_location', 80)->nullable(); // Kodowane automatycznie
+            $table->char('gps_location', 80)->nullable(); // Kodowane automatycznie | Struktura: -179.12345 -89.12345
             $table->char('house_number', 48)->nullable(); // Kodowane automatycznie
             $table->char('street', 176)->nullable(); // Kodowane automatycznie
             $table->char('housing_estate', 176)->nullable(); // Kodowane automatycznie
@@ -23,17 +23,9 @@ return new class extends Migration
             $table->char('city', 112)->nullable(); // Kodowane automatycznie
             $table->char('voivodeship', 80)->nullable(); // Kodowane automatycznie
             $table->char('country', 80)->nullable(); // Kodowane automatycznie
-            $table->enum('game_mode', Validation::getGameModes())->default(Validation::getGameModes()[0]);
             $table->json('game_config');
-            $table->text('boundary_points')->nullable(); // Kodowane automatycznie | Przykładowa struktura: lat:lng,lat:lng,lat:lng,lat:lng;lat:lng,lat:lng,lat:lng,lat:lng;lat:lng,lat:lng,lat:lng,lat:lng | max_length: 29936
-            $table->polygon('boundary_polygon')->nullable(); // Poligon zewnętrzny może składać się z maksymalnie 50 pkt., może zawierać maksymalnie 30 poligonów wewnętrznych, z których każdy może posiadać maksymalnie 20 pkt.
-            $table->string('mission_points', 2320)->nullable(); // Kodowane automatycznie | Przykładowa struktura: lat:lng,lat:lng,lat:lng
-            $table->multiPolygon('mission_polygons')->nullable();
-            $table->string('monitoring_camera_points', 496)->nullable(); // Kodowane automatycznie
-            $table->multiPolygon('monitoring_camera_polygons')->nullable();
-            $table->string('monitoring_central_points', 272)->nullable(); // Kodowane automatycznie
-            $table->multiPolygon('monitoring_central_polygons')->nullable();
-            $table->boolean('geometries_confirmed')->default(false);
+            $table->polygon('boundary_polygon')->nullable(); // Obowiązuje wyłącznie jeden poligon, który może składać się z maksymalnie 20 pkt.
+            $table->string('boundary_points', 880)->nullable(); // Kodowane automatycznie | Struktura: -179.12345 -89.12345,-179.12345 -89.12345,-179.12345 -89.12345,-179.12345 -89.12345
             $table->enum('status', Validation::getRoomStatuses())->default(Validation::getRoomStatuses()[0]);
             $table->enum('game_result', Validation::getGameResults())->nullable();
             $table->timestamp('game_started_at')->nullable();
@@ -55,79 +47,57 @@ return new class extends Migration
 // {
 //     "actor": {
 //         "policeman": {
-//             "number": 5
+//             "number": 5,
+//             "catching": {
+//                 "number": 3,
+//                 "radius": 100
+//             }
 //         },
 //         "thief": {
-//             "number": 1
+//             "number": 1,
+//             "escape_duration": 300,
+//             "disclosure_interval": 300,
+//             "black_ticket": {
+//                 "number": 0,
+//                 "probability": 0.5,
+//                 "duration": 300
+//             },
+//             "fake_position": {
+//                 "number": 0,
+//                 "probability": 0.5,
+//                 "duration": 300
+//             }
 //         },
 //         "agent": {
 //             "number": 0
 //         },
-//         "saboteur": {
+//         "pegasus": {
 //             "number": 0,
 //             "probability": 0.5,
-//             "show_number": false
-//         }
-//     },
-//     "game_duration": {
-//         "scheduled": 3600,
-//         "escape_time": 600,
-//         "real": 0
-//     },
-//     "catching": {
-//         "number": 3,
-//         "radius": 100,
-//         "time": 10,
-//         "uninterrupted": true
-//     },
-//     "disclosure": {
-//         "interval": 300,
-//         "after_starting": false,
-//         "thief_direction": false,
-//         "short_distance": true,
-//         "thief_knows_when": true,
-//         "policeman_sees_agent": true,
-//         "saboteur_sees_thief": false,
-//         "thief_knows_saboteur": false,
-//         "while_completing_mission": true,
-//         "after_crossing_border": false
-//     },
-//     "mission": {
-//         "number": 5,
-//         "radius": 50,
-//         "time": 10,
-//         "all_visible": true
-//     },
-//     "monitoring": {
-//         "number": 0,
-//         "radius": 50,
-//         "central": {
-//             "number": 0,
-//             "radius": 50
-//         }
-//     },
-//     "ticket": {
-//         "black": {
+//             "white_ticket": {
+//                 "number": 0,
+//                 "probability": 0.5
+//             }
+//         },
+//         "fatty_man": {
 //             "number": 0,
 //             "probability": 0.5
 //         },
-//         "white": {
+//         "eagle": {
 //             "number": 0,
 //             "probability": 0.5
 //         }
 //     },
-//     "fake_position": {
-//         "number": 0,
-//         "probability": 0.5
-//     },
-//     "game_pause": {
-//         "after_disconnecting": true,
-//         "after_crossing_border": false
+//     "duration": {
+//         "scheduled": 3600,
+//         "real": 0
 //     },
 //     "other": {
+//         "bot_speed": 2.5,
+//         "max_speed": 15,
 //         "warning_number": 2,
-//         "crossing_border_countdown": 30,
-//         "max_speed": 6,
-//         "bot_speed": 2.5
+//         "pause_after_disconnecting": true,
+//         "disconnecting_countdown": 60,
+//         "crossing_border_countdown": 60
 //     }
 // }

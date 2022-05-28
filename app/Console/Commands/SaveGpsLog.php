@@ -11,7 +11,7 @@ class SaveGpsLog extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'gps-log:save {ipAddress} {userId} {latitude} {longitude}';
+    protected $signature = 'gps-log:save {ipAddress} {userId} {gpsLocation}';
 
     /**
      * The console command description.
@@ -25,14 +25,13 @@ class SaveGpsLog extends Command
 
         $ipAddress = $this->argument('ipAddress');
         $userId = $this->argument('userId');
-        $latitude = $this->argument('latitude');
-        $longitude = $this->argument('longitude');
+        $gpsLocation = $this->argument('gpsLocation');
 
-        $location = Log::getLocation($latitude, $longitude, $ipAddress, $userId);
+        $location = Log::getLocation($gpsLocation, $ipAddress, $userId);
 
         $gpsLog = new GpsLog;
         $gpsLog->user_id = $userId;
-        $gpsLog->gps_location = "$latitude:$longitude";
+        $gpsLog->gps_location = $gpsLocation;
 
         if (isset($location['house_number'])) {
             $gpsLog->house_number = $location['house_number'];

@@ -30,7 +30,7 @@ class GpsLog extends BaseModel
     ];
 
     protected $encryptable = [
-        'gps_location' => 22,
+        'gps_location' => 20,
         'house_number' => 10,
         'street' => 70,
         'housing_estate' => 70,

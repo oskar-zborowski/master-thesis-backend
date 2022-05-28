@@ -54,7 +54,7 @@ class User extends Authenticatable
 
     public function getData() {
         return [
-            'User' => $this
+            'User' => $this,
         ];
     }
 }
