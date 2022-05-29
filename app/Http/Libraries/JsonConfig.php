@@ -78,168 +78,112 @@ class JsonConfig
             $gameConfig['actor']['policeman']['number'] = $request->actor_policeman_number;
         }
 
+        if ($request->actor_policeman_catching_number !== null) {
+            $gameConfig['actor']['policeman']['catching']['number'] = $request->actor_policeman_catching_number;
+        }
+
+        if ($request->actor_policeman_catching_radius !== null) {
+            $gameConfig['actor']['policeman']['catching']['radius'] = $request->actor_policeman_catching_radius;
+        }
+
         if ($request->actor_thief_number !== null) {
             $gameConfig['actor']['thief']['number'] = $request->actor_thief_number;
+        }
+
+        if ($request->actor_thief_escape_duration !== null) {
+            $gameConfig['actor']['thief']['escape_duration'] = $request->actor_thief_escape_duration;
+        }
+
+        if ($request->actor_thief_disclosure_interval !== null) {
+            $gameConfig['actor']['thief']['disclosure_interval'] = $request->actor_thief_disclosure_interval;
+        }
+
+        if ($request->actor_thief_black_ticket_number !== null) {
+            $gameConfig['actor']['thief']['black_ticket']['number'] = $request->actor_thief_black_ticket_number;
+        }
+
+        if ($request->actor_thief_black_ticket_probability !== null) {
+            $gameConfig['actor']['thief']['black_ticket']['probability'] = $request->actor_thief_black_ticket_probability;
+        }
+
+        if ($request->actor_thief_black_ticket_duration !== null) {
+            $gameConfig['actor']['thief']['black_ticket']['duration'] = $request->actor_thief_black_ticket_duration;
+        }
+
+        if ($request->actor_thief_fake_position_number !== null) {
+            $gameConfig['actor']['thief']['fake_position']['number'] = $request->actor_thief_fake_position_number;
+        }
+
+        if ($request->actor_thief_fake_position_probability !== null) {
+            $gameConfig['actor']['thief']['fake_position']['probability'] = $request->actor_thief_fake_position_probability;
+        }
+
+        if ($request->actor_thief_fake_position_duration !== null) {
+            $gameConfig['actor']['thief']['fake_position']['duration'] = $request->actor_thief_fake_position_duration;
         }
 
         if ($request->actor_agent_number !== null) {
             $gameConfig['actor']['agent']['number'] = $request->actor_agent_number;
         }
 
-        if ($request->actor_saboteur_number !== null) {
-            $gameConfig['actor']['saboteur']['number'] = $request->actor_saboteur_number;
+        if ($request->actor_pegasus_number !== null) {
+            $gameConfig['actor']['pegasus']['number'] = $request->actor_pegasus_number;
         }
 
-        if ($request->actor_saboteur_probability !== null) {
-            $gameConfig['actor']['saboteur']['probability'] = $request->actor_saboteur_probability;
+        if ($request->actor_pegasus_probability !== null) {
+            $gameConfig['actor']['pegasus']['probability'] = $request->actor_pegasus_probability;
         }
 
-        if ($request->actor_saboteur_show_number !== null) {
-            $gameConfig['actor']['saboteur']['show_number'] = $request->actor_saboteur_show_number;
+        if ($request->actor_pegasus_white_ticket_number !== null) {
+            $gameConfig['actor']['pegasus']['white_ticket']['number'] = $request->actor_pegasus_white_ticket_number;
         }
 
-        if ($request->game_duration_scheduled !== null) {
-            $gameConfig['game_duration']['scheduled'] = $request->game_duration_scheduled;
+        if ($request->actor_pegasus_white_ticket_probability !== null) {
+            $gameConfig['actor']['pegasus']['white_ticket']['probability'] = $request->actor_pegasus_white_ticket_probability;
         }
 
-        if ($request->game_duration_escape_time !== null) {
-            $gameConfig['game_duration']['escape_time'] = $request->game_duration_escape_time;
+        if ($request->actor_fatty_man_number !== null) {
+            $gameConfig['actor']['fatty_man']['number'] = $request->actor_fatty_man_number;
         }
 
-        if ($request->catching_number !== null) {
-            $gameConfig['catching']['number'] = $request->catching_number;
+        if ($request->actor_fatty_man_probability !== null) {
+            $gameConfig['actor']['fatty_man']['probability'] = $request->actor_fatty_man_probability;
         }
 
-        if ($request->catching_radius !== null) {
-            $gameConfig['catching']['radius'] = $request->catching_radius;
+        if ($request->actor_eagle_number !== null) {
+            $gameConfig['actor']['eagle']['number'] = $request->actor_eagle_number;
         }
 
-        if ($request->catching_time !== null) {
-            $gameConfig['catching']['time'] = $request->catching_time;
+        if ($request->actor_eagle_probability !== null) {
+            $gameConfig['actor']['eagle']['probability'] = $request->actor_eagle_probability;
         }
 
-        if ($request->catching_uninterrupted !== null) {
-            $gameConfig['catching']['uninterrupted'] = $request->catching_uninterrupted;
+        if ($request->duration_scheduled !== null) {
+            $gameConfig['duration']['scheduled'] = $request->duration_scheduled;
         }
 
-        if ($request->disclosure_interval !== null) {
-            $gameConfig['disclosure']['interval'] = $request->disclosure_interval;
-        }
-
-        if ($request->disclosure_after_starting !== null) {
-            $gameConfig['disclosure']['after_starting'] = $request->disclosure_after_starting;
-        }
-
-        if ($request->disclosure_thief_direction !== null) {
-            $gameConfig['disclosure']['thief_direction'] = $request->disclosure_thief_direction;
-        }
-
-        if ($request->disclosure_short_distance !== null) {
-            $gameConfig['disclosure']['short_distance'] = $request->disclosure_short_distance;
-        }
-
-        if ($request->disclosure_thief_knows_when !== null) {
-            $gameConfig['disclosure']['thief_knows_when'] = $request->disclosure_thief_knows_when;
-        }
-
-        if ($request->disclosure_policeman_sees_agent !== null) {
-            $gameConfig['disclosure']['policeman_sees_agent'] = $request->disclosure_policeman_sees_agent;
-        }
-
-        if ($request->disclosure_saboteur_sees_thief !== null) {
-            $gameConfig['disclosure']['saboteur_sees_thief'] = $request->disclosure_saboteur_sees_thief;
-        }
-
-        if ($request->disclosure_thief_knows_saboteur !== null) {
-            $gameConfig['disclosure']['thief_knows_saboteur'] = $request->disclosure_thief_knows_saboteur;
-        }
-
-        if ($request->disclosure_while_completing_mission !== null) {
-            $gameConfig['disclosure']['while_completing_mission'] = $request->disclosure_while_completing_mission;
-        }
-
-        if ($request->disclosure_after_crossing_border !== null) {
-            $gameConfig['disclosure']['after_crossing_border'] = $request->disclosure_after_crossing_border;
-        }
-
-        if ($request->mission_number !== null) {
-            $gameConfig['mission']['number'] = $request->mission_number;
-        }
-
-        if ($request->mission_radius !== null) {
-            $gameConfig['mission']['radius'] = $request->mission_radius;
-        }
-
-        if ($request->mission_time !== null) {
-            $gameConfig['mission']['time'] = $request->mission_time;
-        }
-
-        if ($request->mission_all_visible !== null) {
-            $gameConfig['mission']['all_visible'] = $request->mission_all_visible;
-        }
-
-        if ($request->monitoring_number !== null) {
-            $gameConfig['monitoring']['number'] = $request->monitoring_number;
-        }
-
-        if ($request->monitoring_radius !== null) {
-            $gameConfig['monitoring']['radius'] = $request->monitoring_radius;
-        }
-
-        if ($request->monitoring_central_number !== null) {
-            $gameConfig['monitoring']['central']['number'] = $request->monitoring_central_number;
-        }
-
-        if ($request->monitoring_central_radius !== null) {
-            $gameConfig['monitoring']['central']['radius'] = $request->monitoring_central_radius;
-        }
-
-        if ($request->ticket_black_number !== null) {
-            $gameConfig['ticket']['black']['number'] = $request->ticket_black_number;
-        }
-
-        if ($request->ticket_black_probability !== null) {
-            $gameConfig['ticket']['black']['probability'] = $request->ticket_black_probability;
-        }
-
-        if ($request->ticket_white_number !== null) {
-            $gameConfig['ticket']['white']['number'] = $request->ticket_white_number;
-        }
-
-        if ($request->ticket_white_probability !== null) {
-            $gameConfig['ticket']['white']['probability'] = $request->ticket_white_probability;
-        }
-
-        if ($request->fake_position_number !== null) {
-            $gameConfig['fake_position']['number'] = $request->fake_position_number;
-        }
-
-        if ($request->fake_position_probability !== null) {
-            $gameConfig['fake_position']['probability'] = $request->fake_position_probability;
-        }
-
-        if ($request->game_pause_after_disconnecting !== null) {
-            $gameConfig['game_pause']['after_disconnecting'] = $request->game_pause_after_disconnecting;
-        }
-
-        if ($request->game_pause_after_crossing_border !== null) {
-            $gameConfig['game_pause']['after_crossing_border'] = $request->game_pause_after_crossing_border;
-        }
-
-        if ($request->other_warning_number !== null) {
-            $gameConfig['other']['warning_number'] = $request->other_warning_number;
-        }
-
-        if ($request->other_crossing_border_countdown !== null) {
-            $gameConfig['other']['crossing_border_countdown'] = $request->other_crossing_border_countdown;
+        if ($request->other_bot_speed !== null) {
+            $gameConfig['other']['bot_speed'] = $request->other_bot_speed;
         }
 
         if ($request->other_max_speed !== null) {
             $gameConfig['other']['max_speed'] = $request->other_max_speed;
         }
 
-        if ($request->other_bot_speed !== null) {
-            $gameConfig['other']['bot_speed'] = $request->other_bot_speed;
+        if ($request->other_warning_number !== null) {
+            $gameConfig['other']['warning_number'] = $request->other_warning_number;
+        }
+
+        if ($request->other_pause_after_disconnecting !== null) {
+            $gameConfig['other']['pause_after_disconnecting'] = $request->other_pause_after_disconnecting;
+        }
+
+        if ($request->other_disconnecting_countdown !== null) {
+            $gameConfig['other']['disconnecting_countdown'] = $request->other_disconnecting_countdown;
+        }
+
+        if ($request->other_crossing_border_countdown !== null) {
+            $gameConfig['other']['crossing_border_countdown'] = $request->other_crossing_border_countdown;
         }
 
         return $gameConfig;
