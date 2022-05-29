@@ -9,10 +9,6 @@ use App\Http\Libraries\Encrypter;
  */
 trait Encryptable
 {
-    private function encryptable(string $key) {
-        return in_array($key, array_keys($this->encryptable));
-    }
-
     public function setAttribute($key, $value) {
 
         if ($this->encryptable($key)) {
@@ -44,5 +40,9 @@ trait Encryptable
         }
 
         return $attributes;
+    }
+
+    private function encryptable(string $key) {
+        return in_array($key, array_keys($this->encryptable));
     }
 }

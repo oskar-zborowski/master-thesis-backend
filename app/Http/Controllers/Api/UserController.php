@@ -79,10 +79,10 @@ class UserController extends Controller
         /** @var \Illuminate\Http\Request $request */
 
         $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan gps-log:save";
+        $command .= " \"$gpsLocation\"";
         // $command .= " \"{$request->ip()}\""; // TODO Odkomentować przy wdrożeniu na serwer
         $command .= ' "83.8.175.174"'; // TODO Zakomentować przy wdrożeniu na serwer
         $command .= " $user->id";
-        $command .= " \"$gpsLocation\"";
         $command .= ' >/dev/null 2>/dev/null &';
 
         shell_exec($command);

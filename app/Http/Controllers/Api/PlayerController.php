@@ -77,10 +77,16 @@ class PlayerController extends Controller
     }
 
     /**
-     * #### `PATCH` `/api/v1/players/{player}`
+     * #### `PATCH` `/api/v1/players/my/last`
      * Edycja danych gracza (zmiana parametrów podczas oczekiwania w pokoju i w trakcie gry)
      */
-    public function updatePlayer(Player $player, UpdatePlayerRequest $request) {
+    public function updatePlayer(UpdatePlayerRequest $request) {
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        /** @var Player $player */
+        $player = $user->players()->latest()->first();
 
         /** @var Room $room */
         $room = $player->room()->first();

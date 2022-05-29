@@ -77,10 +77,10 @@ class RoomController extends Controller
     }
 
     /**
-     * #### `PATCH` `/api/v1/rooms/{room}`
+     * #### `PATCH` `/api/v1/rooms/my/last`
      * Edycja pokoju
      */
-    public function updateRoom(Room $room, UpdateRoomRequest $request) {
+    public function updateRoom(UpdateRoomRequest $request) {
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -134,10 +134,10 @@ class RoomController extends Controller
     }
 
     /**
-     * #### `GET` `/api/v1/rooms/{room}`
+     * #### `GET` `/api/v1/rooms/my/last`
      * Pobranie informacji o grze
      */
-    public function getRoom(Room $room, Request $request) {
+    public function getRoom(Request $request) {
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
