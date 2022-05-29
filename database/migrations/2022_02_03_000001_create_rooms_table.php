@@ -93,6 +93,7 @@ return new class extends Migration
 //         "real": 0
 //     },
 //     "other": {
+//         "role_random": true,
 //         "bot_speed": 2.5,
 //         "max_speed": 15,
 //         "warning_number": 2,
