@@ -69,7 +69,7 @@ class PlayerController extends Controller
         $player->room_id = $room->id;
         $player->user_id = $user->id;
         $player->avatar = $user->default_avatar;
-        $player->player_config = JsonConfig::getDefaultPlayerConfig();
+        $player->config = JsonConfig::getDefaultPlayerConfig();
         $player->expected_time_at = $expirationDate;
         $player->save();
 

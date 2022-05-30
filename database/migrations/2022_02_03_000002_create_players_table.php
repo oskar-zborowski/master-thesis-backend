@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->references('id')->on('users')->nullOnDelete();
             $table->enum('avatar', Validation::getAvatars());
             $table->enum('role', Validation::getPlayerRoles())->nullable();
-            $table->json('player_config')->nullable();
+            $table->json('config')->nullable();
             $table->json('track')->nullable();
             $table->point('global_position')->nullable(); // Ostatnia ujawniona globalnie pozycja gracza (wszyscy gracze poza agentem, a złodziej tylko podczas ujawniania) | Usuwane po zakończeniu gry
             $table->point('hidden_position')->nullable(); // Ostatnia pozycja gracza ujawniana tylko swojej frakcji (agent oraz złodziej) | Usuwane po zakończeniu gry
@@ -47,7 +47,7 @@ return new class extends Migration
     }
 };
 
-// Struktura JSONa z domyślnymi wartościami dla pola "player_config"
+// Struktura JSONa z domyślnymi wartościami dla pola "config"
 //     "black_ticket": {
 //         "number": 0,
 //         "used_number": 0

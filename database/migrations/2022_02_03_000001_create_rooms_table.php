@@ -24,7 +24,7 @@ return new class extends Migration
             $table->char('city', 112)->nullable(); // Kodowane automatycznie
             $table->char('voivodeship', 80)->nullable(); // Kodowane automatycznie
             $table->char('country', 80)->nullable(); // Kodowane automatycznie
-            $table->json('game_config');
+            $table->json('config');
             $table->polygon('boundary_polygon')->nullable(); // Obowiązuje wyłącznie jeden poligon, który może składać się z maksymalnie 20 pkt. | Usuwane po zakończeniu gry
             $table->string('boundary_points', 880)->nullable(); // Kodowane automatycznie | Struktura: -179.12345 -89.12345,-179.12345 -89.12345,-179.12345 -89.12345,-179.12345 -89.12345
             $table->enum('status', Validation::getRoomStatuses())->default(Validation::getRoomStatuses()[0]);
@@ -44,7 +44,7 @@ return new class extends Migration
     }
 };
 
-// Struktura JSONa z domyślnymi wartościami dla pola "game_config"
+// Struktura JSONa z domyślnymi wartościami dla pola "config"
 // {
 //     "actor": {
 //         "policeman": {

@@ -73,7 +73,7 @@ class JsonConfig
 
     public static function setGameConfig(Room $room, UpdateRoomRequest $request) {
 
-        $gameConfig = $room->game_config;
+        $gameConfig = $room->config;
 
         if ($request->actor_policeman_number !== null) {
             $gameConfig['actor']['policeman']['number'] = $request->actor_policeman_number;
@@ -194,21 +194,24 @@ class JsonConfig
         return $gameConfig;
     }
 
-    public static function getDefaultPlayerConfig() {
+    public static function getDefaultThiefConfig() {
         return [
-            'ticket' => [
-                'black' => [
-                    'number' => 0,
-                    'used_number' => 0,
-                ],
-                'white' => [
-                    'number' => 0,
-                    'used_number' => 0,
-                ],
-                'fake_position' => [
-                    'number' => 0,
-                    'used_number' => 0,
-                ],
+            'black_ticket' => [
+                'number' => 0,
+                'used_number' => 0,
+            ],
+            'fake_position' => [
+                'number' => 0,
+                'used_number' => 0,
+            ],
+        ];
+    }
+
+    public static function getDefaultPegasusConfig() {
+        return [
+            'white_ticket' => [
+                'number' => 0,
+                'used_number' => 0,
             ],
         ];
     }

@@ -10,7 +10,7 @@ class Player extends BaseModel
     protected $hidden = [
         'room_id',
         'user_id',
-        'player_config',
+        'config',
         'track',
         'hidden_position',
         'fake_position',
@@ -26,7 +26,7 @@ class Player extends BaseModel
 
     protected $casts = [
         'id' => 'integer',
-        'player_config' => 'array',
+        'config' => 'array',
         'track' => 'array',
         'global_position' => Point::class,
         'hidden_position' => Point::class,

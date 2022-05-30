@@ -59,7 +59,7 @@ class RoomController extends Controller
         $room = new Room;
         $room->host_id = $user->id;
         $room->code = Encrypter::generateToken(6, Room::class, 'code');
-        $room->game_config = JsonConfig::getDefaultGameConfig();
+        $room->config = JsonConfig::getDefaultGameConfig();
         $room->save();
 
         $now = date('Y-m-d H:i:s');
@@ -69,7 +69,7 @@ class RoomController extends Controller
         $player->room_id = $room->id;
         $player->user_id = $user->id;
         $player->avatar = $user->default_avatar;
-        $player->player_config = JsonConfig::getDefaultPlayerConfig();
+        $player->config = JsonConfig::getDefaultPlayerConfig();
         $player->expected_time_at = $expectedTimeAt;
         $player->save();
 
