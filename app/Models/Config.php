@@ -7,9 +7,9 @@ class Config extends BaseModel
     protected $hidden = [
         'id',
         'log_counter',
-        'nominatim_is_busy',
-        'ip_api_is_busy',
-        'mail_is_busy',
+        'is_nominatim_busy',
+        'is_ip_api_busy',
+        'is_mail_busy',
         'nominatim_last_used_at',
         'ip_api_last_used_at',
         'mail_last_used_at',
@@ -19,9 +19,9 @@ class Config extends BaseModel
 
     protected $casts = [
         'log_counter' => 'integer',
-        'nominatim_is_busy' => 'boolean',
-        'ip_api_is_busy' => 'boolean',
-        'mail_is_busy' => 'boolean',
+        'is_nominatim_busy' => 'boolean',
+        'is_ip_api_busy' => 'boolean',
+        'is_mail_busy' => 'boolean',
         'nominatim_last_used_at' => 'string',
         'ip_api_last_used_at' => 'string',
         'mail_last_used_at' => 'string',

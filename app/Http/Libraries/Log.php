@@ -53,10 +53,10 @@ class Log
                     do {
                         sleep(env('IP_API_CONST_PAUSE'));
                         $config = Config::where('id', 1)->first();
-                        $ipApiIsBusy = $config->ip_api_is_busy || $config->ip_api_last_used_at && Validation::timeComparison($config->ip_api_last_used_at, env('IP_API_CONST_PAUSE'), '<', 'seconds');
-                    } while ($ipApiIsBusy);
+                        $isIpApiBusy = $config->is_ip_api_busy || $config->ip_api_last_used_at && Validation::timeComparison($config->ip_api_last_used_at, env('IP_API_CONST_PAUSE'), '<', 'seconds');
+                    } while ($isIpApiBusy);
 
-                    $config->ip_api_is_busy = true;
+                    $config->is_ip_api_busy = true;
                     $config->save();
 
                     $ipApiErrorCounter = 0;
@@ -105,7 +105,7 @@ class Log
 
                     } while ($ipApiError);
 
-                    $config->ip_api_is_busy = false;
+                    $config->is_ip_api_busy = false;
                     $config->ip_api_last_used_at = now();
                     $config->save();
 
@@ -341,10 +341,10 @@ class Log
                     do {
                         sleep(env('MAIL_CONST_PAUSE'));
                         $config = Config::where('id', 1)->first();
-                        $mailIsBusy = $config->mail_is_busy || $config->mail_last_used_at && Validation::timeComparison($config->mail_last_used_at, env('MAIL_CONST_PAUSE'), '<', 'seconds');
-                    } while ($mailIsBusy);
+                        $isMailBusy = $config->is_mail_busy || $config->mail_last_used_at && Validation::timeComparison($config->mail_last_used_at, env('MAIL_CONST_PAUSE'), '<', 'seconds');
+                    } while ($isMailBusy);
 
-                    $config->mail_is_busy = true;
+                    $config->is_mail_busy = true;
                     $config->save();
                 }
 
@@ -372,7 +372,7 @@ class Log
                 } while ($mailError);
 
                 if (!$dbConnectionError) {
-                    $config->mail_is_busy = false;
+                    $config->is_mail_busy = false;
                     $config->mail_last_used_at = now();
                     $config->save();
                 }
@@ -841,10 +841,10 @@ class Log
         do {
             sleep(env('NOMINATIM_CONST_PAUSE'));
             $config = Config::where('id', 1)->first();
-            $nominatimIsBusy = $config->nominatim_is_busy || $config->nominatim_last_used_at && Validation::timeComparison($config->nominatim_last_used_at, env('NOMINATIM_CONST_PAUSE'), '<', 'seconds');
-        } while ($nominatimIsBusy);
+            $isNominatimBusy = $config->is_nominatim_busy || $config->nominatim_last_used_at && Validation::timeComparison($config->nominatim_last_used_at, env('NOMINATIM_CONST_PAUSE'), '<', 'seconds');
+        } while ($isNominatimBusy);
 
-        $config->nominatim_is_busy = true;
+        $config->is_nominatim_busy = true;
         $config->save();
 
         $nominatimErrorCounter = 0;
@@ -871,7 +871,7 @@ class Log
 
         } while ($nominatimError);
 
-        $config->nominatim_is_busy = false;
+        $config->is_nominatim_busy = false;
         $config->nominatim_last_used_at = now();
         $config->save();
 

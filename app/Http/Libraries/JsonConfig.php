@@ -60,13 +60,13 @@ class JsonConfig
                 'real' => 0,
             ],
             'other' => [
-                'role_random' => true,
+                'is_role_random' => true,
                 'bot_speed' => 2.5,
                 'max_speed' => 15,
                 'warning_number' => 2,
-                'pause_after_disconnecting' => true,
+                'is_pause_after_disconnecting' => true,
                 'disconnecting_countdown' => 60,
-                'crossing_border_countdown' => 60,
+                'crossing_boundary_countdown' => 60,
             ],
         ];
     }
@@ -163,8 +163,8 @@ class JsonConfig
             $gameConfig['duration']['scheduled'] = $request->duration_scheduled;
         }
 
-        if ($request->other_role_random !== null) {
-            $gameConfig['other']['role_random'] = $request->other_role_random;
+        if ($request->other_is_role_random !== null) {
+            $gameConfig['other']['is_role_random'] = $request->other_is_role_random;
         }
 
         if ($request->other_bot_speed !== null) {
@@ -179,16 +179,16 @@ class JsonConfig
             $gameConfig['other']['warning_number'] = $request->other_warning_number;
         }
 
-        if ($request->other_pause_after_disconnecting !== null) {
-            $gameConfig['other']['pause_after_disconnecting'] = $request->other_pause_after_disconnecting;
+        if ($request->other_is_pause_after_disconnecting !== null) {
+            $gameConfig['other']['is_pause_after_disconnecting'] = $request->other_is_pause_after_disconnecting;
         }
 
         if ($request->other_disconnecting_countdown !== null) {
             $gameConfig['other']['disconnecting_countdown'] = $request->other_disconnecting_countdown;
         }
 
-        if ($request->other_crossing_border_countdown !== null) {
-            $gameConfig['other']['crossing_border_countdown'] = $request->other_crossing_border_countdown;
+        if ($request->other_crossing_boundary_countdown !== null) {
+            $gameConfig['other']['crossing_boundary_countdown'] = $request->other_crossing_boundary_countdown;
         }
 
         return $gameConfig;

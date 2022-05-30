@@ -25,7 +25,7 @@ return new class extends Migration
             $table->char('voivodeship', 80)->nullable(); // Kodowane automatycznie
             $table->char('country', 80)->nullable(); // Kodowane automatycznie
             $table->json('game_config');
-            $table->polygon('boundary_polygon')->nullable(); // Obowiązuje wyłącznie jeden poligon, który może składać się z maksymalnie 20 pkt.
+            $table->polygon('boundary_polygon')->nullable(); // Obowiązuje wyłącznie jeden poligon, który może składać się z maksymalnie 20 pkt. | Usuwane po zakończeniu gry
             $table->string('boundary_points', 880)->nullable(); // Kodowane automatycznie | Struktura: -179.12345 -89.12345,-179.12345 -89.12345,-179.12345 -89.12345,-179.12345 -89.12345
             $table->enum('status', Validation::getRoomStatuses())->default(Validation::getRoomStatuses()[0]);
             $table->enum('game_result', Validation::getGameResults())->nullable();
@@ -94,12 +94,12 @@ return new class extends Migration
 //         "real": 0
 //     },
 //     "other": {
-//         "role_random": true,
+//         "is_role_random": true,
 //         "bot_speed": 2.5,
 //         "max_speed": 15,
 //         "warning_number": 2,
-//         "pause_after_disconnecting": true,
+//         "is_pause_after_disconnecting": true,
 //         "disconnecting_countdown": 60,
-//         "crossing_border_countdown": 60
+//         "crossing_boundary_countdown": 60
 //     }
 // }

@@ -37,6 +37,7 @@ class Room extends BaseModel
 
     protected $with = [
         'host',
+        'players',
     ];
 
     protected $encryptable = [

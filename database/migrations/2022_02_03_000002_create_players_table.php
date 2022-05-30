@@ -19,21 +19,22 @@ return new class extends Migration
             $table->enum('role', Validation::getPlayerRoles())->nullable();
             $table->json('player_config')->nullable();
             $table->json('track')->nullable();
-            $table->point('position')->nullable(); // ostatnia pozycja gracza ujawniona dla wszystkich (zarówno policjanta jak i złodzieja)
-            $table->point('thief_fake_position')->nullable(); // fake'owa pozycja złodzieja, po wygaśnięciu jest usuwana
+            $table->point('global_position')->nullable(); // Ostatnia ujawniona globalnie pozycja gracza (wszyscy gracze poza agentem, a złodziej tylko podczas ujawniania) | Usuwane po zakończeniu gry
+            $table->point('hidden_position')->nullable(); // Ostatnia pozycja gracza ujawniana tylko swojej frakcji (agent oraz złodziej) | Usuwane po zakończeniu gry
+            $table->point('fake_position')->nullable(); // Fake'owa pozycja złodzieja | Usuwane po wygaśnięciu lub zakończeniu gry
             $table->boolean('is_bot')->default(false);
-            $table->boolean('crossing_border')->default(false);
+            $table->boolean('is_crossing_boundary')->default(false);
             $table->enum('status', Validation::getPlayerStatuses())->default(Validation::getPlayerStatuses()[0]);
             $table->unsignedTinyInteger('warning_number')->default(0);
             $table->unsignedSmallInteger('average_ping')->default(0); // wyrażone w [ms]
             $table->unsignedSmallInteger('standard_deviation')->default(0); // wyrażone w [ms]
             $table->unsignedSmallInteger('samples_number')->default(0);
             $table->timestamp('expected_time_at')->nullable();
-            $table->timestamp('disconnecting_finished_at')->nullable();
-            $table->timestamp('crossing_border_finished_at')->nullable();
             $table->timestamp('black_ticket_finished_at')->nullable();
             $table->timestamp('fake_position_finished_at')->nullable();
             $table->timestamp('caught_at')->nullable();
+            $table->timestamp('disconnecting_finished_at')->nullable();
+            $table->timestamp('crossing_boundary_finished_at')->nullable();
             $table->timestamps();
         });
     }
