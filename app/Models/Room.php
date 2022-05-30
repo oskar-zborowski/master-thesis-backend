@@ -27,6 +27,7 @@ class Room extends BaseModel
 
     protected $casts = [
         'id' => 'integer',
+        'counter' => 'integer',
         'game_config' => 'array',
         'boundary_polygon' => Polygon::class,
         'game_started_at' => 'string',

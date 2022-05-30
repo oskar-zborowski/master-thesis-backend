@@ -142,13 +142,6 @@ class Validation
             'DISCONNECTED',
             'BLOCKED',
             'LEFT',
-            'LEFT_PERMANENTLY',
-        ];
-    }
-
-    public static function getActionStatuses() {
-        return [
-            'BORDER_CROSSED',
         ];
     }
 

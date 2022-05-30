@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
             $table->foreignId('host_id')->nullable()->references('id')->on('users')->nullOnDelete();
-            $table->char('code', 48)->unique(); // Kodowane automatycznie
+            $table->char('code', 48); // Kodowane automatycznie
+            $table->unsignedTinyInteger('counter')->default(1);
             $table->char('gps_location', 80)->nullable(); // Kodowane automatycznie | Struktura: -179.12345 -89.12345
             $table->char('house_number', 48)->nullable(); // Kodowane automatycznie
             $table->char('street', 176)->nullable(); // Kodowane automatycznie
