@@ -15,6 +15,7 @@ class JsonConfig
             'actor' => [
                 'policeman' => [
                     'number' => 5,
+                    'visibility_radius' => -1,
                     'catching' => [
                         'number' => 3,
                         'radius' => 100,
@@ -22,6 +23,7 @@ class JsonConfig
                 ],
                 'thief' => [
                     'number' => 1,
+                    'visibility_radius' => -1,
                     'escape_duration' => 300,
                     'disclosure_interval' => 300,
                     'black_ticket' => [
@@ -37,10 +39,12 @@ class JsonConfig
                 ],
                 'agent' => [
                     'number' => 0,
+                    'visibility_radius' => -1,
                 ],
                 'pegasus' => [
                     'number' => 0,
                     'probability' => 0.5,
+                    'visibility_radius' => -1,
                     'white_ticket' => [
                         'number' => 0,
                         'probability' => 0.5,
@@ -49,10 +53,12 @@ class JsonConfig
                 'fatty_man' => [
                     'number' => 0,
                     'probability' => 0.5,
+                    'visibility_radius' => -1,
                 ],
                 'eagle' => [
                     'number' => 0,
                     'probability' => 0.5,
+                    'visibility_radius' => -1,
                 ],
             ],
             'duration' => [
@@ -79,6 +85,10 @@ class JsonConfig
             $gameConfig['actor']['policeman']['number'] = $request->actor_policeman_number;
         }
 
+        if ($request->actor_policeman_visibility_radius !== null) {
+            $gameConfig['actor']['policeman']['visibility_radius'] = $request->actor_policeman_visibility_radius;
+        }
+
         if ($request->actor_policeman_catching_number !== null) {
             $gameConfig['actor']['policeman']['catching']['number'] = $request->actor_policeman_catching_number;
         }
@@ -89,6 +99,10 @@ class JsonConfig
 
         if ($request->actor_thief_number !== null) {
             $gameConfig['actor']['thief']['number'] = $request->actor_thief_number;
+        }
+
+        if ($request->actor_thief_visibility_radius !== null) {
+            $gameConfig['actor']['thief']['visibility_radius'] = $request->actor_thief_visibility_radius;
         }
 
         if ($request->actor_thief_escape_duration !== null) {
@@ -127,12 +141,20 @@ class JsonConfig
             $gameConfig['actor']['agent']['number'] = $request->actor_agent_number;
         }
 
+        if ($request->actor_agent_visibility_radius !== null) {
+            $gameConfig['actor']['agent']['visibility_radius'] = $request->actor_agent_visibility_radius;
+        }
+
         if ($request->actor_pegasus_number !== null) {
             $gameConfig['actor']['pegasus']['number'] = $request->actor_pegasus_number;
         }
 
         if ($request->actor_pegasus_probability !== null) {
             $gameConfig['actor']['pegasus']['probability'] = $request->actor_pegasus_probability;
+        }
+
+        if ($request->actor_pegasus_visibility_radius !== null) {
+            $gameConfig['actor']['pegasus']['visibility_radius'] = $request->actor_pegasus_visibility_radius;
         }
 
         if ($request->actor_pegasus_white_ticket_number !== null) {
@@ -151,12 +173,20 @@ class JsonConfig
             $gameConfig['actor']['fatty_man']['probability'] = $request->actor_fatty_man_probability;
         }
 
+        if ($request->actor_fatty_man_visibility_radius !== null) {
+            $gameConfig['actor']['fatty_man']['visibility_radius'] = $request->actor_fatty_man_visibility_radius;
+        }
+
         if ($request->actor_eagle_number !== null) {
             $gameConfig['actor']['eagle']['number'] = $request->actor_eagle_number;
         }
 
         if ($request->actor_eagle_probability !== null) {
             $gameConfig['actor']['eagle']['probability'] = $request->actor_eagle_probability;
+        }
+
+        if ($request->actor_eagle_visibility_radius !== null) {
+            $gameConfig['actor']['eagle']['visibility_radius'] = $request->actor_eagle_visibility_radius;
         }
 
         if ($request->duration_scheduled !== null) {

@@ -12,6 +12,7 @@ class Room extends BaseModel
 
     protected $hidden = [
         'host_id',
+        'reporting_user_id',
         'gps_location',
         'house_number',
         'street',
@@ -33,10 +34,12 @@ class Room extends BaseModel
         'game_started_at' => 'string',
         'game_ended_at' => 'string',
         'next_disclosure_at' => 'string',
+        'voting_ended_at' => 'string',
     ];
 
     protected $with = [
         'host',
+        'reportingUser',
         'players',
     ];
 
@@ -55,6 +58,10 @@ class Room extends BaseModel
 
     public function host() {
         return $this->belongsTo(User::class, 'host_id');
+    }
+
+    public function reportingUser() {
+        return $this->belongsTo(User::class, 'reporting_user_id');
     }
 
     public function players() {

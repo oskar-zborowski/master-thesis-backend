@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('rooms', function (Blueprint $table) {
             $table->id();
             $table->foreignId('host_id')->nullable()->references('id')->on('users')->nullOnDelete();
+            $table->foreignId('reporting_user_id')->nullable()->references('id')->on('users')->nullOnDelete(); // Użytkownik rozpoczynający głosowanie
             $table->char('code', 48); // Kodowane automatycznie
             $table->unsignedTinyInteger('counter')->default(1);
             $table->char('gps_location', 80)->nullable(); // Kodowane automatycznie | Struktura: -179.12345 -89.12345
@@ -29,9 +30,11 @@ return new class extends Migration
             $table->string('boundary_points', 880)->nullable(); // Kodowane automatycznie | Struktura: -179.12345 -89.12345,-179.12345 -89.12345,-179.12345 -89.12345,-179.12345 -89.12345
             $table->enum('status', Validation::getRoomStatuses())->default(Validation::getRoomStatuses()[0]);
             $table->enum('game_result', Validation::getGameResults())->nullable();
+            $table->enum('voting_type', Validation::getVotingTypes())->nullable();
             $table->timestamp('game_started_at')->nullable();
             $table->timestamp('game_ended_at')->nullable();
             $table->timestamp('next_disclosure_at')->nullable();
+            $table->timestamp('voting_ended_at')->nullable();
             $table->timestamps();
         });
     }
@@ -49,6 +52,7 @@ return new class extends Migration
 //     "actor": {
 //         "policeman": {
 //             "number": 5,
+//             "visibility_radius": -1,
 //             "catching": {
 //                 "number": 3,
 //                 "radius": 100
@@ -56,6 +60,7 @@ return new class extends Migration
 //         },
 //         "thief": {
 //             "number": 1,
+//             "visibility_radius": -1,
 //             "escape_duration": 300,
 //             "disclosure_interval": 300,
 //             "black_ticket": {
@@ -70,11 +75,13 @@ return new class extends Migration
 //             }
 //         },
 //         "agent": {
-//             "number": 0
+//             "number": 0,
+//             "visibility_radius": -1
 //         },
 //         "pegasus": {
 //             "number": 0,
 //             "probability": 0.5,
+//             "visibility_radius": -1,
 //             "white_ticket": {
 //                 "number": 0,
 //                 "probability": 0.5
@@ -82,11 +89,13 @@ return new class extends Migration
 //         },
 //         "fatty_man": {
 //             "number": 0,
-//             "probability": 0.5
+//             "probability": 0.5,
+//             "visibility_radius": -1
 //         },
 //         "eagle": {
 //             "number": 0,
-//             "probability": 0.5
+//             "probability": 0.5,
+//             "visibility_radius": -1
 //         }
 //     },
 //     "duration": {

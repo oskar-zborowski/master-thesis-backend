@@ -33,6 +33,7 @@ class Player extends BaseModel
         'fake_position' => Point::class,
         'is_bot' => 'boolean',
         'is_crossing_boundary' => 'boolean',
+        'voting_answer' => 'boolean',
         'warning_number' => 'integer',
         'average_ping' => 'integer',
         'standard_deviation' => 'integer',

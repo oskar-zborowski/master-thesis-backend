@@ -24,6 +24,7 @@ return new class extends Migration
             $table->point('fake_position')->nullable(); // Fake'owa pozycja złodzieja | Usuwane po wygaśnięciu lub zakończeniu gry
             $table->boolean('is_bot')->default(false);
             $table->boolean('is_crossing_boundary')->default(false);
+            $table->boolean('voting_answer')->nullable();
             $table->enum('status', Validation::getPlayerStatuses())->default(Validation::getPlayerStatuses()[0]);
             $table->unsignedTinyInteger('warning_number')->default(0);
             $table->unsignedSmallInteger('average_ping')->default(0); // wyrażone w [ms]

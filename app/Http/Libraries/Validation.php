@@ -41,9 +41,11 @@ class Validation
         return [
             'host_id' => 'nullable|integer|exists:users,id',
             'actor_policeman_number' => 'nullable|integer|between:1,29',
+            'actor_policeman_visibility_radius' => 'nullable|integer|between:-1,50000',
             'actor_policeman_catching_number' => 'nullable|integer|between:1,29',
             'actor_policeman_catching_radius' => 'nullable|integer|between:5,5000',
             'actor_thief_number' => 'nullable|integer|between:1,29',
+            'actor_thief_visibility_radius' => 'nullable|integer|between:-1,50000',
             'actor_thief_escape_duration' => 'nullable|integer|between:30,3600',
             'actor_thief_disclosure_interval' => 'nullable|integer|between:-1,3600',
             'actor_thief_black_ticket_number' => 'nullable|integer|between:0,10',
@@ -53,14 +55,18 @@ class Validation
             'actor_thief_fake_position_probability' => 'nullable|numeric|between:0,1',
             'actor_thief_fake_position_duration' => 'nullable|integer|between:30,3600',
             'actor_agent_number' => 'nullable|integer|between:0,29',
+            'actor_agent_visibility_radius' => 'nullable|integer|between:-1,50000',
             'actor_pegasus_number' => 'nullable|integer|between:0,29',
             'actor_pegasus_probability' => 'nullable|numeric|between:0,1',
+            'actor_pegasus_visibility_radius' => 'nullable|integer|between:-1,50000',
             'actor_pegasus_white_ticket_number' => 'nullable|integer|between:0,20',
             'actor_pegasus_white_ticket_probability' => 'nullable|numeric|between:0,1',
             'actor_fatty_man_number' => 'nullable|integer|between:0,29',
             'actor_fatty_man_probability' => 'nullable|numeric|between:0,1',
+            'actor_fatty_man_visibility_radius' => 'nullable|integer|between:-1,50000',
             'actor_eagle_number' => 'nullable|integer|between:0,29',
             'actor_eagle_probability' => 'nullable|numeric|between:0,1',
+            'actor_eagle_visibility_radius' => 'nullable|integer|between:-1,50000',
             'duration_scheduled' => 'nullable|integer|between:300,14400',
             'other_is_role_random' => 'nullable|boolean',
             'other_bot_speed' => 'nullable|numeric|between:1.5,15',
@@ -82,7 +88,13 @@ class Validation
 
     public static function player_updatePlayer() {
         return [
-            //
+            'gps_location' => 'required|string|between:3,20',
+            'avatar' => ['nullable', Rule::in(self::getAvatars())],
+            'start_in_advance' => 'nullable|boolean',
+            'use_black_ticket' => 'nullable|boolean',
+            'use_white_ticket' => 'nullable|boolean',
+            'use_fake_position' => 'nullable|string|between:3,20',
+            'status' => ['nullable', Rule::in(['GAME_IN_PROGRESS', 'GAME_PAUSED'])],
         ];
     }
 
@@ -142,6 +154,13 @@ class Validation
             'DISCONNECTED',
             'BLOCKED',
             'LEFT',
+        ];
+    }
+
+    public static function getVotingTypes() {
+        return [
+            'START',
+            'PAUSE',
         ];
     }
 
