@@ -53,14 +53,11 @@ class JsonResponse
         $response['error_code'] = $errorCode->getCode();
 
         if (isset($data)) {
-
             if (env('APP_DEBUG')) {
-                $response['data'] = $data;
+                $response['data'] = FieldConversion::setEmptyToNull($data);
             } else if ($forwardMessage) {
-                $response['data']['message'] = $data['message'];
+                $response['data']['message'] = FieldConversion::setEmptyToNull($data['message']);
             }
-
-            $response['data'] = FieldConversion::setEmptyToNull($response['data']);
         }
 
         if ($errorCode->getIsMalicious()) {
