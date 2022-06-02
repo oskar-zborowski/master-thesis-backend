@@ -52,4 +52,4 @@ Route::middleware('throttle:githubLimit')->group(function () {
     Route::post('/v1/github/pull', [GitHubController::class, 'pull'])->name('github-pull');
 });
 
-// test2
+// test3
