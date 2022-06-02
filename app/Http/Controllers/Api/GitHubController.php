@@ -17,6 +17,8 @@ class GitHubController extends Controller
         $githubRepository = env('GITHUB_REPOSITORY');
         $githubBranch = env('GITHUB_BRANCH');
 
+        echo shell_exec('chown -R www-data /var/www/html/master-thesis-beckend');
+        echo shell_exec('chmod 777 -R /var/www/html/master-thesis-beckend');
         echo shell_exec("git pull https://$githubAccount:$githubToken@github.com/$githubRepository $githubBranch 2>&1");
     }
 }
