@@ -167,6 +167,7 @@ class Validation
     public static function getRouteNamesWhitelist() {
         return [
             'user-createUser',
+            'github-pull',
         ];
     }
 
