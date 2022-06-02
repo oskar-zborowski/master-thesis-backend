@@ -281,8 +281,12 @@ class Validation
 
     public static function secondAuthenticate(Request $request, bool $thrownError = false) {
 
-        // $encryptedIpAddress = Encrypter::encrypt($request->ip(), 45, false); // TODO Odkomentować przy wdrożeniu na serwer
-        $encryptedIpAddress = Encrypter::encrypt('83.8.175.174', 45, false); // TODO Zakomentować przy wdrożeniu na serwer
+        if (env('APP_ENV') == 'local' && env('APP_DEBUG')) {
+            $encryptedIpAddress = Encrypter::encrypt('83.8.175.174', 45, false);
+        } else {
+            $encryptedIpAddress = Encrypter::encrypt($request->ip(), 45, false);
+        }
+
         $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address', $encryptedIpAddress);
 
         /** @var IpAddress $ipAddress */

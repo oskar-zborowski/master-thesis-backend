@@ -103,9 +103,12 @@ class JsonResponse
 
         $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan connection-info:save";
 
-        /** @var \Illuminate\Http\Request $request */
-        // $command .= " \"{$request->ip()}\""; // TODO Odkomentować przy wdrożeniu na serwer
-        $command .= ' "83.8.175.174"'; // TODO Zakomentować przy wdrożeniu na serwer
+        if (env('APP_ENV') == 'local' && env('APP_DEBUG')) {
+            $command .= ' "83.8.175.174"';
+        } else {
+            /** @var \Illuminate\Http\Request $request */
+            $command .= " \"{$request->ip()}\"";
+        }
 
         /** @var \App\Models\User $user */
         $user = Auth::user();

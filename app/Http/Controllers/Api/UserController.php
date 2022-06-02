@@ -76,12 +76,16 @@ class UserController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        /** @var \Illuminate\Http\Request $request */
-
         $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan gps-log:save";
         $command .= " \"$gpsLocation\"";
-        // $command .= " \"{$request->ip()}\""; // TODO Odkomentować przy wdrożeniu na serwer
-        $command .= ' "83.8.175.174"'; // TODO Zakomentować przy wdrożeniu na serwer
+
+        if (env('APP_ENV') == 'local' && env('APP_DEBUG')) {
+            $command .= ' "83.8.175.174"';
+        } else {
+            /** @var \Illuminate\Http\Request $request */
+            $command .= " \"{$request->ip()}\"";
+        }
+
         $command .= " $user->id";
         $command .= ' >/dev/null 2>/dev/null &';
 
