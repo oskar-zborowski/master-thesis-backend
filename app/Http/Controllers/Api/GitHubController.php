@@ -18,6 +18,6 @@ class GitHubController extends Controller
         $githubBranch = env('GITHUB_BRANCH');
 
         // shell_exec("git pull https://$githubAccount:$githubToken@github.com/$githubRepository $githubBranch 2>&1");
-        echo shell_exec("sudo /var/www/html/master-thesis-beckend/app/Console/test.sh");
+        echo shell_exec("/var/www/html/master-thesis-beckend/app/Console/test.sh");
     }
 }
