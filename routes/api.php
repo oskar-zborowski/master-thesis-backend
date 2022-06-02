@@ -51,3 +51,5 @@ Route::patch('/v1/players/my/last', [PlayerController::class, 'updatePlayer'])->
 Route::middleware('throttle:githubLimit')->group(function () {
     Route::post('/v1/github/pull', [GitHubController::class, 'pull'])->name('github-pull');
 });
+
+//test
