@@ -20,3 +20,5 @@ class GitHubController extends Controller
         shell_exec("git pull https://$githubAccount:$githubToken@github.com/$githubRepository $githubBranch 2>&1");
     }
 }
+
+// test
