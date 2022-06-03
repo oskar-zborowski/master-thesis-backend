@@ -48,7 +48,7 @@ class Log
 
             if (!$ipAddressEntity) {
 
-                if ($checkIp) {
+                if ($checkIp && env('IP_API_ACTIVE')) {
 
                     do {
                         sleep(env('IP_API_CONST_PAUSE'));
@@ -334,7 +334,7 @@ class Log
                 }
             }
 
-            if ($sendMail) {
+            if ($sendMail && env('MAIL_ACTIVE')) {
 
                 if (!$dbConnectionError) {
 
@@ -835,111 +835,114 @@ class Log
 
     public static function getLocation(string $gpsLocation, string $ipAddress, int $userId) {
 
-        $gpsLocation = explode(' ', $gpsLocation);
-        $longitude = $gpsLocation[0];
-        $latitude = $gpsLocation[1];
-
-        $url = 'https://nominatim.openstreetmap.org';
-        $nominatim = new Nominatim($url);
-
-        do {
-            sleep(env('NOMINATIM_CONST_PAUSE'));
-            $config = Config::where('id', 1)->first();
-            $isNominatimBusy = $config->is_nominatim_busy || $config->nominatim_last_used_at && Validation::timeComparison($config->nominatim_last_used_at, env('NOMINATIM_CONST_PAUSE'), '<', 'seconds');
-        } while ($isNominatimBusy);
-
-        $config->is_nominatim_busy = true;
-        $config->save();
-
-        $nominatimErrorCounter = 0;
-
-        do {
-
-            $nominatimError = false;
-
-            try {
-                $reverse = $nominatim->newReverse()->latlon($latitude, $longitude);
-                $result = $nominatim->find($reverse)['address'];
-            } catch (NominatimException | GuzzleException $e) {
-
-                $errorType = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
-                $errorThrower = get_class($e);
-                $errorMessage = $e->getMessage();
-                $nominatimErrorCounter++;
-
-                if ($nominatimErrorCounter < env('NOMINATIM_MAX_ATTEMPTS')) {
-                    $nominatimError = true;
-                    sleep(($nominatimErrorCounter * env('NOMINATIM_VAR_PAUSE')) + env('NOMINATIM_CONST_PAUSE'));
-                }
-            }
-
-        } while ($nominatimError);
-
-        $config->is_nominatim_busy = false;
-        $config->nominatim_last_used_at = now();
-        $config->save();
-
-        if ($nominatimErrorCounter) {
-            $errorMessage = strlen(trim($errorMessage)) > 0 ? "Failed to get data from Nominati ($nominatimErrorCounter times).\n$errorMessage" : "Failed to get data from Nominati ($nominatimErrorCounter times).";
-            self::prepareConnection($ipAddress, $userId, false, true, $errorType, $errorThrower, __FILE__, __FUNCTION__, __LINE__, $errorMessage);
-        }
-
         $location = null;
 
-        if (isset($result['house_number'])) {
-            $location['house_number'] = FieldConversion::stringToUppercase($result['house_number']);
-        }
+        if (env('NOMINATIM_ACTIVE')) {
 
-        if (isset($result['road'])) {
-            $location['street'] = FieldConversion::stringToUppercase($result['road'], true);
-        }
+            $gpsLocation = explode(' ', $gpsLocation);
+            $longitude = $gpsLocation[0];
+            $latitude = $gpsLocation[1];
 
-        if (isset($result['neighbourhood'])) {
-            $location['housing_estate'] = FieldConversion::stringToUppercase($result['neighbourhood'], true);
-        }
+            $url = 'https://nominatim.openstreetmap.org';
+            $nominatim = new Nominatim($url);
 
-        if (isset($result['suburb'])) {
-            $location['district'] = FieldConversion::stringToUppercase($result['suburb'], true);
-        } else if (isset($result['borough'])) {
-            $location['district'] = FieldConversion::stringToUppercase($result['borough'], true);
-        } else if (isset($result['hamlet'])) {
-            $location['district'] = FieldConversion::stringToUppercase($result['hamlet'], true);
-        }
+            do {
+                sleep(env('NOMINATIM_CONST_PAUSE'));
+                $config = Config::where('id', 1)->first();
+                $isNominatimBusy = $config->is_nominatim_busy || $config->nominatim_last_used_at && Validation::timeComparison($config->nominatim_last_used_at, env('NOMINATIM_CONST_PAUSE'), '<', 'seconds');
+            } while ($isNominatimBusy);
 
-        if (isset($result['city'])) {
-            $location['city'] = FieldConversion::stringToUppercase($result['city'], true);
-        } else if (isset($result['town'])) {
-            $location['city'] = FieldConversion::stringToUppercase($result['town'], true);
-        } else if (isset($result['residential'])) {
-            $location['city'] = FieldConversion::stringToUppercase($result['residential'], true);
-        } else if (isset($result['village'])) {
-            $location['city'] = FieldConversion::stringToUppercase($result['village'], true);
-        } else if (isset($result['county'])) {
+            $config->is_nominatim_busy = true;
+            $config->save();
 
-            $city = FieldConversion::stringToLowercase($result['county']);
+            $nominatimErrorCounter = 0;
 
-            if (!str_contains($city, 'powiat')) {
-                $location['city'] = FieldConversion::stringToUppercase($result['county'], true);
-            } else if (isset($result['municipality'])) {
+            do {
 
-                $commune = FieldConversion::stringToLowercase($result['municipality']);
+                $nominatimError = false;
 
-                if (str_contains($commune, 'gmina')) {
-                    $commune = str_replace('gmina ', '', $commune);
-                    $location['city'] = FieldConversion::stringToUppercase($commune, true);
-                } else {
-                    $location['city'] = FieldConversion::stringToUppercase($result['municipality'], true);
+                try {
+                    $reverse = $nominatim->newReverse()->latlon($latitude, $longitude);
+                    $result = $nominatim->find($reverse)['address'];
+                } catch (NominatimException | GuzzleException $e) {
+
+                    $errorType = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
+                    $errorThrower = get_class($e);
+                    $errorMessage = $e->getMessage();
+                    $nominatimErrorCounter++;
+
+                    if ($nominatimErrorCounter < env('NOMINATIM_MAX_ATTEMPTS')) {
+                        $nominatimError = true;
+                        sleep(($nominatimErrorCounter * env('NOMINATIM_VAR_PAUSE')) + env('NOMINATIM_CONST_PAUSE'));
+                    }
+                }
+
+            } while ($nominatimError);
+
+            $config->is_nominatim_busy = false;
+            $config->nominatim_last_used_at = now();
+            $config->save();
+
+            if ($nominatimErrorCounter) {
+                $errorMessage = strlen(trim($errorMessage)) > 0 ? "Failed to get data from Nominati ($nominatimErrorCounter times).\n$errorMessage" : "Failed to get data from Nominati ($nominatimErrorCounter times).";
+                self::prepareConnection($ipAddress, $userId, false, true, $errorType, $errorThrower, __FILE__, __FUNCTION__, __LINE__, $errorMessage);
+            }
+
+            if (isset($result['house_number'])) {
+                $location['house_number'] = FieldConversion::stringToUppercase($result['house_number']);
+            }
+
+            if (isset($result['road'])) {
+                $location['street'] = FieldConversion::stringToUppercase($result['road'], true);
+            }
+
+            if (isset($result['neighbourhood'])) {
+                $location['housing_estate'] = FieldConversion::stringToUppercase($result['neighbourhood'], true);
+            }
+
+            if (isset($result['suburb'])) {
+                $location['district'] = FieldConversion::stringToUppercase($result['suburb'], true);
+            } else if (isset($result['borough'])) {
+                $location['district'] = FieldConversion::stringToUppercase($result['borough'], true);
+            } else if (isset($result['hamlet'])) {
+                $location['district'] = FieldConversion::stringToUppercase($result['hamlet'], true);
+            }
+
+            if (isset($result['city'])) {
+                $location['city'] = FieldConversion::stringToUppercase($result['city'], true);
+            } else if (isset($result['town'])) {
+                $location['city'] = FieldConversion::stringToUppercase($result['town'], true);
+            } else if (isset($result['residential'])) {
+                $location['city'] = FieldConversion::stringToUppercase($result['residential'], true);
+            } else if (isset($result['village'])) {
+                $location['city'] = FieldConversion::stringToUppercase($result['village'], true);
+            } else if (isset($result['county'])) {
+
+                $city = FieldConversion::stringToLowercase($result['county']);
+
+                if (!str_contains($city, 'powiat')) {
+                    $location['city'] = FieldConversion::stringToUppercase($result['county'], true);
+                } else if (isset($result['municipality'])) {
+
+                    $commune = FieldConversion::stringToLowercase($result['municipality']);
+
+                    if (str_contains($commune, 'gmina')) {
+                        $commune = str_replace('gmina ', '', $commune);
+                        $location['city'] = FieldConversion::stringToUppercase($commune, true);
+                    } else {
+                        $location['city'] = FieldConversion::stringToUppercase($result['municipality'], true);
+                    }
                 }
             }
-        }
 
-        if (isset($result['state'])) {
-            $voivodeship = FieldConversion::stringToLowercase($result['state']);
-            $location['voivodeship'] = str_replace('województwo ', '', $voivodeship);
-        }
+            if (isset($result['state'])) {
+                $voivodeship = FieldConversion::stringToLowercase($result['state']);
+                $location['voivodeship'] = str_replace('województwo ', '', $voivodeship);
+            }
 
-        if (isset($result['country'])) {
-            $location['country'] = FieldConversion::stringToUppercase($result['country'], true);
+            if (isset($result['country'])) {
+                $location['country'] = FieldConversion::stringToUppercase($result['country'], true);
+            }
         }
 
         return $location;
