@@ -415,10 +415,14 @@ class Log
                 $newErrorLog->save();
 
                 if ($errorNumber != 'brak') {
+
                     /** @var Config $config */
                     $config = Config::where('id', 1)->first();
-                    $config->log_counter = $errorNumber;
-                    $config->save();
+
+                    if ($errorNumber > $config->log_counter) {
+                        $config->log_counter = $errorNumber;
+                        $config->save();
+                    }
                 }
             }
         }
