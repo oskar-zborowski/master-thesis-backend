@@ -70,7 +70,7 @@ class Handler extends ExceptionHandler
 
         $class = get_class($throwable);
 
-        if ($class != ApiException::class) {
+        if ($class != ApiException::class && $class != QueryException::class) {
             Validation::secondAuthenticate($request, true);
         }
 
@@ -89,7 +89,7 @@ class Handler extends ExceptionHandler
                         'message' => $throwable->getData(),
                     ],
                     $throwable->getErrorCode(),
-                    $throwable->getForwardMessage()
+                    $throwable->getIsMessageForwarded()
                 );
                 break;
 

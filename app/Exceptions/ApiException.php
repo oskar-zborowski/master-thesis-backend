@@ -13,14 +13,14 @@ class ApiException extends Exception
     private ErrorCode $errorCode;
     private $data;
     private $method;
-    private $forwardMessage;
+    private $isMessageForwarded;
 
-    public function __construct(ErrorCode $errorCode, $data = null, string $method, bool $forwardMessage = true) {
+    public function __construct(ErrorCode $errorCode, $data = null, string $method, bool $isMessageForwarded = true) {
         parent::__construct();
         $this->errorCode = $errorCode;
         $this->data = $data;
         $this->method = $method;
-        $this->forwardMessage = $forwardMessage;
+        $this->isMessageForwarded = $isMessageForwarded;
     }
 
     public function getErrorCode() {
@@ -35,7 +35,7 @@ class ApiException extends Exception
         return $this->method;
     }
 
-    public function getForwardMessage() {
-        return $this->forwardMessage;
+    public function getIsMessageForwarded() {
+        return $this->isMessageForwarded;
     }
 }

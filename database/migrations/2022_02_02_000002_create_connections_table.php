@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('successful_request_counter')->default(0);
             $table->unsignedBigInteger('failed_request_counter')->default(0);
             $table->unsignedBigInteger('malicious_request_counter')->default(0);
+            $table->unsignedBigInteger('crawler_request_counter')->default(0);
             $table->timestamps();
         });
     }

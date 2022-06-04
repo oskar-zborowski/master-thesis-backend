@@ -11,6 +11,7 @@ class Connection extends BaseModel
         'successful_request_counter',
         'failed_request_counter',
         'malicious_request_counter',
+        'crawler_request_counter',
         'created_at',
         'updated_at',
     ];
@@ -20,6 +21,7 @@ class Connection extends BaseModel
         'successful_request_counter' => 'integer',
         'failed_request_counter' => 'integer',
         'malicious_request_counter' => 'integer',
+        'crawler_request_counter' => 'integer',
         'created_at' => 'string',
     ];
 
@@ -29,5 +31,9 @@ class Connection extends BaseModel
 
     public function user() {
         return $this->belongsTo(User::class);
+    }
+
+    public function errorLogs() {
+        return $this->hasMany(ErrorLog::class);
     }
 }

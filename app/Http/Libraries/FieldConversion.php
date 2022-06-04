@@ -17,14 +17,14 @@ class FieldConversion
         return self::convertByDefault('snake', $data, $from, $to);
     }
 
-    public static function stringToUppercase(string $string, bool $onlyFirstLetters = false) {
+    public static function stringToUppercase(string $string, bool $areOnlyFirstLetters = false) {
 
         $string = trim($string);
         $stringLength = strlen($string);
         $convertedString = self::letterToUppercase($string[0]);
 
         for ($i=1; $i<$stringLength; $i++) {
-            if ($onlyFirstLetters) {
+            if ($areOnlyFirstLetters) {
                 if ($string[$i-1] == ' ' && (!isset($string[$i+1]) || $string[$i+1] != ' ') || $string[$i-1] == '-') {
                     $convertedString .= self::letterToUppercase($string[$i]);
                 } else {
@@ -115,19 +115,6 @@ class FieldConversion
         return $result;
     }
 
-    public static function findAllOccurrencesInString(string $haystack, string $needle) {
-
-        $lastPosition = 0;
-        $positions = [];
-
-        while (($lastPosition = strpos($haystack, $needle, $lastPosition)) !== false) {
-            $positions[] = $lastPosition;
-            $lastPosition = $lastPosition + strlen($needle);
-        }
-
-        return $positions;
-    }
-
     public static function findLastOccurrenceInString(string $haystack, string $needle, int $last) {
 
         $positions = self::findAllOccurrencesInString($haystack, $needle);
@@ -142,13 +129,26 @@ class FieldConversion
         return $result;
     }
 
-    public static function setEmptyToNull($data) {
+    public static function findAllOccurrencesInString(string $haystack, string $needle) {
+
+        $lastPosition = 0;
+        $positions = [];
+
+        while (($lastPosition = strpos($haystack, $needle, $lastPosition)) !== false) {
+            $positions[] = $lastPosition;
+            $lastPosition = $lastPosition + strlen($needle);
+        }
+
+        return $positions;
+    }
+
+    public static function convertEmptyStringsToNull($data) {
 
         if (is_array($data)) {
 
             foreach ($data as &$d) {
                 if (is_array($d)) {
-                    $d = self::setEmptyToNull($d);
+                    $d = self::convertEmptyStringsToNull($d);
                 } else if (is_string($d) && strlen(trim($d)) == 0) {
                     $d = null;
                 }

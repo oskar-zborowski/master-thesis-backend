@@ -11,14 +11,16 @@ class ErrorCode
     private string $type;
     private int $httpStatus;
     private bool $isMalicious;
-    private bool $logError;
+    private bool $isLoggingError;
+    private bool $isCrawler;
 
-    public function __construct(string $code, string $type, int $httpStatus, bool $isMalicious, bool $logError) {
+    public function __construct(string $code, string $type, int $httpStatus, bool $isMalicious, bool $isLoggingError, bool $isCrawler) {
         $this->code = $code;
         $this->type = $type;
         $this->httpStatus = $httpStatus;
         $this->isMalicious = $isMalicious;
-        $this->logError = $logError;
+        $this->isLoggingError = $isLoggingError;
+        $this->isCrawler = $isCrawler;
     }
 
     public function getCode() {
@@ -37,7 +39,11 @@ class ErrorCode
         return $this->isMalicious;
     }
 
-    public function getLogError() {
-        return $this->logError;
+    public function getIsLoggingError() {
+        return $this->isLoggingError;
+    }
+
+    public function getIsCrawler() {
+        return $this->isCrawler;
     }
 }

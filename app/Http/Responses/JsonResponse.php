@@ -5,6 +5,7 @@ namespace App\Http\Responses;
 use App\Http\ErrorCodes\ErrorCode;
 use App\Http\Libraries\FieldConversion;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 
 /**
@@ -39,7 +40,7 @@ class JsonResponse
         die;
     }
 
-    public static function sendError($request, ?array $data = null, ErrorCode $errorCode, bool $forwardMessage = false, bool $dbConnectionError = false): void {
+    public static function sendError($request, ?array $data = null, ErrorCode $errorCode, bool $isMessageForwarded = false, bool $isDbConnectionError = false): void {
 
         header('Content-Type: application/json');
         http_response_code($errorCode->getHttpStatus());
@@ -54,17 +55,17 @@ class JsonResponse
 
         if (isset($data)) {
             if (env('APP_DEBUG')) {
-                $response['data'] = FieldConversion::setEmptyToNull($data);
-            } else if ($forwardMessage) {
-                $response['data']['message'] = FieldConversion::setEmptyToNull($data['message']);
+                $response['data'] = FieldConversion::convertEmptyStringsToNull($data);
+            } else if ($isMessageForwarded) {
+                $response['data']['message'] = FieldConversion::convertEmptyStringsToNull($data['message']);
             }
         }
 
-        if ($errorCode->getIsMalicious()) {
+        if ($errorCode->getIsMalicious() || $errorCode->getIsCrawler() || Route::currentRouteName() == 'crawler') {
             $response['metadata'] = __('validation.custom.malicious-request');
         }
 
-        $tokens = self::getTokens($request, $data, $errorCode, $dbConnectionError);
+        $tokens = self::getTokens($request, $data, $errorCode, $isDbConnectionError);
 
         if (isset($tokens)) {
             $response['tokens'] = $tokens;
@@ -76,7 +77,7 @@ class JsonResponse
         die;
     }
 
-    private static function getTokens($request, $data, ErrorCode $errorCode = null, bool $dbConnectionError = false) {
+    private static function getTokens($request, $data, ErrorCode $errorCode = null, bool $isDbConnectionError = false) {
 
         $result = null;
 
@@ -94,12 +95,12 @@ class JsonResponse
             ];
         }
 
-        self::saveConnectionInformation($request, $data, $errorCode, $dbConnectionError);
+        self::saveConnectionInformation($request, $data, $errorCode, $isDbConnectionError);
 
         return $result;
     }
 
-    private static function saveConnectionInformation($request, $data, ?ErrorCode $errorCode, bool $dbConnectionError) {
+    private static function saveConnectionInformation($request, $data, ?ErrorCode $errorCode, bool $isDbConnectionError) {
 
         $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan connection-info:save";
 
@@ -125,8 +126,12 @@ class JsonResponse
 
                 $command .= ' --isMalicious=0';
 
-                if ($errorCode->getLogError()) {
-                    $command .= ' --logError=1';
+                if ($errorCode->getIsLoggingError()) {
+                    $command .= ' --isLoggingError=1';
+                }
+
+                if ($errorCode->getIsCrawler()) {
+                    $command .= ' --isCrawler=1';
                 }
             }
 
@@ -174,7 +179,7 @@ class JsonResponse
             $command .= ' "brak"';
         }
 
-        if ($dbConnectionError) {
+        if ($isDbConnectionError) {
             $command .= ' 1';
         } else {
             $command .= ' 0';

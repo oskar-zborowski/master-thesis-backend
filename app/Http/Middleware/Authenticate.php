@@ -64,7 +64,7 @@ class Authenticate extends Middleware
             $refreshTokens[] = $request->refreshToken;
         }
 
-        $authenticationSuccess = true;
+        $isAuthenticationSuccessful = true;
 
         foreach ($tokens as $token) {
 
@@ -74,10 +74,10 @@ class Authenticate extends Middleware
                     $request->headers->set('Authorization', 'Bearer ' . $token);
                     $this->authenticate($request, $guards);
                 } catch (AuthenticationException $e) {
-                    $authenticationSuccess = false;
+                    $isAuthenticationSuccessful = false;
                 }
 
-                if ($authenticationSuccess) {
+                if ($isAuthenticationSuccessful) {
                     break;
                 }
             }

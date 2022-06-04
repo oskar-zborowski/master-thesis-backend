@@ -10,7 +10,7 @@ class SaveConnectionInformation extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'connection-info:save {ipAddress} {--userId=} {--isMalicious=} {--logError=} {errorType} {errorThrower} {errorFile} {errorMethod} {errorLine} {errorMessage} {dbConnectionError}';
+    protected $signature = 'connection-info:save {ipAddress} {--userId=} {--isMalicious=} {--isLoggingError=} {--isCrawler=} {errorType} {errorThrower} {errorFile} {errorMethod} {errorLine} {errorMessage} {isDbConnectionError}';
 
     /**
      * The console command description.
@@ -25,16 +25,17 @@ class SaveConnectionInformation extends Command
         $ipAddress = $this->argument('ipAddress');
         $userId = $this->option('userId');
         $isMalicious = $this->option('isMalicious');
-        $logError = $this->option('logError');
+        $isLoggingError = $this->option('isLoggingError');
+        $isCrawler = $this->option('isCrawler');
         $errorType = $this->argument('errorType');
         $errorThrower = $this->argument('errorThrower');
         $errorFile = $this->argument('errorFile');
         $errorMethod = $this->argument('errorMethod');
         $errorLine = $this->argument('errorLine');
         $errorMessage = $this->argument('errorMessage');
-        $dbConnectionError = $this->argument('dbConnectionError');
+        $isDbConnectionError = $this->argument('isDbConnectionError');
 
-        Log::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $dbConnectionError);
+        Log::prepareConnection($ipAddress, $userId, $isMalicious, $isLoggingError, $isCrawler, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $isDbConnectionError);
 
         return 0;
     }

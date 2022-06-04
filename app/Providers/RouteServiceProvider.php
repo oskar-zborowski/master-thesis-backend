@@ -51,5 +51,9 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('creatingRoomLimit', function (Request $request) {
             return Limit::perMinute(env('CREATING_ROOM_RATE_LIMIT_PER_MINUTE'))->by($request->user()->id);
         });
+
+        RateLimiter::for('crawlerLimit', function (Request $request) {
+            return Limit::perHour(env('CRAWLER_RATE_LIMIT_PER_HOUR'))->by($request->ip());
+        });
     }
 }

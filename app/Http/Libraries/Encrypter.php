@@ -13,13 +13,13 @@ use Illuminate\Support\Facades\Session;
  */
 class Encrypter
 {
-    public static function encrypt(?string $text, ?int $maxSize = null, bool $withEncryption = true) {
+    public static function encrypt(?string $text, ?int $maxSize = null, bool $isWithEncryption = true) {
 
         if (isset($text) && strlen($text) > 0) {
 
             $text = self::fillWithRandomCharacters($text, $maxSize);
 
-            if ($withEncryption) {
+            if ($isWithEncryption) {
                 $iv = self::generateToken(16);
                 $text = openssl_encrypt($text, env('OPENSSL_ALGORITHM'), env('OPENSSL_PASSPHRASE'), 0, $iv);
                 $text = $iv . bin2hex(base64_decode($text));
@@ -101,7 +101,7 @@ class Encrypter
         return "AES_DECRYPT(UNHEX(SUBSTRING($field, 17)), \"$passphrase\", SUBSTRING($field, 1, 16)) $semiEncrypted";
     }
 
-    private static function fillWithRandomCharacters(string $text = '', ?int $maxSize, bool $rand = false, bool $onlyCapitalLetters = false) {
+    private static function fillWithRandomCharacters(string $text = '', ?int $maxSize, bool $isRandom = false, bool $areOnlyCapitalLetters = false) {
 
         if ($maxSize) {
 
@@ -110,7 +110,7 @@ class Encrypter
 
             $length = $maxSize - strlen($text);
 
-            if (!$rand) {
+            if (!$isRandom) {
 
                 $esc = chr(27);
                 $temp = '';
@@ -130,7 +130,7 @@ class Encrypter
                     $text .= $characters[rand(0, $charactersLength-1)];
                 }
 
-                if ($onlyCapitalLetters) {
+                if ($areOnlyCapitalLetters) {
                     $text = strtoupper($text);
                 }
             }

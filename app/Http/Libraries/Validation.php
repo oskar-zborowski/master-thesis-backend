@@ -168,6 +168,7 @@ class Validation
         return [
             'user-createUser',
             'github-pull',
+            'crawler',
         ];
     }
 
@@ -360,7 +361,7 @@ class Validation
         }
     }
 
-    public static function secondAuthenticate(Request $request, bool $thrownError = false) {
+    public static function secondAuthenticate(Request $request, bool $isErrorThrown = false) {
 
         if (env('APP_ENV') == 'local' && env('APP_DEBUG')) {
             $encryptedIpAddress = Encrypter::encrypt('83.8.175.174', 45, false);
@@ -381,7 +382,7 @@ class Validation
             );
         }
 
-        if (!$thrownError) {
+        if (!$isErrorThrown) {
 
             $token = $request->header('token');
             $refreshToken = $request->header('refreshToken');

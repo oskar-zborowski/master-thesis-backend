@@ -24,9 +24,9 @@ use maxh\Nominatim\Nominatim;
  */
 class Log
 {
-    public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $logError, string $errorType, string $errorThrower, string $errorFile, string $errorMethod, string $errorLine, string $errorMessage, bool $dbConnectionError = false, bool $saveLog = true, bool $sendMail = true, bool $checkIp = true, bool $readLog = true, ?array $saveDbConnectionError = null) {
+    public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $isLoggingError, ?bool $isCrawler, string $errorType, string $errorThrower, string $errorFile, string $errorMethod, string $errorLine, string $errorMessage, bool $isDbConnectionError = false, bool $isSavingLog = true, bool $isSendingMail = true, bool $isCheckingIp = true, bool $isReadingLog = true, ?array $saveDbConnectionError = null) {
 
-        if (!$dbConnectionError) {
+        if (!$isDbConnectionError) {
 
             $encryptedIpAddress = Encrypter::encrypt($ipAddress, 45, false);
             $aesDecrypt = Encrypter::prepareAesDecrypt('ip_address', $encryptedIpAddress);
@@ -35,20 +35,20 @@ class Log
                 /** @var IpAddress $ipAddressEntity */
                 $ipAddressEntity = IpAddress::whereRaw($aesDecrypt)->first();
             } catch (QueryException $e) {
-                $dbConnectionError = true;
+                $isDbConnectionError = true;
                 $saveDbConnectionError['errorTypeDb'] = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                 $saveDbConnectionError['errorThrowerDb'] = get_class($e);
-                $saveDbConnectionError['errorMessageDb'] = strlen(trim($e->getMessage())) > 0 ? "A database error has occurred.\n{$e->getMessage()}" : 'A database error has occurred.';
                 $saveDbConnectionError['errorFileDb'] = __FILE__;
                 $saveDbConnectionError['errorFunctionDb'] = __FUNCTION__;
                 $saveDbConnectionError['errorLineDb'] = __LINE__;
-                self::prepareConnection($ipAddress, $userId, $isMalicious, $logError, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog, $saveDbConnectionError);
+                $saveDbConnectionError['errorMessageDb'] = strlen(trim($e->getMessage())) > 0 ? "A database error has occurred.\n{$e->getMessage()}" : 'A database error has occurred.';
+                self::prepareConnection($ipAddress, $userId, $isMalicious, $isLoggingError, $isCrawler, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog, $saveDbConnectionError);
                 die;
             }
 
             if (!$ipAddressEntity) {
 
-                if ($checkIp && env('IP_API_ACTIVE')) {
+                if ($isCheckingIp && env('IP_API_ACTIVE')) {
 
                     do {
                         sleep(env('IP_API_CONST_PAUSE'));
@@ -63,7 +63,7 @@ class Log
 
                     do {
 
-                        $ipApiError = false;
+                        $isIpApiError = false;
 
                         try {
                             $result = file_get_contents("http://ip-api.com/json/$ipAddress?fields=status,message,country,regionName,city,isp,org,mobile");
@@ -76,12 +76,12 @@ class Log
                             $ipApiErrorCounter++;
 
                             if ($ipApiErrorCounter < env('IP_API_MAX_ATTEMPTS')) {
-                                $ipApiError = true;
+                                $isIpApiError = true;
                                 sleep(($ipApiErrorCounter * env('IP_API_VAR_PAUSE')) + env('IP_API_CONST_PAUSE'));
                             }
                         }
 
-                        if (!$ipApiError && $ipApiErrorCounter < env('IP_API_MAX_ATTEMPTS')) {
+                        if (!$isIpApiError && $ipApiErrorCounter < env('IP_API_MAX_ATTEMPTS')) {
 
                             if (!isset($result['status']) || $result['status'] != 'success') {
 
@@ -97,22 +97,22 @@ class Log
                                 $ipApiErrorCounter++;
 
                                 if ($ipApiErrorCounter < env('IP_API_MAX_ATTEMPTS')) {
-                                    $ipApiError = true;
+                                    $isIpApiError = true;
                                     sleep(($ipApiErrorCounter * env('IP_API_VAR_PAUSE')) + env('IP_API_CONST_PAUSE'));
                                 }
                             }
                         }
 
-                    } while ($ipApiError);
+                    } while ($isIpApiError);
 
                     $config->is_ip_api_busy = false;
                     $config->ip_api_last_used_at = now();
                     $config->save();
 
                     if ($ipApiErrorCounter) {
-                        $checkIp = false;
+                        $isCheckingIp = false;
                         $errorMessageIpApi = strlen(trim($errorMessageIpApi)) > 0 ? "Failed to get data from ip-api.com ($ipApiErrorCounter times).\n$errorMessageIpApi" : "Failed to get data from ip-api.com ($ipApiErrorCounter times).";
-                        self::prepareConnection($ipAddress, $userId, false, true, $errorTypeIpApi, $errorThrowerIpApi, __FILE__, __FUNCTION__, __LINE__, $errorMessageIpApi, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
+                        self::prepareConnection($ipAddress, $userId, false, true, false, $errorTypeIpApi, $errorThrowerIpApi, __FILE__, __FUNCTION__, __LINE__, $errorMessageIpApi, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
                     }
                 }
 
@@ -166,16 +166,20 @@ class Log
                     $connection->successful_request_counter = 1;
                 } else if ($isMalicious) {
                     $connection->malicious_request_counter = 1;
+                } else if ($isCrawler) {
+                    $connection->crawler_request_counter = 1;
                 } else {
                     $connection->failed_request_counter = 1;
                 }
 
             } else {
 
-                if ($isMalicious === null) {
+                if (!isset($isMalicious)) {
                     $connection->successful_request_counter = $connection->successful_request_counter + 1;
                 } else if ($isMalicious) {
                     $connection->malicious_request_counter = $connection->malicious_request_counter + 1;
+                } else if ($isCrawler) {
+                    $connection->crawler_request_counter = $connection->crawler_request_counter + 1;
                 } else {
                     $connection->failed_request_counter = $connection->failed_request_counter + 1;
                 }
@@ -207,7 +211,7 @@ class Log
                     $status = 4;
                 }
 
-            } else if ($logError) {
+            } else if ($isLoggingError) {
                 $status = 0;
             }
 
@@ -215,7 +219,7 @@ class Log
 
             if ($isMalicious) {
                 $status = -1;
-            } else if ($logError) {
+            } else if ($isLoggingError) {
                 $status = 0;
             }
 
@@ -224,7 +228,7 @@ class Log
 
         if (isset($status)) {
 
-            if (!$dbConnectionError) {
+            if (!$isDbConnectionError) {
 
                 /** @var Config $config */
                 $config = Config::where('id', 1)->first();
@@ -241,7 +245,7 @@ class Log
                 $errorNumber = 'brak';
             }
 
-            if ($readLog && $errorNumber != 'brak') {
+            if ($isReadingLog && $errorNumber != 'brak') {
 
                 try {
 
@@ -259,11 +263,11 @@ class Log
 
                 } catch (Exception $e) {
                     $errorNumber = 'brak';
-                    $readLog = false;
+                    $isReadingLog = false;
                     $errorTypeRL = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                     $errorThrowerRL = get_class($e);
                     $errorMessageRL = strlen(trim($e->getMessage())) > 0 ? "There was an error opening the log file.\n{$e->getMessage()}" : 'There was an error opening the log file.';
-                    self::prepareConnection($ipAddress, $userId, false, true, $errorTypeRL, $errorThrowerRL, __FILE__, __FUNCTION__, __LINE__, $errorMessageRL, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
+                    self::prepareConnection($ipAddress, $userId, false, true, false, $errorTypeRL, $errorThrowerRL, __FILE__, __FUNCTION__, __LINE__, $errorMessageRL, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
                 }
 
                 if (isset($logData)) {
@@ -305,7 +309,12 @@ class Log
                 $errorNumber++;
             }
 
-            if ($saveLog) {
+            // if (!$isDbConnectionError) {
+                // TODO TUTAJ
+            //     $connection->errorLogs()->where('type', DefaultErrorCode::LIMIT_EXCEEDED()->getType())->orderBy('number', 'desc')->first();
+            // }
+
+            if ($isSavingLog) {
 
                 try {
 
@@ -320,7 +329,7 @@ class Log
 
                 } catch (Exception $e) {
 
-                    $saveLog = false;
+                    $isSavingLog = false;
                     $errorTypeSL = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                     $errorThrowerSL = get_class($e);
                     $strpos = strpos($e->getMessage(), 'The exception occurred while attempting to log:');
@@ -330,13 +339,13 @@ class Log
                     }
 
                     $errorMessageSL = strlen(trim($errorMessageSL)) > 0 ? "Failed to save the log.\n$errorMessageSL" : 'Failed to save the log.';
-                    self::prepareConnection($ipAddress, $userId, false, true, $errorTypeSL, $errorThrowerSL, __FILE__, __FUNCTION__, __LINE__, $errorMessageSL, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
+                    self::prepareConnection($ipAddress, $userId, false, true, false, $errorTypeSL, $errorThrowerSL, __FILE__, __FUNCTION__, __LINE__, $errorMessageSL, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
                 }
             }
 
-            if ($sendMail && env('MAIL_ACTIVE')) {
+            if ($isSendingMail && env('MAIL_ACTIVE')) {
 
-                if (!$dbConnectionError) {
+                if (!$isDbConnectionError) {
 
                     do {
                         sleep(env('MAIL_CONST_PAUSE'));
@@ -352,7 +361,7 @@ class Log
 
                 do {
 
-                    $mailError = false;
+                    $isMailError = false;
 
                     try {
                         Mail::send(new MaliciousnessNotification($status, $connection, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $errorNumber));
@@ -364,27 +373,27 @@ class Log
                         $mailErrorCounter++;
 
                         if ($mailErrorCounter < env('MAIL_MAX_ATTEMPTS')) {
-                            $mailError = true;
+                            $isMailError = true;
                             sleep(($mailErrorCounter * env('MAIL_VAR_PAUSE')) + env('MAIL_CONST_PAUSE'));
                         }
                     }
 
-                } while ($mailError);
+                } while ($isMailError);
 
-                if (!$dbConnectionError) {
+                if (!$isDbConnectionError) {
                     $config->is_mail_busy = false;
                     $config->mail_last_used_at = now();
                     $config->save();
                 }
 
                 if ($mailErrorCounter) {
-                    $sendMail = false;
+                    $isSendingMail = false;
                     $errorMessageMail = strlen(trim($errorMessageMail)) > 0 ? "Failed to send the email ($mailErrorCounter times).\n$errorMessageMail" : "Failed to send the email ($mailErrorCounter times).";
-                    self::prepareConnection($ipAddress, $userId, false, true, $errorTypeMail, $errorThrowerMail, __FILE__, __FUNCTION__, __LINE__, $errorMessageMail, $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
+                    self::prepareConnection($ipAddress, $userId, false, true, false, $errorTypeMail, $errorThrowerMail, __FILE__, __FUNCTION__, __LINE__, $errorMessageMail, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
                 }
             }
 
-            if (!$dbConnectionError) {
+            if (!$isDbConnectionError) {
 
                 $newErrorLog = new ErrorLog;
 
@@ -428,7 +437,7 @@ class Log
         }
 
         if (isset($saveDbConnectionError)) {
-            self::prepareConnection($ipAddress, $userId, false, true, $saveDbConnectionError['errorTypeDb'], $saveDbConnectionError['errorThrowerDb'], $saveDbConnectionError['errorFileDb'], $saveDbConnectionError['errorFunctionDb'], $saveDbConnectionError['errorLineDb'], $saveDbConnectionError['errorMessageDb'], $dbConnectionError, $saveLog, $sendMail, $checkIp, $readLog);
+            self::prepareConnection($ipAddress, $userId, false, true, false, $saveDbConnectionError['errorTypeDb'], $saveDbConnectionError['errorThrowerDb'], $saveDbConnectionError['errorFileDb'], $saveDbConnectionError['errorFunctionDb'], $saveDbConnectionError['errorLineDb'], $saveDbConnectionError['errorMessageDb'], $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
         }
     }
 
@@ -859,7 +868,7 @@ class Log
 
             do {
 
-                $nominatimError = false;
+                $isNominatimError = false;
 
                 try {
                     $reverse = $nominatim->newReverse()->latlon($latitude, $longitude);
@@ -872,12 +881,12 @@ class Log
                     $nominatimErrorCounter++;
 
                     if ($nominatimErrorCounter < env('NOMINATIM_MAX_ATTEMPTS')) {
-                        $nominatimError = true;
+                        $isNominatimError = true;
                         sleep(($nominatimErrorCounter * env('NOMINATIM_VAR_PAUSE')) + env('NOMINATIM_CONST_PAUSE'));
                     }
                 }
 
-            } while ($nominatimError);
+            } while ($isNominatimError);
 
             $config->is_nominatim_busy = false;
             $config->nominatim_last_used_at = now();
@@ -885,7 +894,7 @@ class Log
 
             if ($nominatimErrorCounter) {
                 $errorMessage = strlen(trim($errorMessage)) > 0 ? "Failed to get data from Nominati ($nominatimErrorCounter times).\n$errorMessage" : "Failed to get data from Nominati ($nominatimErrorCounter times).";
-                self::prepareConnection($ipAddress, $userId, false, true, $errorType, $errorThrower, __FILE__, __FUNCTION__, __LINE__, $errorMessage);
+                self::prepareConnection($ipAddress, $userId, false, true, false, $errorType, $errorThrower, __FILE__, __FUNCTION__, __LINE__, $errorMessage);
             }
 
             if (isset($result['house_number'])) {
