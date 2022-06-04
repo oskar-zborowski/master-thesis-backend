@@ -183,6 +183,87 @@ class Validation
         return $result;
     }
 
+    public static function checkGpsLocation(string $gpsLocation) {
+
+        $gpsLocation = explode(' ', $gpsLocation);
+
+        if (count($gpsLocation) != 2) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(true),
+                __('validation.custom.invalid-coordinate-format'),
+                __FUNCTION__,
+                false
+            );
+        }
+
+        if (!self::checkNumber($gpsLocation[0], 3) || !self::checkNumber($gpsLocation[1], 2)) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(true),
+                __('validation.custom.invalid-coordinate-format'),
+                __FUNCTION__,
+                false
+            );
+        }
+    }
+
+    public static function checkNumber(string $number, int $digitsBeforeDecimalPoint) {
+
+        $result = true;
+        $dot = false;
+        $minus = 0;
+        $i = 1;
+        $length = strlen($number);
+
+        if ($length == 0) {
+            $result = false;
+        } else if ($length == 1) {
+
+            if (!self::checkDigit($number[0])) {
+                $result = false;
+            }
+
+        } else if (ord($number[0]) != 45 && !self::checkDigit($number[0])) {
+            $result = false;
+        } else if (ord($number[0]) == 45 && !self::checkDigit($number[1])) {
+            $result = false;
+        } else {
+
+            if (ord($number[0]) == 45) {
+                $minus = 1;
+                $i++;
+            }
+
+            for ($i; $i<$length; $i++) {
+
+                if (ord($number[$i]) != 46 && !self::checkDigit($number[$i])) {
+                    $result = false;
+                    break;
+                } else if (ord($number[$i]) == 46) {
+
+                    if ($i - $minus > $digitsBeforeDecimalPoint || $dot) {
+                        $result = false;
+                        break;
+                    } else {
+                        $dot = true;
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    public static function checkDigit(string $digit) {
+
+        $result = true;
+
+        if (ord($digit) < 48 || ord($digit) > 57) {
+            $result = false;
+        }
+
+        return $result;
+    }
+
     /**
      * Sprawdzenie czy upłynął określony czas
      * 

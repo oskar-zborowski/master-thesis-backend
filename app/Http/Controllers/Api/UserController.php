@@ -73,6 +73,8 @@ class UserController extends Controller
 
     private function saveGpsLog(string $gpsLocation, $request) {
 
+        Validation::checkGpsLocation($gpsLocation);
+
         /** @var User $user */
         $user = Auth::user();
 
