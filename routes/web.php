@@ -2,7 +2,6 @@
 
 use App\Exceptions\ApiException;
 use App\Http\ErrorCodes\DefaultErrorCode;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 |---------------------------------------------------------------------------------------------------------------
 */
 
-Route::get('/', function (Request $request) {
+Route::get('/', function () {
     throw new ApiException(
         DefaultErrorCode::PERMISSION_DENIED(false, false, true),
         null,

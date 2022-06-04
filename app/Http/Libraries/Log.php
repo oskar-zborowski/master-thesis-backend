@@ -311,6 +311,7 @@ class Log
 
             // if (!$isDbConnectionError) {
                 // TODO TUTAJ
+                // Jeżeli nie mam połączenia z bazą danych
             //     $connection->errorLogs()->where('type', DefaultErrorCode::LIMIT_EXCEEDED()->getType())->orderBy('number', 'desc')->first();
             // }
 
