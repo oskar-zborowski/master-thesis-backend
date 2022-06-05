@@ -28,4 +28,4 @@ Route::get('/', function () {
         __FUNCTION__,
         false
     );
-})->name('crawler')->middleware('throttle:crawlerLimit');
+})->name('crawler');

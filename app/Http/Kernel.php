@@ -34,7 +34,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            'throttle:api',
+            'throttle:web',
             \App\Http\Middleware\SecondAuthenticate::class,
         ],
         'api' => [
@@ -51,9 +51,15 @@ class Kernel extends HttpKernel
      * Forces the listed middleware to always be in the given order.
      */
     protected $middlewarePriority = [
+        \App\Http\Middleware\EncryptCookies::class,
+        \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+        \Illuminate\Session\Middleware\StartSession::class,
+        \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        \App\Http\Middleware\VerifyCsrfToken::class,
         \Illuminate\Routing\Middleware\SubstituteBindings::class,
         \App\Http\Middleware\ConvertToSnakeCase::class,
         'auth:sanctum',
+        'throttle:web',
         'throttle:api',
         \App\Http\Middleware\SecondAuthenticate::class,
     ];
