@@ -17,4 +17,8 @@ class ErrorLog extends BaseModel
         'created_at',
         'updated_at',
     ];
+
+    protected $casts = [
+        'number' => 'integer',
+    ];
 }
