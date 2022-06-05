@@ -257,7 +257,7 @@ class Log
 
         } else {
 
-            if ($isMalicious || $isLimitExceeded) {
+            if ($isMalicious) {
                 $status = -1;
             } else if ($isLoggingError) {
                 $status = 0;

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up() {
         Schema::create('error_logs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('number')->unique();
+            $table->string('number', 20);
             $table->foreignId('connection_id')->nullable()->references('id')->on('connections')->nullOnDelete();
             $table->string('type', 30);
             $table->string('thrower', 100);
