@@ -70,8 +70,16 @@ class Handler extends ExceptionHandler
 
         $class = get_class($throwable);
 
-        if ($class != ApiException::class && $class != QueryException::class) {
-            Validation::secondAuthenticate($request, true);
+        if ($class == ApiException::class) {
+
+            /** @var ApiException $throwable */
+
+            if (str_contains($throwable->getFile(), '/app/Http/Middleware/Authenticate.php')) {
+                $this->checkSecondAuthenticate($request);
+            }
+
+        } else if ($class != QueryException::class) {
+            $this->checkSecondAuthenticate($request);
         }
 
         switch ($class) {
@@ -146,6 +154,25 @@ class Handler extends ExceptionHandler
                     $class == QueryException::class
                 );
                 break;
+        }
+    }
+
+    private function checkSecondAuthenticate($request) {
+
+        try {
+            Validation::secondAuthenticate($request, true);
+        } catch (Exception $e) {
+
+            if (get_class($e) == ApiException::class) {
+
+                /** @var ApiException $e */
+
+                throw new ApiException(
+                    $e->getErrorCode(),
+                    $e->getData(),
+                    $e->getMethod()
+                );
+            }
         }
     }
 }
