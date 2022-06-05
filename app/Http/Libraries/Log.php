@@ -311,7 +311,7 @@ class Log
 
             // if (!$isDbConnectionError) {
                 // TODO TUTAJ
-                // Jeżeli nie mam połączenia z bazą danych
+                // Jeżeli mam połączenie z bazą danych - chyba tylko w takim wypadku jest sens szukać zaległych bo jak nie ma połączenia do w logach w pliku też się nic nie zapisze (jednak nie bo może byc sytuacja ze kiedys bylo polaczenie, a teraz nie ma)
             //     $connection->errorLogs()->where('type', DefaultErrorCode::LIMIT_EXCEEDED()->getType())->orderBy('number', 'desc')->first();
             // }
 
