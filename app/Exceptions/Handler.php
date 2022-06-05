@@ -124,7 +124,7 @@ class Handler extends ExceptionHandler
                         'thrower' => $class,
                         'message' => __('validation.custom.limit-exceeded', ['seconds' => $throwable->getHeaders()['Retry-After']]),
                     ],
-                    DefaultErrorCode::LIMIT_EXCEEDED(false, true),
+                    DefaultErrorCode::LIMIT_EXCEEDED(),
                     true
                 );
                 break;
@@ -170,7 +170,8 @@ class Handler extends ExceptionHandler
                 throw new ApiException(
                     $e->getErrorCode(),
                     $e->getData(),
-                    $e->getMethod()
+                    $e->getMethod(),
+                    $e->getIsMessageForwarded()
                 );
             }
         }

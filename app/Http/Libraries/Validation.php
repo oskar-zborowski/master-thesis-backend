@@ -355,7 +355,8 @@ class Validation
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(true),
                     __('validation.custom.undefined-request-fields-detected', ['fields' => $undefinedFields]),
-                    __FUNCTION__
+                    __FUNCTION__,
+                    false
                 );
             }
         }
@@ -397,7 +398,8 @@ class Validation
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(true),
                     __('auth.invalid-token-format'),
-                    __FUNCTION__
+                    __FUNCTION__,
+                    false
                 );
             }
 
@@ -405,7 +407,8 @@ class Validation
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(true),
                     __('auth.invalid-refresh-token-format'),
-                    __FUNCTION__
+                    __FUNCTION__,
+                    false
                 );
             }
 
@@ -414,14 +417,16 @@ class Validation
                     throw new ApiException(
                         DefaultErrorCode::FAILED_VALIDATION(true),
                         __('auth.no-token-provided'),
-                        __FUNCTION__
+                        __FUNCTION__,
+                        false
                     );
                 }
             } else if (isset($token) || isset($refreshToken)) {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(true),
                     __('auth.tokens-not-allowed'),
-                    __FUNCTION__
+                    __FUNCTION__,
+                    false
                 );
             }
 
@@ -429,7 +434,8 @@ class Validation
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(true),
                     __('auth.double-token-given'),
-                    __FUNCTION__
+                    __FUNCTION__,
+                    false
                 );
             }
 
@@ -440,7 +446,8 @@ class Validation
                 throw new ApiException(
                     DefaultErrorCode::UNAUTHENTICATED(true),
                     __('auth.invalid-token'),
-                    __FUNCTION__
+                    __FUNCTION__,
+                    false
                 );
             }
 
@@ -448,7 +455,8 @@ class Validation
                 throw new ApiException(
                     DefaultErrorCode::UNAUTHENTICATED(true),
                     __('auth.invalid-refresh-token'),
-                    __FUNCTION__
+                    __FUNCTION__,
+                    false
                 );
             }
 
@@ -467,14 +475,16 @@ class Validation
                         throw new ApiException(
                             DefaultErrorCode::UNAUTHENTICATED(),
                             __('auth.token-expired'),
-                            __FUNCTION__
+                            __FUNCTION__,
+                            false
                         );
 
                     } else {
                         throw new ApiException(
                             DefaultErrorCode::UNAUTHENTICATED(true),
                             __('auth.token-expired'),
-                            __FUNCTION__
+                            __FUNCTION__,
+                            false
                         );
                     }
                 }
@@ -486,7 +496,8 @@ class Validation
                 throw new ApiException(
                     DefaultErrorCode::UNAUTHENTICATED(true),
                     __('auth.token-still-valid'),
-                    __FUNCTION__
+                    __FUNCTION__,
+                    false
                 );
             }
 

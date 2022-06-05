@@ -41,7 +41,8 @@ class Authenticate extends Middleware
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(true),
                 __('auth.invalid-token-format'),
-                __FUNCTION__
+                __FUNCTION__,
+                false
             );
         }
 
@@ -49,7 +50,8 @@ class Authenticate extends Middleware
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(true),
                 __('auth.invalid-refresh-token-format'),
-                __FUNCTION__
+                __FUNCTION__,
+                false
             );
         }
 

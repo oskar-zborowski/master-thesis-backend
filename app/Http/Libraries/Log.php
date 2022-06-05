@@ -24,7 +24,7 @@ use maxh\Nominatim\Nominatim;
  */
 class Log
 {
-    public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $isLoggingError, ?bool $isCrawler, string $errorType, string $errorThrower, string $errorFile, string $errorMethod, string $errorLine, string $errorMessage, bool $isDbConnectionError = false, bool $isSavingLog = true, bool $isSendingMail = true, bool $isCheckingIp = true, bool $isReadingLog = true, ?array $saveDbConnectionError = null) {
+    public static function prepareConnection(string $ipAddress, ?int $userId, ?bool $isMalicious, ?bool $isLoggingError, ?bool $isLimitExceeded, ?bool $isCrawler, string $errorType, string $errorThrower, string $errorFile, string $errorMethod, string $errorLine, string $errorMessage, bool $isDbConnectionError = false, bool $isSavingLog = true, bool $isSendingMail = true, bool $isCheckingIp = true, bool $isReadingLog = true, ?array $saveDbConnectionError = null) {
 
         if (!$isDbConnectionError) {
 
@@ -42,7 +42,7 @@ class Log
                 $saveDbConnectionError['errorFunctionDb'] = __FUNCTION__;
                 $saveDbConnectionError['errorLineDb'] = __LINE__;
                 $saveDbConnectionError['errorMessageDb'] = strlen(trim($e->getMessage())) > 0 ? "A database error has occurred.\n{$e->getMessage()}" : 'A database error has occurred.';
-                self::prepareConnection($ipAddress, $userId, $isMalicious, $isLoggingError, $isCrawler, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog, $saveDbConnectionError);
+                self::prepareConnection($ipAddress, $userId, $isMalicious, $isLoggingError, $isLimitExceeded, $isCrawler, $errorType, $errorThrower, $errorFile, $errorMethod, $errorLine, $errorMessage, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog, $saveDbConnectionError);
                 die;
             }
 
@@ -112,7 +112,7 @@ class Log
                     if ($ipApiErrorCounter) {
                         $isCheckingIp = false;
                         $errorMessageIpApi = strlen(trim($errorMessageIpApi)) > 0 ? "Failed to get data from ip-api.com ($ipApiErrorCounter times).\n$errorMessageIpApi" : "Failed to get data from ip-api.com ($ipApiErrorCounter times).";
-                        self::prepareConnection($ipAddress, $userId, false, true, false, $errorTypeIpApi, $errorThrowerIpApi, __FILE__, __FUNCTION__, __LINE__, $errorMessageIpApi, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
+                        self::prepareConnection($ipAddress, $userId, false, true, false, false, $errorTypeIpApi, $errorThrowerIpApi, __FILE__, __FUNCTION__, __LINE__, $errorMessageIpApi, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
                     }
                 }
 
@@ -162,26 +162,46 @@ class Log
 
                 $connection->ip_address_id = $ipAddressEntity->id;
 
-                if (!isset($isMalicious)) {
-                    $connection->successful_request_counter = 1;
-                } else if ($isMalicious) {
+                if ($isMalicious) {
                     $connection->malicious_request_counter = 1;
-                } else if ($isCrawler) {
-                    $connection->crawler_request_counter = 1;
-                } else {
+                }
+
+                if ($isLoggingError) {
                     $connection->failed_request_counter = 1;
+                }
+
+                if ($isLimitExceeded) {
+                    $connection->limit_exceeded_request_counter = 1;
+                }
+
+                if ($isCrawler) {
+                    $connection->crawler_request_counter = 1;
+                }
+
+                if (!$isMalicious && !$isLoggingError && !$isLimitExceeded && !$isCrawler) {
+                    $connection->successful_request_counter = 1;
                 }
 
             } else {
 
-                if (!isset($isMalicious)) {
-                    $connection->successful_request_counter = $connection->successful_request_counter + 1;
-                } else if ($isMalicious) {
+                if ($isMalicious) {
                     $connection->malicious_request_counter = $connection->malicious_request_counter + 1;
-                } else if ($isCrawler) {
-                    $connection->crawler_request_counter = $connection->crawler_request_counter + 1;
-                } else {
+                }
+
+                if ($isLoggingError) {
                     $connection->failed_request_counter = $connection->failed_request_counter + 1;
+                }
+
+                if ($isLimitExceeded) {
+                    $connection->limit_exceeded_request_counter = $connection->limit_exceeded_request_counter + 1;
+                }
+
+                if ($isCrawler) {
+                    $connection->crawler_request_counter = $connection->crawler_request_counter + 1;
+                }
+
+                if (!$isMalicious && !$isLoggingError && !$isLimitExceeded && !$isCrawler) {
+                    $connection->successful_request_counter = $connection->successful_request_counter + 1;
                 }
             }
 
@@ -211,13 +231,33 @@ class Log
                     $status = 4;
                 }
 
+            } else if ($isLimitExceeded) {
+
+                if ($connection->limit_exceeded_request_counter == 100) {
+
+                    $ipAddressEntity->blocked_at = now();
+                    $ipAddressEntity->save();
+
+                    if ($userId) {
+                        /** @var User $user */
+                        $user = $connection->user()->first();
+                        $user->blocked_at = now();
+                        $user->save();
+                    }
+
+                    $status = 3;
+
+                } else if ($connection->limit_exceeded_request_counter == 500) {
+                    $status = 4;
+                }
+
             } else if ($isLoggingError) {
                 $status = 0;
             }
 
         } else {
 
-            if ($isMalicious) {
+            if ($isMalicious || $isLimitExceeded) {
                 $status = -1;
             } else if ($isLoggingError) {
                 $status = 0;
@@ -267,7 +307,7 @@ class Log
                     $errorTypeRL = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
                     $errorThrowerRL = get_class($e);
                     $errorMessageRL = strlen(trim($e->getMessage())) > 0 ? "There was an error opening the log file.\n{$e->getMessage()}" : 'There was an error opening the log file.';
-                    self::prepareConnection($ipAddress, $userId, false, true, false, $errorTypeRL, $errorThrowerRL, __FILE__, __FUNCTION__, __LINE__, $errorMessageRL, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
+                    self::prepareConnection($ipAddress, $userId, false, true, false, false, $errorTypeRL, $errorThrowerRL, __FILE__, __FUNCTION__, __LINE__, $errorMessageRL, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
                 }
 
                 if (isset($logData)) {
@@ -309,12 +349,6 @@ class Log
                 $errorNumber++;
             }
 
-            // if (!$isDbConnectionError) {
-                // TODO TUTAJ
-                // Jeżeli mam połączenie z bazą danych - chyba tylko w takim wypadku jest sens szukać zaległych bo jak nie ma połączenia do w logach w pliku też się nic nie zapisze (jednak nie bo może byc sytuacja ze kiedys bylo polaczenie, a teraz nie ma)
-            //     $connection->errorLogs()->where('type', DefaultErrorCode::LIMIT_EXCEEDED()->getType())->orderBy('number', 'desc')->first();
-            // }
-
             if ($isSavingLog) {
 
                 try {
@@ -340,7 +374,7 @@ class Log
                     }
 
                     $errorMessageSL = strlen(trim($errorMessageSL)) > 0 ? "Failed to save the log.\n$errorMessageSL" : 'Failed to save the log.';
-                    self::prepareConnection($ipAddress, $userId, false, true, false, $errorTypeSL, $errorThrowerSL, __FILE__, __FUNCTION__, __LINE__, $errorMessageSL, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
+                    self::prepareConnection($ipAddress, $userId, false, true, false, false, $errorTypeSL, $errorThrowerSL, __FILE__, __FUNCTION__, __LINE__, $errorMessageSL, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
                 }
             }
 
@@ -390,7 +424,7 @@ class Log
                 if ($mailErrorCounter) {
                     $isSendingMail = false;
                     $errorMessageMail = strlen(trim($errorMessageMail)) > 0 ? "Failed to send the email ($mailErrorCounter times).\n$errorMessageMail" : "Failed to send the email ($mailErrorCounter times).";
-                    self::prepareConnection($ipAddress, $userId, false, true, false, $errorTypeMail, $errorThrowerMail, __FILE__, __FUNCTION__, __LINE__, $errorMessageMail, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
+                    self::prepareConnection($ipAddress, $userId, false, true, false, false, $errorTypeMail, $errorThrowerMail, __FILE__, __FUNCTION__, __LINE__, $errorMessageMail, $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
                 }
             }
 
@@ -438,7 +472,7 @@ class Log
         }
 
         if (isset($saveDbConnectionError)) {
-            self::prepareConnection($ipAddress, $userId, false, true, false, $saveDbConnectionError['errorTypeDb'], $saveDbConnectionError['errorThrowerDb'], $saveDbConnectionError['errorFileDb'], $saveDbConnectionError['errorFunctionDb'], $saveDbConnectionError['errorLineDb'], $saveDbConnectionError['errorMessageDb'], $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
+            self::prepareConnection($ipAddress, $userId, false, true, false, false, $saveDbConnectionError['errorTypeDb'], $saveDbConnectionError['errorThrowerDb'], $saveDbConnectionError['errorFileDb'], $saveDbConnectionError['errorFunctionDb'], $saveDbConnectionError['errorLineDb'], $saveDbConnectionError['errorMessageDb'], $isDbConnectionError, $isSavingLog, $isSendingMail, $isCheckingIp, $isReadingLog);
         }
     }
 
@@ -486,10 +520,14 @@ class Log
             $values['connectionId'] = '';
             $values['successfulRequestCounter'] = (int) $connection->successful_request_counter;
             $values['failedRequestCounter'] = (int) $connection->failed_request_counter;
+            $values['limitExceededRequestCounter'] = (int) $connection->limit_exceeded_request_counter;
             $values['maliciousRequestCounter'] = (int) $connection->malicious_request_counter;
+            $values['crawlerRequestCounter'] = (int) $connection->crawler_request_counter;
             $successfulRequestCounterAll = 0;
             $failedRequestCounterAll = 0;
+            $limitExceededRequestCounterAll = 0;
             $maliciousRequestCounterAll = 0;
+            $crawlerRequestCounterAll = 0;
             $values['connectionCreatedAt'] = 0;
 
         } else {
@@ -544,6 +582,8 @@ class Log
 
                     $isUserMalicious = false;
                     $isUserFailed = false;
+                    $isUserLimitExceeded = false;
+                    $isUserCrawler = false;
 
                     /** @var Connection[] $connections */
                     $connections = $u->connections()->get();
@@ -553,16 +593,24 @@ class Log
                         if ($c->malicious_request_counter > 0) {
                             $connectionIds[] = "{$c->id}M";
                             $isUserMalicious = true;
+                        } else if ($c->limit_exceeded_request_counter > 0) {
+                            $connectionIds[] = "{$c->id}L";
+                            $isUserLimitExceeded = true;
                         } else if ($c->failed_request_counter > 0) {
                             $connectionIds[] = "{$c->id}F";
                             $isUserFailed = true;
+                        } else if ($c->crawler_request_counter > 0) {
+                            $connectionIds[] = "{$c->id}C";
+                            $isUserCrawler = true;
                         } else {
                             $connectionIds[] = $c->id;
                         }
 
                         $successfulRequestCounterAll += $c->successful_request_counter;
                         $failedRequestCounterAll += $c->failed_request_counter;
+                        $limitExceededRequestCounterAll += $c->limit_exceeded_request_counter;
                         $maliciousRequestCounterAll += $c->malicious_request_counter;
+                        $crawlerRequestCounterAll += $c->crawler_request_counter;
 
                         if ($c->created_at) {
                             if (!$values['connectionCreatedAt']) {
@@ -579,6 +627,8 @@ class Log
 
                             $isIpAddressMalicious = false;
                             $isIpAddressFailed = false;
+                            $isIpAddressLimitExceeded = false;
+                            $isIpAddressCrawler = false;
 
                             /** @var Connection[] $cnns */
                             $cnns = $ip->connections()->get();
@@ -586,8 +636,12 @@ class Log
                             foreach ($cnns as $cn) {
                                 if ($cn->malicious_request_counter > 0) {
                                     $isIpAddressMalicious = true;
+                                } else if ($cn->limit_exceeded_request_counter > 0) {
+                                    $isIpAddressLimitExceeded = true;
                                 } else if ($cn->failed_request_counter > 0) {
                                     $isIpAddressFailed = true;
+                                } else if ($cn->crawler_request_counter > 0) {
+                                    $isIpAddressCrawler = true;
                                 }
                             }
 
@@ -595,8 +649,12 @@ class Log
 
                                 if ($isIpAddressMalicious) {
                                     $ipAddressIds[] = "{$ip->id}M";
+                                } else if ($isIpAddressLimitExceeded) {
+                                    $ipAddressIds[] = "{$ip->id}L";
                                 } else if ($isIpAddressFailed) {
                                     $ipAddressIds[] = "{$ip->id}F";
+                                } else if ($isIpAddressCrawler) {
+                                    $ipAddressIds[] = "{$ip->id}C";
                                 } else {
                                     $ipAddressIds[] = $ip->id;
                                 }
@@ -618,8 +676,12 @@ class Log
 
                     if ($isUserMalicious) {
                         $userIds[] = "{$u->id}M";
+                    } else if ($isUserLimitExceeded) {
+                        $userIds[] = "{$u->id}L";
                     } else if ($isUserFailed) {
                         $userIds[] = "{$u->id}F";
+                    } else if ($isUserCrawler) {
+                        $userIds[] = "{$u->id}C";
                     } else {
                         $userIds[] = $u->id;
                     }
@@ -643,7 +705,7 @@ class Log
 
                 foreach ($connectionIds as $id) {
 
-                    $onlyId = str_replace(['M', 'F'], ['', ''], $id);
+                    $onlyId = str_replace(['M', 'L', 'F', 'C'], ['', '', '', ''], $id);
 
                     if ($onlyId == $connection->id) {
                         $values['connectionId'] .= "[$id], ";
@@ -654,7 +716,7 @@ class Log
 
                 foreach ($ipAddressIds as $id) {
 
-                    $onlyId = str_replace(['M', 'F'], ['', ''], $id);
+                    $onlyId = str_replace(['M', 'L', 'F', 'C'], ['', '', '', ''], $id);
 
                     if ($onlyId == $ipAddress->id) {
                         $values['ipAddressId'] .= "[$id], ";
@@ -665,7 +727,7 @@ class Log
 
                 foreach ($userIds as $id) {
 
-                    $onlyId = str_replace(['M', 'F'], ['', ''], $id);
+                    $onlyId = str_replace(['M', 'L', 'F', 'C'], ['', '', '', ''], $id);
 
                     if ($onlyId == $user->id) {
                         $values['userId'] .= "[$id], ";
@@ -684,7 +746,9 @@ class Log
 
                     $values['successfulRequestCounter'] = "$successfulRequestCounterAll [{$values['successfulRequestCounter']}]";
                     $values['failedRequestCounter'] = "$failedRequestCounterAll [{$values['failedRequestCounter']}]";
+                    $values['limitExceededRequestCounter'] = "$limitExceededRequestCounterAll [{$values['limitExceededRequestCounter']}]";
                     $values['maliciousRequestCounter'] = "$maliciousRequestCounterAll [{$values['maliciousRequestCounter']}]";
+                    $values['crawlerRequestCounter'] = "$crawlerRequestCounterAll [{$values['crawlerRequestCounter']}]";
 
                     if ($values['connectionCreatedAt'] && $connection->created_at) {
                         $values['connectionCreatedAt'] = "{$values['connectionCreatedAt']} [$connection->created_at]";
@@ -895,7 +959,7 @@ class Log
 
             if ($nominatimErrorCounter) {
                 $errorMessage = strlen(trim($errorMessage)) > 0 ? "Failed to get data from Nominati ($nominatimErrorCounter times).\n$errorMessage" : "Failed to get data from Nominati ($nominatimErrorCounter times).";
-                self::prepareConnection($ipAddress, $userId, false, true, false, $errorType, $errorThrower, __FILE__, __FUNCTION__, __LINE__, $errorMessage);
+                self::prepareConnection($ipAddress, $userId, false, true, false, false, $errorType, $errorThrower, __FILE__, __FUNCTION__, __LINE__, $errorMessage);
             }
 
             if (isset($result['house_number'])) {
@@ -1002,7 +1066,9 @@ Połączenie:$enter$tab
     ID: {$values['connectionId']}$enter$tab
     Pomyślnych żądań: {$values['successfulRequestCounter']}$enter$tab
     Błędnych żądań: {$values['failedRequestCounter']}$enter$tab
+    Nadużywanych żądań: {$values['limitExceededRequestCounter']}$enter$tab
     Złośliwych żądań: {$values['maliciousRequestCounter']}$enter$tab
+    Crawlerowych żądań: {$values['crawlerRequestCounter']}$enter$tab
     Data utworzenia: {$values['connectionCreatedAt']}";
 
         }

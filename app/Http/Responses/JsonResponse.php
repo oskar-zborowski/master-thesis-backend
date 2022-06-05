@@ -2,6 +2,7 @@
 
 namespace App\Http\Responses;
 
+use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\ErrorCodes\ErrorCode;
 use App\Http\Libraries\FieldConversion;
 use Illuminate\Support\Facades\Auth;
@@ -122,17 +123,18 @@ class JsonResponse
 
             if ($errorCode->getIsMalicious()) {
                 $command .= ' --isMalicious=1';
-            } else {
+            }
 
-                $command .= ' --isMalicious=0';
+            if ($errorCode->getIsLoggingError()) {
+                $command .= ' --isLoggingError=1';
+            }
 
-                if ($errorCode->getIsLoggingError()) {
-                    $command .= ' --isLoggingError=1';
-                }
+            if ($errorCode->getType() == DefaultErrorCode::LIMIT_EXCEEDED()->getType()) {
+                $command .= ' --isLimitExceeded=1';
+            }
 
-                if ($errorCode->getIsCrawler()) {
-                    $command .= ' --isCrawler=1';
-                }
+            if ($errorCode->getIsCrawler()) {
+                $command .= ' --isCrawler=1';
             }
 
             $command .= " \"{$errorCode->getType()}\"";
