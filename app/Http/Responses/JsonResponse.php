@@ -61,7 +61,7 @@ class JsonResponse
             }
         }
 
-        if ($errorCode->getIsMalicious() || $errorCode->getIsCrawler() || Route::currentRouteName() == 'crawler') {
+        if ($errorCode->getIsMalicious() || Route::currentRouteName() == 'crawler') {
             $response['metadata'] = __('validation.custom.malicious-request');
         }
 
