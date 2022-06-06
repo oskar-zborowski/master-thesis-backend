@@ -12,13 +12,14 @@ return new class extends Migration
     public function up() {
         Schema::create('error_logs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('number')->unique();
+            $table->unsignedBigInteger('number')->nullable()->unique();
             $table->foreignId('connection_id')->nullable()->references('id')->on('connections')->nullOnDelete();
             $table->string('type', 30);
             $table->string('thrower', 100);
             $table->string('file', 150)->nullable();
             $table->string('method', 50)->nullable();
             $table->unsignedSmallInteger('line')->nullable();
+            $table->string('subject', 100);
             $table->text('message')->nullable();
             $table->timestamps();
         });

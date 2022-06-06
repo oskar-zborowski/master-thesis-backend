@@ -452,6 +452,8 @@ class Log
                     $newErrorLog->line = $errorLine;
                 }
 
+                $newErrorLog->subject = self::getMessageFirstLine($status, $userId);
+
                 if ($errorMessage != 'brak') {
                     $newErrorLog->message = $errorMessage;
                 }
@@ -1024,29 +1026,10 @@ class Log
 
     private static function getMessageTemplate(int $status, array $values, string $enter, string $tab) {
 
-        if ($status == -1) {
-            $message = 'Wykryto próbę wysłania złośliwego żądania!';
-        } else if ($status == 1) {
-            $message = 'Wykryto pierwszą próbę wysłania złośliwego żądania!';
-        } else if ($status == 2) {
-            $message = 'Wykryto kolejną próbę wysłania złośliwego żądania!';
-        } else if ($status == 3) {
+        $userId = isset($values['userId']) ? $values['userId'] : null;
 
-            $message = 'Zablokowano adres IP przychodzącego żądania';
-
-            if (isset($values['userId'])) {
-                $message .= ' oraz konto użytkownika';
-            }
-
-            $message .= '!';
-
-        } else if ($status == 4) {
-            $message = 'Wymagana jest permanentna blokada adresu IP przychodzącego żądania!';
-        } else {
-            $message = 'Wystąpił nieoczekiwany błąd!';
-        }
-
-        $message .= "$enter$enter
+        $message = self::getMessageFirstLine($status, $userId);
+        $message .= "!$enter$enter
 
 Nr błędu: {$values['errorNumber']}$enter$enter
 
@@ -1124,5 +1107,30 @@ Lokalizacja:$enter$tab
         }
 
         return $message;
+    }
+
+    private static function getMessageFirstLine(int $status, ?int $userId) {
+
+        if ($status == -1) {
+            $firstLine = 'Wykryto próbę wysłania złośliwego żądania';
+        } else if ($status == 1) {
+            $firstLine = 'Wykryto pierwszą próbę wysłania złośliwego żądania';
+        } else if ($status == 2) {
+            $firstLine = 'Wykryto kolejną próbę wysłania złośliwego żądania';
+        } else if ($status == 3) {
+
+            $firstLine = 'Zablokowano adres IP przychodzącego żądania';
+
+            if (isset($userId)) {
+                $firstLine .= ' oraz konto użytkownika';
+            }
+
+        } else if ($status == 4) {
+            $firstLine = 'Wymagana jest permanentna blokada adresu IP przychodzącego żądania';
+        } else {
+            $firstLine = 'Wystąpił nieoczekiwany błąd';
+        }
+
+        return $firstLine;
     }
 }

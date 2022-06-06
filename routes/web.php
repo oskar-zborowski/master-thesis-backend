@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |---------------------------------------------------------------------------------------------------------------
-| Endpoint do wpuszczania na stronę crawlerów
+| Endpointy do wpuszczania na stronę crawlerów
 |---------------------------------------------------------------------------------------------------------------
 */
 
@@ -28,4 +28,13 @@ Route::get('/', function () {
         __FUNCTION__,
         false
     );
-})->name('crawler');
+})->name('crawler-get');
+
+Route::post('/', function () {
+    throw new ApiException(
+        DefaultErrorCode::PERMISSION_DENIED(false, false, true),
+        null,
+        __FUNCTION__,
+        false
+    );
+})->name('crawler-post');

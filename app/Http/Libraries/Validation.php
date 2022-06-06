@@ -168,7 +168,8 @@ class Validation
         return [
             'user-createUser',
             'github-pull',
-            'crawler',
+            'crawler-get',
+            'crawler-post',
         ];
     }
 

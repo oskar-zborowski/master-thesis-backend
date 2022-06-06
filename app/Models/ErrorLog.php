@@ -13,6 +13,7 @@ class ErrorLog extends BaseModel
         'file',
         'method',
         'line',
+        'subject',
         'message',
         'created_at',
         'updated_at',
