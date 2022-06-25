@@ -159,8 +159,12 @@ class Validation
 
     public static function getVotingTypes() {
         return [
-            'START',
+            'START', // Wszyscy muszą wyraźnić zgodę
+            'ENDING_COUNTDOWN', // Wszyscy muszą wyraźnić zgodę
             'PAUSE',
+            'RESUME', // Wszyscy muszą wyraźnić zgodę
+            'END_GAME',
+            'GIVE_UP', // Tylko z danej frakcji
         ];
     }
 

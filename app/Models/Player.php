@@ -20,6 +20,7 @@ class Player extends BaseModel
         'expected_time_at',
         'black_ticket_finished_at',
         'fake_position_finished_at',
+        'next_voting_starts_at',
         'created_at',
         'updated_at',
     ];
@@ -44,6 +45,7 @@ class Player extends BaseModel
         'caught_at' => 'boolean',
         'disconnecting_finished_at' => 'string',
         'crossing_boundary_finished_at' => 'string',
+        'next_voting_starts_at' => 'string',
         'updated_at' => 'string',
     ];
 
