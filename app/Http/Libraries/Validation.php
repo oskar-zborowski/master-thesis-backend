@@ -18,22 +18,22 @@ class Validation
 {
     public static function user_createUser() {
         return [
+            'gps_location' => 'required|string|between:3,20',
             'producer' => 'nullable|string|between:1,30',
             'model' => 'nullable|string|between:1,50',
             'os_name' => ['nullable', Rule::in(self::getOsNames())],
             'os_version' => 'nullable|string|between:1,10',
             'app_version' => ['required', Rule::in(self::getAppVersions())],
             'uuid' => 'nullable|string|between:1,45',
-            'gps_location' => 'required|string|between:3,20',
         ];
     }
 
     public static function user_updateUser() {
         return [
+            'gps_location' => 'required|string|between:3,20',
             'name' => 'nullable|string|between:1,15',
             'os_version' => 'nullable|string|between:1,10',
             'app_version' => ['required', Rule::in(self::getAppVersions())],
-            'gps_location' => 'required|string|between:3,20',
         ];
     }
 
@@ -75,8 +75,7 @@ class Validation
             'is_pause_after_disconnecting' => 'nullable|boolean',
             'other_disconnecting_countdown' => 'nullable|integer|between:-1,900',
             'other_crossing_boundary_countdown' => 'nullable|integer|between:-1,900',
-            'boundary_points' => 'nullable|string|between:19,419',
-            'status' => ['nullable', Rule::in(['GAME_IN_PROGRESS', 'GAME_PAUSED'])],
+            'boundary_points' => 'nullable|string|between:15,419',
         ];
     }
 
@@ -90,11 +89,18 @@ class Validation
         return [
             'gps_location' => 'required|string|between:3,20',
             'avatar' => ['nullable', Rule::in(self::getAvatars())],
-            'start_in_advance' => 'nullable|boolean',
-            'use_black_ticket' => 'nullable|boolean',
             'use_white_ticket' => 'nullable|boolean',
+            'use_black_ticket' => 'nullable|boolean',
             'use_fake_position' => 'nullable|string|between:3,20',
-            'status' => ['nullable', Rule::in(['GAME_IN_PROGRESS', 'GAME_PAUSED'])],
+            'status' => ['nullable', Rule::in(['LEFT'])],
+            'voting_type' => ['nullable', Rule::in(self::getVotingTypes())],
+            'voting_answer' => 'nullable|boolean',
+        ];
+    }
+
+    public static function player_setRole() {
+        return [
+            'role' => ['nullable', Rule::in(self::getPlayerRoles())],
         ];
     }
 

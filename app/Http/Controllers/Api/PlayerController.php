@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Libraries\JsonConfig;
 use App\Http\Requests\CreatePlayerRequest;
+use App\Http\Requests\SetRoleRequest;
 use App\Http\Requests\UpdatePlayerRequest;
 use App\Http\Responses\JsonResponse;
 use App\Models\Player;
@@ -81,6 +82,24 @@ class PlayerController extends Controller
      * Edycja danych gracza (zmiana parametrów podczas oczekiwania w pokoju i w trakcie gry)
      */
     public function updatePlayer(UpdatePlayerRequest $request) {
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        /** @var Player $player */
+        $player = $user->players()->latest()->first();
+
+        /** @var Room $room */
+        $room = $player->room()->first();
+
+        JsonResponse::sendSuccess($request, $room->getData());
+    }
+
+    /**
+     * #### `PUT` `/v1/players/{player}/role`
+     * Ustawienie roli gracza
+     */
+    public function setRole(Player $player, SetRoleRequest $request) {
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
