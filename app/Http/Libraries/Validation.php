@@ -7,6 +7,7 @@ use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Models\IpAddress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
@@ -40,6 +41,7 @@ class Validation
     public static function room_updateRoom() {
         return [
             'host_id' => 'nullable|integer|exists:users,id',
+            'is_code_renewal' => 'nullable|boolean',
             'actor_policeman_number' => 'nullable|integer|between:1,29',
             'actor_policeman_visibility_radius' => 'nullable|integer|between:-1,50000',
             'actor_policeman_catching_number' => 'nullable|integer|between:1,29',
@@ -92,7 +94,7 @@ class Validation
             'use_white_ticket' => 'nullable|boolean',
             'use_black_ticket' => 'nullable|boolean',
             'use_fake_position' => 'nullable|string|between:3,20',
-            'status' => ['nullable', Rule::in(['LEFT'])],
+            'status' => ['nullable', Rule::in(['BLOCKED', 'LEFT'])],
             'voting_type' => ['nullable', Rule::in(self::getVotingTypes())],
             'voting_answer' => 'nullable|boolean',
         ];
@@ -193,6 +195,61 @@ class Validation
         }
 
         return $result;
+    }
+
+    public static function checkBoundary(string $boundary) {
+
+        $polygon = null;
+        $boundaryPoints = explode(',', $boundary);
+        $boundaryPointsNumber = count($boundaryPoints);
+
+        if ($boundaryPointsNumber < 4 || $boundaryPointsNumber > 20) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(false, true),
+                __('validation.custom.incorrect-boundary-vertices-number'),
+                __FUNCTION__
+            );
+        }
+
+        foreach ($boundaryPoints as $boundaryPoint) {
+
+            self::checkGpsLocation($boundaryPoint);
+
+            $coordinates = explode(' ', $boundaryPoint);
+
+            $polygon[] = [
+                $coordinates[0],
+                $coordinates[1],
+            ];
+        }
+
+        if ($boundaryPoints[0] != $boundaryPoints[$boundaryPointsNumber-1]) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(false, true),
+                __('validation.custom.boundary-not-closed'),
+                __FUNCTION__
+            );
+        }
+
+        $isValid = DB::raw("SELECT ST_IsValid(ST_GeomFromText('POLYGON(($boundary))')) AS isValid");
+
+        if (!$isValid['isValid']) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(false, true),
+                __('validation.custom.invalid-boundary-shape'),
+                __FUNCTION__
+            );
+        }
+
+        $isConvex = self::isConvex($polygon);
+
+        if (!$isConvex) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(false, true),
+                __('validation.custom.invalid-boundary-shape'),
+                __FUNCTION__
+            );
+        }
     }
 
     public static function checkGpsLocation(string $gpsLocation) {
@@ -526,6 +583,36 @@ class Validation
             }
 
             self::validateRequestFields($request, $routeName);
+        }
+    }
+
+    private static function isConvex(array $polygon) {
+
+        $flag = 0;
+        $pointsNumber = count($polygon) - 1;
+
+        for ($i=0; $i<$pointsNumber; $i++) {
+
+            $j = ($i + 1) % $pointsNumber;
+            $k = ($i + 2) % $pointsNumber;
+            $z = ($polygon[$j][0] - $polygon[$i][0]) * ($polygon[$k][1] - $polygon[$j][1]);
+            $z -= ($polygon[$j][1] - $polygon[$i][1]) * ($polygon[$k][0] - $polygon[$j][0]);
+
+            if ($z < 0) {
+                $flag |= 1;
+            } else if ($z > 0) {
+                $flag |= 2;
+            }
+
+            if ($flag == 3) {
+                return false;
+            }
+        }
+
+        if ($flag != 0) {
+            return true;
+        } else {
+            return false;
         }
     }
 }
