@@ -94,7 +94,7 @@ class Validation
             'use_white_ticket' => 'nullable|boolean',
             'use_black_ticket' => 'nullable|boolean',
             'use_fake_position' => 'nullable|string|between:3,20',
-            'status' => ['nullable', Rule::in(['BLOCKED', 'LEFT'])],
+            'status' => ['nullable', Rule::in(['BANNED', 'LEFT'])],
             'voting_type' => ['nullable', Rule::in(self::getVotingTypes())],
             'voting_answer' => 'nullable|boolean',
         ];
@@ -160,7 +160,7 @@ class Validation
         return [
             'CONNECTED',
             'DISCONNECTED',
-            'BLOCKED',
+            'BANNED',
             'LEFT',
         ];
     }

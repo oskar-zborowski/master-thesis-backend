@@ -44,10 +44,6 @@ class RoomController extends Controller
             $room = $player->room()->first();
 
             if ($room->status != 'GAME_OVER') {
-                $userInAnotherRoom = true;
-            }
-
-            if (isset($userInAnotherRoom)) {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(),
                     __('validation.custom.you-are-already-in-another-room'),
@@ -92,7 +88,7 @@ class RoomController extends Controller
             /** @var Room $room */
             $room = $player->room()->first();
 
-            if ($room->host_id != $user->id) {
+            if ($room->host_id != $user->id || $room->status != 'WAITING_IN_ROOM') {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(true),
                     __('validation.custom.no-permission'),
@@ -113,11 +109,11 @@ class RoomController extends Controller
         if ($request->host_id !== null) {
 
             /** @var \App\Models\Player $newHost */
-            $newHost = $room->players()->where('user_id', $request->host_id)->whereNotIn('status', ['BLOCKED', 'LEFT'])->first();
+            $newHost = $room->players()->where('user_id', $request->host_id)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
 
             if (!$newHost) {
                 throw new ApiException(
-                    DefaultErrorCode::FAILED_VALIDATION(false, true),
+                    DefaultErrorCode::FAILED_VALIDATION(),
                     __('validation.custom.user-is-not-in-room'),
                     __FUNCTION__
                 );
