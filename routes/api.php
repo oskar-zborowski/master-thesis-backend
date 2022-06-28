@@ -33,7 +33,6 @@ Route::patch('/v1/users/me', [UserController::class, 'updateUser'])->name('user-
 
 Route::post('/v1/rooms', [RoomController::class, 'createRoom'])->name('room-createRoom')->middleware('throttle:creatingRoomLimit');
 Route::patch('/v1/rooms/my/last', [RoomController::class, 'updateRoom'])->name('room-updateRoom');
-Route::get('/v1/rooms/my/last', [RoomController::class, 'getRoom'])->name('room-getRoom');
 
 Route::post('/v1/players', [PlayerController::class, 'createPlayer'])->name('player-createPlayer');
 Route::patch('/v1/players/my/last', [PlayerController::class, 'updatePlayer'])->name('player-updatePlayer');

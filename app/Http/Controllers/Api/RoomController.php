@@ -158,40 +158,4 @@ class RoomController extends Controller
 
         JsonResponse::sendSuccess($request, $room->getData());
     }
-
-    /**
-     * #### `GET` `/api/v1/rooms/my/last`
-     * Pobranie informacji o grze
-     */
-    public function getRoom(Request $request) {
-
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        /** @var Player $player */
-        $player = $user->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->orderBy('id', 'desc')->first();
-
-        if ($player) {
-
-            /** @var Room $room */
-            $room = $player->room()->first();
-
-            if ($room->status == 'GAME_OVER') {
-                throw new ApiException(
-                    DefaultErrorCode::PERMISSION_DENIED(),
-                    __('validation.custom.no-permission'),
-                    __FUNCTION__,
-                );
-            }
-
-        } else {
-            throw new ApiException(
-                DefaultErrorCode::PERMISSION_DENIED(),
-                __('validation.custom.no-permission'),
-                __FUNCTION__
-            );
-        }
-
-        JsonResponse::sendSuccess($request, $room->getData());
-    }
 }
