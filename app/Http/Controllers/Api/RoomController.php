@@ -43,7 +43,7 @@ class RoomController extends Controller
             /** @var Room $room */
             $room = $player->room()->first();
 
-            if ($room && $room->status != 'GAME_OVER') {
+            if ($room->status != 'GAME_OVER') {
                 $userInAnotherRoom = true;
             }
 
@@ -92,7 +92,7 @@ class RoomController extends Controller
             /** @var Room $room */
             $room = $player->room()->first();
 
-            if (!$room || $room->host_id != $user->id) {
+            if ($room->host_id != $user->id) {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(true),
                     __('validation.custom.no-permission'),
@@ -126,7 +126,7 @@ class RoomController extends Controller
             $room->host_id = $request->host_id;
         }
 
-        if ($request->is_code_renewal !== null && $request->is_code_renewal) {
+        if ($request->is_code_renewal) {
 
             $newCode = Encrypter::generateToken(6, Room::class, 'code');
 
@@ -176,7 +176,7 @@ class RoomController extends Controller
             /** @var Room $room */
             $room = $player->room()->first();
 
-            if (!$room && $room->status == 'GAME_OVER') {
+            if ($room->status == 'GAME_OVER') {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(),
                     __('validation.custom.no-permission'),
