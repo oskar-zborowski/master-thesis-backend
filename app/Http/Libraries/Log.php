@@ -231,9 +231,8 @@ class Log
                 $status = 0;
             }
 
-            if (($connection->malicious_request_counter >= 50 || $connection->limit_exceeded_request_counter >= 100) &&
-                (env('APP_ENV') != 'local' || !env('APP_DEBUG')))
-            {
+            if (($connection->malicious_request_counter >= 50 || $connection->limit_exceeded_request_counter >= 100) && !env('APP_DEBUG')) {
+
                 if (!$ipAddressEntity->blocked_at) {
                     $ipAddressEntity->blocked_at = now();
                     $ipAddressEntity->save();

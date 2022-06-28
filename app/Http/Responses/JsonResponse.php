@@ -48,14 +48,14 @@ class JsonResponse
 
         $response = [];
 
-        if (env('APP_ENV') == 'local' && env('APP_DEBUG')) {
+        if (env('APP_DEBUG')) {
             $response['error_type'] = $errorCode->getType();
         }
 
         $response['error_code'] = $errorCode->getCode();
 
         if (isset($data)) {
-            if (env('APP_ENV') == 'local' && env('APP_DEBUG')) {
+            if (env('APP_DEBUG')) {
                 $response['data'] = FieldConversion::convertEmptyStringsToNull($data);
             } else if ($isMessageForwarded) {
                 $response['data']['message'] = FieldConversion::convertEmptyStringsToNull($data['message']);
@@ -105,7 +105,7 @@ class JsonResponse
 
         $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan connection-info:save";
 
-        if (env('APP_ENV') == 'local' && env('APP_DEBUG') && !env('APP_IP_DETECTION')) {
+        if (env('APP_ENV') == 'local') {
             $command .= ' "83.8.175.174"';
         } else {
             /** @var \Illuminate\Http\Request $request */

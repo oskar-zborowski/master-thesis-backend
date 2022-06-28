@@ -432,7 +432,7 @@ class Validation
 
     public static function secondAuthenticate(Request $request, bool $isErrorThrown = false) {
 
-        if (env('APP_ENV') == 'local' && env('APP_DEBUG') && !env('APP_IP_DETECTION')) {
+        if (env('APP_ENV') == 'local') {
             $encryptedIpAddress = Encrypter::encrypt('83.8.175.174', 45, false);
         } else {
             $encryptedIpAddress = Encrypter::encrypt($request->ip(), 45, false);

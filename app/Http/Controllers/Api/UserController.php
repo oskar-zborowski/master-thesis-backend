@@ -81,7 +81,7 @@ class UserController extends Controller
         $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan gps-log:save";
         $command .= " \"$gpsLocation\"";
 
-        if (env('APP_ENV') == 'local' && env('APP_DEBUG') && !env('APP_IP_DETECTION')) {
+        if (env('APP_ENV') == 'local') {
             $command .= ' "83.8.175.174"';
         } else {
             /** @var \Illuminate\Http\Request $request */
