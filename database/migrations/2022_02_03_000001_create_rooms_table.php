@@ -28,7 +28,7 @@ return new class extends Migration
             $table->json('config');
             $table->polygon('boundary_polygon')->nullable(); // Obowiązuje wyłącznie jeden poligon, który może składać się z maksymalnie 20 pkt. | Usuwane po zakończeniu gry
             $table->string('boundary_points', 880)->nullable(); // Kodowane automatycznie | Struktura: -179.12345 -89.12345,-179.12345 -89.12345,-179.12345 -89.12345,-179.12345 -89.12345
-            $table->enum('status', Validation::getRoomStatuses())->default(Validation::getRoomStatuses()[0]);
+            $table->enum('status', Validation::getRoomStatuses())->default('WAITING_IN_ROOM');
             $table->enum('game_result', Validation::getGameResults())->nullable();
             $table->enum('voting_type', Validation::getVotingTypes())->nullable();
             $table->timestamp('game_started_at')->nullable();

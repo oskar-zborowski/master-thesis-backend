@@ -73,7 +73,7 @@ class RoomController extends Controller
 
     /**
      * #### `PATCH` `/api/v1/rooms/my/last`
-     * Edycja pokoju
+     * Edycja pokoju (endpoint tylko dla hosta)
      */
     public function updateRoom(UpdateRoomRequest $request) {
 

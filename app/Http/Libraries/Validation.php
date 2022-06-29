@@ -158,7 +158,7 @@ class Validation
             'AGENT',
             'PEGASUS',
             'FATTY_MAN',
-            'EAGLE,'
+            'EAGLE',
         ];
     }
 

@@ -146,7 +146,7 @@ class PlayerController extends Controller
 
     /**
      * #### `PUT` `/v1/players/{player}/status`
-     * Ustawienie statusu gracza
+     * Ustawienie statusu gracza (endpoint tylko dla hosta, host nie może zmieniać swojego statusu - musi skorzystać w tym celu z updatePlayer)
      */
     public function setStatus(Player $player, SetStatusRequest $request) {
 
@@ -164,7 +164,7 @@ class PlayerController extends Controller
 
     /**
      * #### `PUT` `/v1/players/{player}/role`
-     * Ustawienie roli gracza
+     * Ustawienie roli gracza (endpoint tylko dla hosta)
      */
     public function setRole(Player $player, SetRoleRequest $request) {
 

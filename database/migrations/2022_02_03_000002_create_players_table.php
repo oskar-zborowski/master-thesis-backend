@@ -25,7 +25,7 @@ return new class extends Migration
             $table->boolean('is_bot')->default(false);
             $table->boolean('is_crossing_boundary')->default(false);
             $table->boolean('voting_answer')->nullable();
-            $table->enum('status', Validation::getPlayerStatuses())->default(Validation::getPlayerStatuses()[0]);
+            $table->enum('status', Validation::getPlayerStatuses())->default('CONNECTED');
             $table->unsignedTinyInteger('warning_number')->default(0);
             $table->unsignedSmallInteger('average_ping')->default(0); // wyrażone w [ms]
             $table->unsignedSmallInteger('standard_deviation')->default(0); // wyrażone w [ms]
