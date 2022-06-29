@@ -1021,7 +1021,7 @@ class Log
 
     private static function getMessageTemplate(int $status, array $values, string $enter, string $tab) {
 
-        $userId = isset($values['userId']) ? $values['userId'] : null;
+        $userId = isset($values['userId']) ? (int) $values['userId'] : null;
 
         $message = self::getMessageFirstLine($status, $userId);
         $message .= "!$enter$enter
