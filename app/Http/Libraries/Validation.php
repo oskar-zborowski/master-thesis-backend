@@ -94,9 +94,15 @@ class Validation
             'use_white_ticket' => 'nullable|boolean',
             'use_black_ticket' => 'nullable|boolean',
             'use_fake_position' => 'nullable|string|between:3,20',
-            'status' => ['nullable', Rule::in(['BANNED', 'LEFT'])],
+            'status' => ['nullable', Rule::in(['LEFT'])],
             'voting_type' => ['nullable', Rule::in(self::getVotingTypes())],
             'voting_answer' => 'nullable|boolean',
+        ];
+    }
+
+    public static function player_setStatus() {
+        return [
+            'status' => ['required', Rule::in(['BANNED', 'LEFT'])],
         ];
     }
 

@@ -36,6 +36,7 @@ Route::patch('/v1/rooms/my/last', [RoomController::class, 'updateRoom'])->name('
 
 Route::post('/v1/players', [PlayerController::class, 'createPlayer'])->name('player-createPlayer');
 Route::patch('/v1/players/my/last', [PlayerController::class, 'updatePlayer'])->name('player-updatePlayer');
+Route::put('/v1/players/{player}/status', [PlayerController::class, 'setStatus'])->name('player-setStatus');
 Route::put('/v1/players/{player}/role', [PlayerController::class, 'setRole'])->name('player-setRole');
 
 
