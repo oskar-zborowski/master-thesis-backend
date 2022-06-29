@@ -154,6 +154,7 @@ return [
         'invalid-log-type' => 'Możesz użyć jedynie typu loga (mail), albo (log).',
         'limit-exceeded' => 'Przekroczono limit żądań. Możesz spróbować ponownie za :seconds sekund.',
         'malicious-request' => 'Wysyłanie żądań przez podmioty niewspółpracujące jest surowo zabronione. Wszystkie próby nawiązywania połączenia są monitorowane i mogą wiązać się z konsekwencjami!',
+        'max-player-number-reached' => 'Osiągnięto maksymalną liczbę graczy.',
         'no-permission' => 'Nie masz uprawnień do danego zasobu.',
         'undefined-request-fields-detected' => 'Wykryto niezdefiniowane pola żądania: :fields.',
         'user-is-not-in-room' => 'Podany użytkownik nie znajduje się w pokoju.',

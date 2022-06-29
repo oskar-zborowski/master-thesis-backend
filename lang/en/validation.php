@@ -154,6 +154,7 @@ return [
         'invalid-log-type' => 'You can only use the (mail) or (log) log type.',
         'limit-exceeded' => 'The request limit has been exceeded. You can try again in :seconds seconds.',
         'malicious-request' => 'Sending requests by non-cooperators is strictly prohibited. All connection attempts are monitored and can have consequences!',
+        'max-player-number-reached' => 'The maximum player number has been reached.',
         'no-permission' => 'You are not authorized to the given resource.',
         'undefined-request-fields-detected' => 'Undefined request fields detected: fields.',
         'user-is-not-in-room' => 'The specified user is not in the room.',

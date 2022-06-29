@@ -90,6 +90,7 @@ class PlayerController extends Controller
 
                 } else {
                     $player->status = 'CONNECTED';
+                    $player->role = null;
                     $player->save();
                 }
             }
@@ -153,11 +154,28 @@ class PlayerController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        /** @var Player $player */
-        $player = $user->players()->latest()->first();
-
         /** @var Room $room */
         $room = $player->room()->first();
+
+        if ($room->host_id != $user->id || $player->user_id == $user->id ||
+            ($room->status != 'WAITING_IN_ROOM' && $room->status != 'GAME_PAUSED') ||
+            ($player->status == 'CONNECTED' || $player->status == 'DISCONNECTED') && $request->status == 'LEFT')
+        {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(true),
+                __('validation.custom.no-permission'),
+                __FUNCTION__,
+                false
+            );
+        }
+
+        $player->status = $request->status;
+
+        if ($room->status == 'WAITING_IN_ROOM') {
+            $player->role = null;
+        }
+
+        $player->save();
 
         JsonResponse::sendSuccess($request, $room->getData());
     }
@@ -171,11 +189,35 @@ class PlayerController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        /** @var Player $player */
-        $player = $user->players()->latest()->first();
-
         /** @var Room $room */
         $room = $player->room()->first();
+
+        if ($room->host_id != $user->id || $room->status != 'WAITING_IN_ROOM' ||
+            ($player->status != 'CONNECTED' && $player->status != 'DISCONNECTED') ||
+            $room->config['other']['is_role_random'])
+        {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(true),
+                __('validation.custom.no-permission'),
+                __FUNCTION__,
+                false
+            );
+        }
+
+        /** @var Player[] $players */
+        $players = $room->players()->where('role', $request->role)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
+        $playersNumber = count($players);
+
+        if ($playersNumber >= $room->config['actor'][strtolower($request->role)]['number']) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.max-player-number-reached'),
+                __FUNCTION__
+            );
+        }
+
+        $player->role = $request->role;
+        $player->save();
 
         JsonResponse::sendSuccess($request, $room->getData());
     }
