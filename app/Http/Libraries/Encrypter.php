@@ -47,13 +47,13 @@ class Encrypter
         return $text;
     }
 
-    public static function generateToken(int $size, $entity = null, ?string $field = null, string $addition = '') {
+    public static function generateToken(int $size, $entity = null, ?string $field = null, bool $areOnlyCapitalLetters = false, string $addition = '') {
 
         $size -= strlen($addition);
 
         if ($size >= 0) {
             do {
-                $token = self::fillWithRandomCharacters('', $size, true) . $addition;
+                $token = self::fillWithRandomCharacters('', $size, true, $areOnlyCapitalLetters) . $addition;
             } while (isset($entity) && isset($field) && !Validation::checkUniqueness($token, $entity, $field, true));
         } else {
             $token = null;

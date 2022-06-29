@@ -54,7 +54,7 @@ class RoomController extends Controller
 
         $room = new Room;
         $room->host_id = $user->id;
-        $room->code = Encrypter::generateToken(6, Room::class, 'code');
+        $room->code = Encrypter::generateToken(6, Room::class, 'code', true);
         $room->config = JsonConfig::getDefaultGameConfig();
         $room->save();
 
@@ -124,7 +124,7 @@ class RoomController extends Controller
 
         if ($request->is_code_renewal) {
 
-            $newCode = Encrypter::generateToken(6, Room::class, 'code');
+            $newCode = Encrypter::generateToken(6, Room::class, 'code', true);
 
             $encryptedOldCode = Encrypter::encrypt($room->code, 6, false);
             $aesDecrypt = Encrypter::prepareAesDecrypt('code', $encryptedOldCode);
