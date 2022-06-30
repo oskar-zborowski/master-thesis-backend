@@ -10,6 +10,7 @@ class Player extends BaseModel
     protected $hidden = [
         'room_id',
         'user_id',
+        'role',
         'config',
         'track',
         'hidden_position',
