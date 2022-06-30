@@ -223,6 +223,7 @@ class PlayerController extends Controller
 
         $player->role = $request->role;
         $player->save();
+        $room->refresh();
 
         JsonResponse::sendSuccess($request, $room->getData());
     }
