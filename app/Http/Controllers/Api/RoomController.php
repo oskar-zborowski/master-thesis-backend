@@ -45,7 +45,7 @@ class RoomController extends Controller
 
             if ($room->status != 'GAME_OVER') {
                 throw new ApiException(
-                    DefaultErrorCode::FAILED_VALIDATION(),
+                    DefaultErrorCode::PERMISSION_DENIED(),
                     __('validation.custom.you-are-already-in-another-room'),
                     __FUNCTION__
                 );
@@ -85,21 +85,19 @@ class RoomController extends Controller
         /** @var Player $player */
         $player = $user->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->orderBy('id', 'desc')->first();
 
-        if ($player) {
+        if (!$player) {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(true),
+                __('validation.custom.no-permission'),
+                __FUNCTION__,
+                false
+            );
+        }
 
-            /** @var Room $room */
-            $room = $player->room()->first();
+        /** @var Room $room */
+        $room = $player->room()->first();
 
-            if ($room->host_id != $user->id || $room->status != 'WAITING_IN_ROOM') {
-                throw new ApiException(
-                    DefaultErrorCode::PERMISSION_DENIED(true),
-                    __('validation.custom.no-permission'),
-                    __FUNCTION__,
-                    false
-                );
-            }
-
-        } else {
+        if ($user->id != $room->host_id || $room->voting_type == 'START' || $room->status != 'WAITING_IN_ROOM') {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
                 __('validation.custom.no-permission'),

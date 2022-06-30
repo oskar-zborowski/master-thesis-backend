@@ -6,6 +6,7 @@ use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Libraries\Encrypter;
+use App\Http\Libraries\Validation;
 use App\Http\Requests\CreatePlayerRequest;
 use App\Http\Requests\SetRoleRequest;
 use App\Http\Requests\SetStatusRequest;
@@ -14,6 +15,7 @@ use App\Http\Responses\JsonResponse;
 use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PlayerController extends Controller
 {
@@ -50,7 +52,7 @@ class PlayerController extends Controller
 
             if ($lastRoom->status != 'GAME_OVER' && (!$room || $room->id != $lastRoom->id)) {
                 throw new ApiException(
-                    DefaultErrorCode::FAILED_VALIDATION(),
+                    DefaultErrorCode::PERMISSION_DENIED(),
                     __('validation.custom.you-are-already-in-another-room'),
                     __FUNCTION__
                 );
@@ -73,7 +75,7 @@ class PlayerController extends Controller
             if ($player->status == 'BANNED') {
 
                 throw new ApiException(
-                    DefaultErrorCode::FAILED_VALIDATION(),
+                    DefaultErrorCode::PERMISSION_DENIED(),
                     __('validation.custom.you-have-been-banned'),
                     __FUNCTION__
                 );
@@ -81,18 +83,26 @@ class PlayerController extends Controller
             } else if ($player->status == 'LEFT') {
 
                 if ($room->status != 'WAITING_IN_ROOM') {
-
                     throw new ApiException(
                         DefaultErrorCode::PERMISSION_DENIED(),
                         __('validation.custom.game-already-started'),
                         __FUNCTION__
                     );
-
-                } else {
-                    $player->status = 'CONNECTED';
-                    $player->role = null;
-                    $player->save();
                 }
+
+                $avatar = $player->avatar;
+
+                /** @var Player $isAvatarExists */
+                $isAvatarExists = $room->players()->where('avatar', $avatar)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
+
+                if ($isAvatarExists) {
+                    $avatar = $this->findAvailableAvatar($room);
+                }
+
+                $player->avatar = $avatar;
+                $player->role = null;
+                $player->status = 'CONNECTED';
+                $player->save();
 
             } else if ($player->status == 'DISCONNECTED') {
                 $player->status = 'CONNECTED';
@@ -123,7 +133,17 @@ class PlayerController extends Controller
             $player = new Player;
             $player->room_id = $room->id;
             $player->user_id = $user->id;
-            $player->avatar = $user->default_avatar;
+
+            $avatar = $user->default_avatar;
+
+            /** @var Player $isAvatarExists */
+            $isAvatarExists = $room->players()->where('avatar', $avatar)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
+
+            if ($isAvatarExists) {
+                $avatar = $this->findAvailableAvatar($room);
+            }
+
+            $player->avatar = $avatar;
             $player->expected_time_at = $expectedTimeAt;
             $player->save();
         }
@@ -143,10 +163,61 @@ class PlayerController extends Controller
         $user = Auth::user();
 
         /** @var Player $player */
-        $player = $user->players()->latest()->first();
+        $player = $user->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->orderBy('id', 'desc')->first();
+
+        if (!$player) {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(),
+                __('validation.custom.no-permission'),
+                __FUNCTION__
+            );
+        }
 
         /** @var Room $room */
         $room = $player->room()->first();
+
+        if ($room->status == 'GAME_IN_PROGRESS') {
+
+            Validation::checkGpsLocation($request->gps_location);
+
+            if (!in_array($player->role, ['THIEF', 'AGENT'])) {
+                $player->global_position = DB::raw("ST_GeomFromText('POINT({$request->gps_location})')");
+            }
+
+            $player->hidden_position = DB::raw("ST_GeomFromText('POINT({$request->gps_location})')");
+        }
+
+        if ($request->avatar) {
+
+            if ($room->voting_type == 'START' || $room->status != 'WAITING_IN_ROOM') {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.no-permission'),
+                    __FUNCTION__
+                );
+            }
+
+            /** @var Player $avatarExists */
+            $avatarExists = $room->players()->where('avatar', $request->avatar)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
+
+            if ($avatarExists) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.avatar-busy'),
+                    __FUNCTION__
+                );
+            }
+
+            $player->avatar = $request->avatar;
+        }
+
+        if ($request->status) {
+            $player->status = $request->status;
+        }
+
+        $player->save();
+
+        $room->refresh();
 
         JsonResponse::sendSuccess($request, $room->getData());
     }
@@ -163,9 +234,9 @@ class PlayerController extends Controller
         /** @var Room $room */
         $room = $player->room()->first();
 
-        if ($room->host_id != $user->id || $player->user_id == $user->id ||
-            ($room->status != 'WAITING_IN_ROOM' && $room->status != 'GAME_PAUSED') ||
-            ($player->status == 'CONNECTED' || $player->status == 'DISCONNECTED') && $request->status == 'LEFT')
+        if ($user->id != $room->host_id || $user->id == $player->user_id || $room->voting_type == 'START' ||
+            !in_array($room->status, ['WAITING_IN_ROOM', 'GAME_PAUSED']) ||
+            in_array($player->status, ['CONNECTED', 'DISCONNECTED']) && $request->status == 'LEFT')
         {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
@@ -175,12 +246,11 @@ class PlayerController extends Controller
             );
         }
 
-        $player->status = $request->status;
-
         if ($room->status == 'WAITING_IN_ROOM') {
             $player->role = null;
         }
 
+        $player->status = $request->status;
         $player->save();
 
         $room->refresh();
@@ -200,8 +270,8 @@ class PlayerController extends Controller
         /** @var Room $room */
         $room = $player->room()->first();
 
-        if ($room->host_id != $user->id || $room->status != 'WAITING_IN_ROOM' ||
-            $room->config['other']['is_role_random'])
+        if ($user->id != $room->host_id || $room->voting_type == 'START' ||
+            $room->status != 'WAITING_IN_ROOM' || $room->config['other']['is_role_random'])
         {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
@@ -211,9 +281,9 @@ class PlayerController extends Controller
             );
         }
 
-        if ($player->status != 'CONNECTED' && $player->status != 'DISCONNECTED') {
+        if (!in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
             throw new ApiException(
-                DefaultErrorCode::PERMISSION_DENIED(),
+                DefaultErrorCode::FAILED_VALIDATION(),
                 __('validation.custom.no-permission'),
                 __FUNCTION__
             );
@@ -223,7 +293,7 @@ class PlayerController extends Controller
         $players = $room->players()->where('role', $request->role)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
         $playersNumber = count($players);
 
-        if ($request->role !== null && $player->role != $request->role &&
+        if ($request->role !== null && $request->role != $player->role &&
             $playersNumber >= $room->config['actor'][strtolower($request->role)]['number'])
         {
             throw new ApiException(
@@ -239,5 +309,22 @@ class PlayerController extends Controller
         $room->refresh();
 
         JsonResponse::sendSuccess($request, $room->getData());
+    }
+
+    private function findAvailableAvatar(Room $room) {
+
+        $i = 0;
+        $avatars = Validation::getAvatars();
+
+        do {
+
+            $avatar = $avatars[$i++];
+
+            /** @var Player $isAvatarExists */
+            $isAvatarExists = $room->players()->where('avatar', $avatar)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
+
+        } while ($isAvatarExists);
+
+        return $avatar;
     }
 }

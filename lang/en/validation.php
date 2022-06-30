@@ -142,6 +142,7 @@ return [
     */
 
     'custom' => [
+        'avatar-busy' => 'Avatar is busy.',
         'boundary-not-closed' => 'The boundary has not been closed.',
         'catchers-number-exceeded' => 'The required number of players when catching must not exceed the total number of policemen.',
         'endpoint-name-not-found' => 'Endpoint name not found.',

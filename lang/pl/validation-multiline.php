@@ -142,6 +142,7 @@ return [
     */
 
     'custom' => [
+        'avatar-busy' => 'Avatar jest zajęty.',
         'boundary-not-closed' => 'Granica nie została zamknięta.',
         'catchers-number-exceeded' => 'Wymagana liczba graczy podczas łapania nie może być większa niż całkowita liczba policjantów.',
         'endpoint-name-not-found' => 'Nie znaleziono nazwy endpointu.',
