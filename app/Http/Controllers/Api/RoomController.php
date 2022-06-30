@@ -68,6 +68,8 @@ class RoomController extends Controller
         $player->expected_time_at = $expectedTimeAt;
         $player->save();
 
+        $room->refresh();
+
         JsonResponse::sendSuccess($request, $room->getData(), null, 201);
     }
 
