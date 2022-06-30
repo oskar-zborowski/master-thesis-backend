@@ -162,6 +162,7 @@ class RoomController extends Controller
         }
 
         $room->save();
+        $room->refresh();
 
         JsonResponse::sendSuccess($request, $room->getData());
     }
