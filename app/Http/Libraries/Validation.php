@@ -212,7 +212,7 @@ class Validation
 
         if ($boundaryPointsNumber < 4 || $boundaryPointsNumber > 20) {
             throw new ApiException(
-                DefaultErrorCode::FAILED_VALIDATION(false, true),
+                DefaultErrorCode::FAILED_VALIDATION(),
                 __('validation.custom.incorrect-boundary-vertices-number'),
                 __FUNCTION__
             );
@@ -232,7 +232,7 @@ class Validation
 
         if ($boundaryPoints[0] != $boundaryPoints[$boundaryPointsNumber-1]) {
             throw new ApiException(
-                DefaultErrorCode::FAILED_VALIDATION(false, true),
+                DefaultErrorCode::FAILED_VALIDATION(),
                 __('validation.custom.boundary-not-closed'),
                 __FUNCTION__
             );
@@ -242,7 +242,7 @@ class Validation
 
         if (!$isValid[0]['isValid']) {
             throw new ApiException(
-                DefaultErrorCode::FAILED_VALIDATION(false, true),
+                DefaultErrorCode::FAILED_VALIDATION(),
                 __('validation.custom.invalid-boundary-shape'),
                 __FUNCTION__
             );
@@ -252,7 +252,7 @@ class Validation
 
         if (!$isConvex) {
             throw new ApiException(
-                DefaultErrorCode::FAILED_VALIDATION(false, true),
+                DefaultErrorCode::FAILED_VALIDATION(),
                 __('validation.custom.invalid-boundary-shape'),
                 __FUNCTION__
             );
