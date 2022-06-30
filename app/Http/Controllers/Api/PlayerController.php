@@ -198,7 +198,6 @@ class PlayerController extends Controller
         $room = $player->room()->first();
 
         if ($room->host_id != $user->id || $room->status != 'WAITING_IN_ROOM' ||
-            ($player->status != 'CONNECTED' && $player->status != 'DISCONNECTED') ||
             $room->config['other']['is_role_random'])
         {
             throw new ApiException(
@@ -206,6 +205,14 @@ class PlayerController extends Controller
                 __('validation.custom.no-permission'),
                 __FUNCTION__,
                 false
+            );
+        }
+
+        if ($player->status != 'CONNECTED' && $player->status != 'DISCONNECTED') {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(),
+                __('validation.custom.no-permission'),
+                __FUNCTION__
             );
         }
 
