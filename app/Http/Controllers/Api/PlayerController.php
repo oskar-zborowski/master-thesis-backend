@@ -104,6 +104,9 @@ class PlayerController extends Controller
                 $player->status = 'CONNECTED';
                 $player->save();
 
+                $user->default_avatar = $avatar;
+                $user->save();
+
             } else if ($player->status == 'DISCONNECTED') {
                 $player->status = 'CONNECTED';
                 $player->save();
@@ -146,6 +149,9 @@ class PlayerController extends Controller
             $player->avatar = $avatar;
             $player->expected_time_at = $expectedTimeAt;
             $player->save();
+
+            $user->default_avatar = $avatar;
+            $user->save();
         }
 
         $room->refresh();
@@ -209,6 +215,9 @@ class PlayerController extends Controller
             }
 
             $player->avatar = $request->avatar;
+
+            $user->default_avatar = $request->avatar;
+            $user->save();
         }
 
         if ($request->status) {

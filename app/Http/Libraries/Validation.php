@@ -199,10 +199,10 @@ class Validation
 
     public static function getVotingTypes() {
         return [
-            'START', // Wszyscy muszą wyraźnić zgodę
-            'ENDING_COUNTDOWN', // Wszyscy muszą wyraźnić zgodę
+            'START', // Wszyscy muszą wyrazić zgodę
+            'ENDING_COUNTDOWN', // Wszyscy muszą wyrazić zgodę
             'PAUSE',
-            'RESUME', // Wszyscy muszą wyraźnić zgodę
+            'RESUME', // Wszyscy muszą wyrazić zgodę
             'END_GAME',
             'GIVE_UP', // Tylko z danej frakcji
         ];
