@@ -180,6 +180,7 @@ class PlayerController extends Controller
         }
 
         $player->save();
+        $room->refresh();
 
         JsonResponse::sendSuccess($request, $room->getData());
     }
