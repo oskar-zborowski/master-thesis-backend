@@ -210,7 +210,7 @@ class PlayerController extends Controller
         }
 
         /** @var Player[] $players */
-        $players = $room->players()->where('role', $request->role)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
+        $players = $room->players()->where('role', $request->role)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
         $playersNumber = count($players);
 
         if ($playersNumber >= $room->config['actor'][strtolower($request->role)]['number']) {
