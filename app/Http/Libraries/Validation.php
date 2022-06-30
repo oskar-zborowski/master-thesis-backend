@@ -240,6 +240,9 @@ class Validation
 
         $isValid = DB::raw("SELECT ST_IsValid(ST_GeomFromText('POLYGON(($boundary))')) AS isValid");
 
+        echo json_encode($isValid);
+        die;
+
         if (!$isValid->isValid) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(false, true),
