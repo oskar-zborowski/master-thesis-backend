@@ -93,6 +93,10 @@ class PlayerController extends Controller
                     $player->role = null;
                     $player->save();
                 }
+
+            } else if ($player->status == 'DISCONNECTED') {
+                $player->status = 'CONNECTED';
+                $player->save();
             }
 
             if ($room->status == 'GAME_OVER') {
