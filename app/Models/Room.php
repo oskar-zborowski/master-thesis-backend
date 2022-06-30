@@ -21,7 +21,7 @@ class Room extends BaseModel
         'city',
         'voivodeship',
         'country',
-        'boundary_polygon',
+        'boundary_points',
         'created_at',
         'updated_at',
     ];
@@ -30,7 +30,6 @@ class Room extends BaseModel
         'id' => 'integer',
         'counter' => 'integer',
         'config' => 'array',
-        'boundary_polygon' => Polygon::class,
         'game_started_at' => 'string',
         'game_ended_at' => 'string',
         'next_disclosure_at' => 'string',
