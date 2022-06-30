@@ -213,7 +213,9 @@ class PlayerController extends Controller
         $players = $room->players()->where('role', $request->role)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
         $playersNumber = count($players);
 
-        if ($player->role && $playersNumber >= $room->config['actor'][strtolower($request->role)]['number']) {
+        if ($request->role !== null && $player->role != $request->role &&
+            $playersNumber >= $room->config['actor'][strtolower($request->role)]['number'])
+        {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(),
                 __('validation.custom.max-player-number-reached'),
