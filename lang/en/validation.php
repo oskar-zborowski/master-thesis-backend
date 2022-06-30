@@ -143,6 +143,7 @@ return [
 
     'custom' => [
         'boundary-not-closed' => 'The boundary has not been closed.',
+        'catchers-number-exceeded' => 'The required number of players when catching must not exceed the total number of policemen.',
         'endpoint-name-not-found' => 'Endpoint name not found.',
         'game-already-started' => 'The game has already started.',
         'game-is-over' => 'Game is over.',
@@ -152,12 +153,13 @@ return [
         'invalid-boundary-shape' => 'Invalid boundary shape. It must be a convex figure.',
         'invalid-coordinate-format' => 'Invalid geographic coordinate format.',
         'invalid-log-type' => 'You can only use the (mail) or (log) log type.',
-        'limit-exceeded' => 'The request limit has been exceeded. You can try again in :seconds seconds.',
+        'limit-exceeded' => 'The action limit has been exceeded. You can try again in :seconds seconds.',
         'malicious-request' => 'Sending requests by non-cooperators is strictly prohibited. All connection attempts are monitored and can have consequences!',
         'max-player-number-reached' => 'The maximum player number has been reached.',
-        'no-permission' => 'You are not authorized to the given resource.',
+        'no-permission' => 'You cannot perform the action given.',
         'undefined-request-fields-detected' => 'Undefined request fields detected: fields.',
         'user-is-not-in-room' => 'The specified user is not in the room.',
+        'policemen-number-exceeded' => 'The number of players on the side of catching and having special skills must not exceed the total number of policemen.',
         'you-are-already-in-another-room' => "You're still in another room. You have to leave it first.",
         'you-must-set-player-name' => 'You must first set a player name.',
         'you-have-been-banned' => 'You have been banned from this room.',

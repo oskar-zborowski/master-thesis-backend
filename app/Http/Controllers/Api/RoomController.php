@@ -108,7 +108,7 @@ class RoomController extends Controller
 
         if ($request->host_id !== null) {
 
-            /** @var \App\Models\Player $newHost */
+            /** @var Player $newHost */
             $newHost = $room->players()->where('user_id', $request->host_id)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
 
             if (!$newHost) {
@@ -138,6 +138,17 @@ class RoomController extends Controller
             }
 
             $room->code = $newCode;
+        }
+
+        if ($request->is_cleaning_roles) {
+
+            /** @var Player[] $players */
+            $players = $room->players()->get();
+
+            foreach ($players as $player) {
+                $player->role = null;
+                $player->save();
+            }
         }
 
         $room->config = JsonConfig::setGameConfig($room, $request);

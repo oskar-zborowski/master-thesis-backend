@@ -42,6 +42,7 @@ class Validation
         return [
             'host_id' => 'nullable|integer|exists:users,id',
             'is_code_renewal' => 'nullable|boolean',
+            'is_cleaning_roles' => 'nullable|boolean',
             'actor_policeman_number' => 'nullable|integer|between:1,29',
             'actor_policeman_visibility_radius' => 'nullable|integer|between:-1,50000',
             'actor_policeman_catching_number' => 'nullable|integer|between:1,29',

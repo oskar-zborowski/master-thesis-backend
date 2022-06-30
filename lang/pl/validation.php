@@ -143,6 +143,7 @@ return [
 
     'custom' => [
         'boundary-not-closed' => 'Granica nie została zamknięta.',
+        'catchers-number-exceeded' => 'Wymagana liczba graczy podczas łapania nie może być większa niż całkowita liczba policjantów.',
         'endpoint-name-not-found' => 'Nie znaleziono nazwy endpointu.',
         'game-already-started' => 'Gra już się rozpoczęła.',
         'game-is-over' => 'Gra się zakończyła.',
@@ -152,12 +153,13 @@ return [
         'invalid-boundary-shape' => 'Nieprawidłowy kształt granicy. Musi ona być figurą wypukłą.',
         'invalid-coordinate-format' => 'Nieprawidłowy format współrzędnych geograficznych.',
         'invalid-log-type' => 'Możesz użyć jedynie typu loga (mail), albo (log).',
-        'limit-exceeded' => 'Przekroczono limit żądań. Możesz spróbować ponownie za :seconds sekund.',
+        'limit-exceeded' => 'Przekroczono limit wykonywanych akcji. Możesz spróbować ponownie za :seconds sekund.',
         'malicious-request' => 'Wysyłanie żądań przez podmioty niewspółpracujące jest surowo zabronione. Wszystkie próby nawiązywania połączenia są monitorowane i mogą wiązać się z konsekwencjami!',
         'max-player-number-reached' => 'Osiągnięto maksymalną liczbę graczy.',
-        'no-permission' => 'Nie masz uprawnień do danego zasobu.',
+        'no-permission' => 'Nie możesz wykonać podanej akcji.',
         'undefined-request-fields-detected' => 'Wykryto niezdefiniowane pola żądania: :fields.',
         'user-is-not-in-room' => 'Podany użytkownik nie znajduje się w pokoju.',
+        'policemen-number-exceeded' => 'Liczba graczy po stronie łapiących i posiadających specjalne umiejętności, nie może być większa niż całkowita liczba policjantów.',
         'you-are-already-in-another-room' => 'Nadal jesteś w innym pokoju. Musisz najpierw go opuścić.',
         'you-must-set-player-name' => 'Musisz najpierw ustawić nazwę gracza.',
         'you-have-been-banned' => 'Zostałeś/aś zbanowany/a w tym pokoju.',

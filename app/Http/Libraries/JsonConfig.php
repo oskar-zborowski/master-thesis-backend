@@ -2,6 +2,8 @@
 
 namespace App\Http\Libraries;
 
+use App\Exceptions\ApiException;
+use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Requests\UpdateRoomRequest;
 use App\Models\Room;
 
@@ -80,6 +82,60 @@ class JsonConfig
     public static function setGameConfig(Room $room, UpdateRoomRequest $request) {
 
         $gameConfig = $room->config;
+
+        $playersNumberFromCatchingFactions = 0;
+
+        if ($request->actor_policeman_number !== null) {
+            $policemenNumber = $request->actor_policeman_number;
+        } else {
+            $policemenNumber = $gameConfig['actor']['policeman']['number'];
+        }
+
+        if ($request->actor_policeman_catching_number !== null) {
+            $catchersNumber = $request->actor_policeman_catching_number;
+        } else {
+            $catchersNumber = $gameConfig['actor']['policeman']['catching']['number'];
+        }
+
+        if ($request->actor_agent_number !== null) {
+            $playersNumberFromCatchingFactions += $request->actor_agent_number;
+        } else {
+            $playersNumberFromCatchingFactions += $gameConfig['actor']['agent']['number'];
+        }
+
+        if ($request->actor_pegasus_number !== null) {
+            $playersNumberFromCatchingFactions += $request->actor_pegasus_number;
+        } else {
+            $playersNumberFromCatchingFactions += $gameConfig['actor']['pegasus']['number'];
+        }
+
+        if ($request->actor_fatty_man_number !== null) {
+            $playersNumberFromCatchingFactions += $request->actor_fatty_man_number;
+        } else {
+            $playersNumberFromCatchingFactions += $gameConfig['actor']['fatty_man']['number'];
+        }
+
+        if ($request->actor_eagle_number !== null) {
+            $playersNumberFromCatchingFactions += $request->actor_eagle_number;
+        } else {
+            $playersNumberFromCatchingFactions += $gameConfig['actor']['eagle']['number'];
+        }
+
+        if ($policemenNumber < $playersNumberFromCatchingFactions) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.policemen-number-exceeded'),
+                __FUNCTION__
+            );
+        }
+
+        if ($policemenNumber < $catchersNumber) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.catchers-number-exceeded'),
+                __FUNCTION__
+            );
+        }
 
         if ($request->actor_policeman_number !== null) {
             $gameConfig['actor']['policeman']['number'] = $request->actor_policeman_number;
