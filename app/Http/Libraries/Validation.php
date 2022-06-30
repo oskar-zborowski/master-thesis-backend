@@ -240,7 +240,7 @@ class Validation
 
         $isValid = DB::select(DB::raw("SELECT ST_IsValid(ST_GeomFromText('POLYGON(($boundary))')) AS isValid"));
 
-        echo json_encode($isValid[0]);
+        echo $isValid[0]['isValid'];
         die;
 
         // if (!$isValid->isValid) {
