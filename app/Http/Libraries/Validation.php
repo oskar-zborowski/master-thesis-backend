@@ -238,18 +238,18 @@ class Validation
             );
         }
 
-        $isValid = DB::raw("SELECT ST_IsValid(ST_GeomFromText('POLYGON(($boundary))')) AS isValid");
+        $isValid = DB::select(DB::raw("SELECT ST_IsValid(ST_GeomFromText('POLYGON(($boundary))')) AS isValid"));
 
         echo json_encode($isValid);
         die;
 
-        if (!$isValid->isValid) {
-            throw new ApiException(
-                DefaultErrorCode::FAILED_VALIDATION(false, true),
-                __('validation.custom.invalid-boundary-shape'),
-                __FUNCTION__
-            );
-        }
+        // if (!$isValid->isValid) {
+        //     throw new ApiException(
+        //         DefaultErrorCode::FAILED_VALIDATION(false, true),
+        //         __('validation.custom.invalid-boundary-shape'),
+        //         __FUNCTION__
+        //     );
+        // }
 
         $isConvex = self::isConvex($polygon);
 
