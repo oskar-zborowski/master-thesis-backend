@@ -2,9 +2,6 @@
 
 namespace App\Models;
 
-use MatanYadaev\EloquentSpatial\Objects\Point;
-use MatanYadaev\EloquentSpatial\SpatialBuilder;
-
 class Player extends BaseModel
 {
     protected $hidden = [
@@ -13,6 +10,7 @@ class Player extends BaseModel
         'role',
         'config',
         'track',
+        'global_position',
         'hidden_position',
         'fake_position',
         'average_ping',
@@ -30,9 +28,6 @@ class Player extends BaseModel
         'id' => 'integer',
         'config' => 'array',
         'track' => 'array',
-        'global_position' => Point::class,
-        'hidden_position' => Point::class,
-        'fake_position' => Point::class,
         'is_bot' => 'boolean',
         'is_crossing_boundary' => 'boolean',
         'voting_answer' => 'boolean',
@@ -53,10 +48,6 @@ class Player extends BaseModel
     protected $with = [
         'user',
     ];
-
-    public function newEloquentBuilder($query): SpatialBuilder {
-        return new SpatialBuilder($query);
-    }
 
     public function room() {
         return $this->belongsTo(Room::class);

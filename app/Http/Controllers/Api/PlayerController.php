@@ -292,10 +292,12 @@ class PlayerController extends Controller
             foreach ($thieves as $thief) {
 
                 if ($thief->fake_position) {
-                    $thief->global_position = DB::raw("ST_GeomFromText('POINT({$thief->fake_position})')");
+                    $thief->global_position = $thief->fake_position;
                 } else {
-                    $thief->global_position = DB::raw("ST_GeomFromText('POINT({$thief->hidden_position})')");
+                    $thief->global_position = $thief->hidden_position;
                 }
+
+                $thief->save();
             }
         }
 
@@ -357,8 +359,8 @@ class PlayerController extends Controller
 
             Validation::checkGpsLocation($request->use_fake_position);
 
-            $player->fake_position = DB::raw("ST_GeomFromText('POINT({$request->use_fake_position})')");
             $player->config['fake_position']['used_number'] = $player->config['fake_position']['used_number'] + 1;
+            $player->fake_position = DB::raw("ST_GeomFromText('POINT({$request->use_fake_position})')");
             $player->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['fake_position']['duration'] . ' seconds', strtotime(now())));
         }
 
