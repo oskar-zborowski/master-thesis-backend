@@ -169,7 +169,7 @@ class PlayerController extends Controller
         $user = Auth::user();
 
         /** @var Player $player */
-        $player = $user->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->orderBy('id', 'desc')->first();
+        $player = $user->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED', 'BANNED'])->orderBy('id', 'desc')->first();
 
         if (!$player) {
             throw new ApiException(
@@ -179,26 +179,23 @@ class PlayerController extends Controller
             );
         }
 
+        if ($player->status == 'BANNED') {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(),
+                __('validation.custom.you-have-been-banned'),
+                __FUNCTION__
+            );
+        }
+
         /** @var Room $room */
         $room = $player->room()->first();
 
-        if ($room->status == 'GAME_IN_PROGRESS') {
-
-            Validation::checkGpsLocation($request->gps_location);
-
-            if (!in_array($player->role, ['THIEF', 'AGENT'])) {
-                $player->global_position = DB::raw("ST_GeomFromText('POINT({$request->gps_location})')");
-            }
-
-            $player->hidden_position = DB::raw("ST_GeomFromText('POINT({$request->gps_location})')");
-        }
-
-        if ($request->avatar) {
+        if ($request->avatar !== null) {
 
             if ($room->voting_type == 'START' || $room->status != 'WAITING_IN_ROOM') {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(),
-                    __('validation.custom.no-permission'),
+                    __('validation.custom.game-being-prepared'),
                     __FUNCTION__
                 );
             }
@@ -220,8 +217,53 @@ class PlayerController extends Controller
             $user->save();
         }
 
-        if ($request->status) {
+        if ($room->status == 'GAME_IN_PROGRESS') {
+
+            Validation::checkGpsLocation($request->gps_location);
+
+            if (!in_array($player->role, ['THIEF', 'AGENT'])) {
+                $player->global_position = DB::raw("ST_GeomFromText('POINT({$request->gps_location})')");
+            }
+
+            $player->hidden_position = DB::raw("ST_GeomFromText('POINT({$request->gps_location})')");
+        }
+
+        if ($request->status !== null) {
             $player->status = $request->status;
+        }
+
+        if ($request->voting_type !== null) {
+
+            $this->startVoting($room, $player, $request->voting_type);
+
+            $room->reporting_user_id = $user->id;
+            $room->voting_type = $request->voting_type;
+            $room->voting_ended_at = date('Y-m-d H:i:s', strtotime('+30 seconds', strtotime(now())));
+            $room->save();
+
+            $player->next_voting_starts_at = date('Y-m-d H:i:s', strtotime('+150 seconds', strtotime(now())));
+        }
+
+        if ($request->voting_answer !== null) {
+
+            if (!$room->voting_type) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.no-permission'),
+                    __FUNCTION__
+                );
+            }
+
+            if ($player->voting_answer !== null) {
+                throw new ApiException(
+                    DefaultErrorCode::PERMISSION_DENIED(true),
+                    __('validation.custom.no-permission'),
+                    __FUNCTION__,
+                    false
+                );
+            }
+
+            $player->voting_answer = $request->voting_answer;
         }
 
         $player->save();
@@ -293,7 +335,7 @@ class PlayerController extends Controller
         if (!in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(),
-                __('validation.custom.no-permission'),
+                __('validation.custom.user-is-not-in-room'),
                 __FUNCTION__
             );
         }
@@ -335,5 +377,82 @@ class PlayerController extends Controller
         } while ($isAvatarExists);
 
         return $avatar;
+    }
+
+    private function startVoting(Room $room, Player $player, string $votingType) {
+
+        if ($room->voting_type) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.voting-already-started'),
+                __FUNCTION__
+            );
+        }
+
+        if (!in_array($votingType, ['START', 'RESUME'])) {
+
+            $now = now();
+
+            if ($now < $player->next_voting_starts_at) {
+
+                $timeDifference = strtotime($player->next_voting_starts_at) - strtotime($now);
+
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.voting-limit', ['seconds' => $timeDifference]),
+                    __FUNCTION__
+                );
+            }
+        }
+
+        if ($votingType == 'START' && ($player->user_id != $room->host_id || $room->status != 'WAITING_IN_ROOM')) {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(true),
+                __('validation.custom.no-permission'),
+                __FUNCTION__,
+                false
+            );
+        }
+
+        if ($votingType == 'ENDING_COUNTDOWN' && ($room->status != 'GAME_IN_PROGRESS' || now() >= $room->game_started_at)) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.game-already-started'),
+                __FUNCTION__
+            );
+        }
+
+        if ($votingType == 'PAUSE' && $room->status != 'GAME_IN_PROGRESS') {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.no-permission'),
+                __FUNCTION__
+            );
+        }
+
+        if ($votingType == 'RESUME' && ($player->user_id != $room->host_id || $room->status != 'GAME_PAUSED')) {
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(true),
+                __('validation.custom.no-permission'),
+                __FUNCTION__,
+                false
+            );
+        }
+
+        if ($votingType == 'END_GAME' && $room->status == 'GAME_OVER') {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.no-permission'),
+                __FUNCTION__
+            );
+        }
+
+        if ($votingType == 'GIVE_UP' && $room->status == 'GAME_OVER') {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.no-permission'),
+                __FUNCTION__
+            );
+        }
     }
 }
