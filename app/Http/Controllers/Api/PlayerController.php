@@ -266,6 +266,102 @@ class PlayerController extends Controller
             $player->voting_answer = $request->voting_answer;
         }
 
+        if ($request->use_white_ticket) {
+
+            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'PEGASUS') {
+                throw new ApiException(
+                    DefaultErrorCode::PERMISSION_DENIED(),
+                    __('validation.custom.no-permission'),
+                    __FUNCTION__
+                );
+            }
+
+            if ($player->config['white_ticket']['number'] - $player->config['white_ticket']['used_number'] <= 0) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.no-white-ticket-available'),
+                    __FUNCTION__
+                );
+            }
+
+            $player->config['white_ticket']['used_number'] = $player->config['white_ticket']['used_number'] + 1;
+
+            /** @var Player[] $thieves */
+            $thieves = $room->players()->where('role', 'THIEF')->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+
+            foreach ($thieves as $thief) {
+
+                if ($thief->fake_position) {
+                    $thief->global_position = DB::raw("ST_GeomFromText('POINT({$thief->fake_position})')");
+                } else {
+                    $thief->global_position = DB::raw("ST_GeomFromText('POINT({$thief->hidden_position})')");
+                }
+            }
+        }
+
+        if ($request->use_black_ticket) {
+
+            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'THIEF') {
+                throw new ApiException(
+                    DefaultErrorCode::PERMISSION_DENIED(),
+                    __('validation.custom.no-permission'),
+                    __FUNCTION__
+                );
+            }
+
+            if ($player->black_ticket_finished_at) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.black-ticket-active'),
+                    __FUNCTION__
+                );
+            }
+
+            if ($player->config['black_ticket']['number'] - $player->config['black_ticket']['used_number'] <= 0) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.no-black-ticket-available'),
+                    __FUNCTION__
+                );
+            }
+
+            $player->config['black_ticket']['used_number'] = $player->config['black_ticket']['used_number'] + 1;
+            $player->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['black_ticket']['duration'] . ' seconds', strtotime(now())));
+        }
+
+        if ($request->use_fake_position !== null) {
+
+            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'THIEF') {
+                throw new ApiException(
+                    DefaultErrorCode::PERMISSION_DENIED(),
+                    __('validation.custom.no-permission'),
+                    __FUNCTION__
+                );
+            }
+
+            if ($player->fake_position_finished_at) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.fake-position-active'),
+                    __FUNCTION__
+                );
+            }
+
+            if ($player->config['fake_position']['number'] - $player->config['fake_position']['used_number'] <= 0) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.no-fake-position-available'),
+                    __FUNCTION__
+                );
+            }
+
+            Validation::checkGpsLocation($request->use_fake_position);
+
+            $player->fake_position = DB::raw("ST_GeomFromText('POINT({$request->use_fake_position})')");
+            $player->config['fake_position']['used_number'] = $player->config['fake_position']['used_number'] + 1;
+            $player->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['fake_position']['duration'] . ' seconds', strtotime(now())));
+        }
+
         $player->save();
 
         $room->refresh();

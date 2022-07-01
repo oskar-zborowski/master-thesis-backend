@@ -143,9 +143,11 @@ return [
 
     'custom' => [
         'avatar-busy' => 'Avatar jest zajęty.',
+        'black-ticket-active' => 'Black ticket jest jeszcze aktywny.',
         'boundary-not-closed' => 'Granica nie została zamknięta.',
         'catchers-number-exceeded' => 'Wymagana liczba graczy podczas łapania nie może być większa niż całkowita liczba policjantów.',
         'endpoint-name-not-found' => 'Nie znaleziono nazwy endpointu.',
+        'fake-position-active' => "Fake'owa pozycja jest jeszcze aktywna.",
         'game-already-started' => 'Gra już się rozpoczęła.',
         'game-being-prepared' => 'Gra w trakcie przygotowywania.',
         'game-is-over' => 'Gra się zakończyła.',
@@ -158,6 +160,9 @@ return [
         'limit-exceeded' => 'Przekroczono limit wykonywanych akcji. Możesz spróbować ponownie za :seconds sekund.',
         'malicious-request' => 'Wysyłanie żądań przez podmioty niewspółpracujące jest surowo zabronione. Wszystkie próby nawiązywania połączenia są monitorowane i mogą wiązać się z konsekwencjami!',
         'max-player-number-reached' => 'Osiągnięto maksymalną liczbę graczy.',
+        'no-black-ticket-available' => 'Nie posiadasz już black ticketów.',
+        'no-fake-position-available' => "Nie posiadasz już fake'owych pozycji.",
+        'no-white-ticket-available' => 'Nie posiadasz już white ticketów.',
         'no-permission' => 'Nie możesz wykonać podanej akcji.',
         'policemen-number-exceeded' => 'Liczba graczy po stronie łapiących i posiadających specjalne umiejętności, nie może być większa niż całkowita liczba policjantów.',
         'undefined-request-fields-detected' => 'Wykryto niezdefiniowane pola żądania: :fields.',
