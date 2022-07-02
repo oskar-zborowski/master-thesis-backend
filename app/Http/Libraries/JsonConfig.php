@@ -83,7 +83,7 @@ class JsonConfig
 
         $gameConfig = $room->config;
 
-        $playersNumberFromCatchingFactions = 0;
+        $playersNumberFromCatchingFaction = 0;
 
         if ($request->actor_policeman_number !== null) {
             $policemenNumber = $request->actor_policeman_number;
@@ -98,30 +98,30 @@ class JsonConfig
         }
 
         if ($request->actor_agent_number !== null) {
-            $playersNumberFromCatchingFactions += $request->actor_agent_number;
+            $playersNumberFromCatchingFaction += $request->actor_agent_number;
         } else {
-            $playersNumberFromCatchingFactions += $gameConfig['actor']['agent']['number'];
+            $playersNumberFromCatchingFaction += $gameConfig['actor']['agent']['number'];
         }
 
         if ($request->actor_pegasus_number !== null) {
-            $playersNumberFromCatchingFactions += $request->actor_pegasus_number;
+            $playersNumberFromCatchingFaction += $request->actor_pegasus_number;
         } else {
-            $playersNumberFromCatchingFactions += $gameConfig['actor']['pegasus']['number'];
+            $playersNumberFromCatchingFaction += $gameConfig['actor']['pegasus']['number'];
         }
 
         if ($request->actor_fatty_man_number !== null) {
-            $playersNumberFromCatchingFactions += $request->actor_fatty_man_number;
+            $playersNumberFromCatchingFaction += $request->actor_fatty_man_number;
         } else {
-            $playersNumberFromCatchingFactions += $gameConfig['actor']['fatty_man']['number'];
+            $playersNumberFromCatchingFaction += $gameConfig['actor']['fatty_man']['number'];
         }
 
         if ($request->actor_eagle_number !== null) {
-            $playersNumberFromCatchingFactions += $request->actor_eagle_number;
+            $playersNumberFromCatchingFaction += $request->actor_eagle_number;
         } else {
-            $playersNumberFromCatchingFactions += $gameConfig['actor']['eagle']['number'];
+            $playersNumberFromCatchingFaction += $gameConfig['actor']['eagle']['number'];
         }
 
-        if ($policemenNumber < $playersNumberFromCatchingFactions) {
+        if ($policemenNumber < $playersNumberFromCatchingFaction) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(),
                 __('validation.custom.policemen-number-exceeded'),

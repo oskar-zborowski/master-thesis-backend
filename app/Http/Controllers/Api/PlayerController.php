@@ -82,7 +82,7 @@ class PlayerController extends Controller
 
             } else if ($player->status == 'LEFT') {
 
-                if ($room->status != 'WAITING_IN_ROOM') {
+                if ($room->voting_type == 'START' || $room->status != 'WAITING_IN_ROOM') {
                     throw new ApiException(
                         DefaultErrorCode::PERMISSION_DENIED(),
                         __('validation.custom.game-already-started'),
@@ -120,7 +120,7 @@ class PlayerController extends Controller
                 );
             }
 
-        } else if ($room->status != 'WAITING_IN_ROOM') {
+        } else if ($room->voting_type == 'START' || $room->status != 'WAITING_IN_ROOM') {
 
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(),
@@ -241,7 +241,9 @@ class PlayerController extends Controller
             $room->voting_ended_at = date('Y-m-d H:i:s', strtotime('+30 seconds', strtotime(now())));
             $room->save();
 
-            $player->next_voting_starts_at = date('Y-m-d H:i:s', strtotime('+150 seconds', strtotime(now())));
+            if (!in_array($request->voting_type, ['START', 'RESUME'])) {
+                $player->next_voting_starts_at = date('Y-m-d H:i:s', strtotime('+150 seconds', strtotime(now())));
+            }
         }
 
         if ($request->voting_answer !== null) {
@@ -368,6 +370,8 @@ class PlayerController extends Controller
 
         $room->refresh();
 
+        $this->checkGameCourse($room);
+
         JsonResponse::sendSuccess($request, $room->getData());
     }
 
@@ -491,7 +495,7 @@ class PlayerController extends Controller
 
             $now = now();
 
-            if ($now < $player->next_voting_starts_at) {
+            if ($player->next_voting_starts_at && $now < $player->next_voting_starts_at) {
 
                 $timeDifference = strtotime($player->next_voting_starts_at) - strtotime($now);
 
@@ -551,6 +555,137 @@ class PlayerController extends Controller
                 __('validation.custom.no-permission'),
                 __FUNCTION__
             );
+        }
+    }
+
+    private function checkGameCourse(Room $room) {
+
+        if ($room->voting_type) {
+
+            $votingEnd = false;
+            $timeIsUp = false;
+
+            if (now() < $room->voting_ended_at) {
+
+                $votersNumber = 0;
+
+                /** @var Player[] $players */
+                $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+
+                foreach ($players as $player) {
+                    if ($player->voting_answer !== null) {
+                        $votersNumber++;
+                    } else {
+                        break;
+                    }
+                }
+
+                if ($votersNumber == count($players)) {
+                    $votingEnd = true;
+                }
+
+            } else {
+                $votingEnd = true;
+                $timeIsUp = true;
+            }
+
+            if ($votingEnd) {
+
+                $successfulVote = false;
+                $playersNumberFromCatchingFaction = 0;
+                $playersNumberFromThievesFaction = 0;
+                $confirmationsNumberFromCatchingFaction = 0;
+                $confirmationsNumberFromThievesFaction = 0;
+
+                if ($timeIsUp) {
+                    /** @var Player[] $players */
+                    $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+                }
+
+                foreach ($players as $player) {
+
+                    if ($player->role == 'THIEF') {
+
+                        if ($player->voting_answer) {
+                            $confirmationsNumberFromThievesFaction++;
+                        }
+
+                        $playersNumberFromThievesFaction++;
+
+                    } else {
+
+                        if ($player->voting_answer) {
+                            $confirmationsNumberFromCatchingFaction++;
+                        }
+
+                        $playersNumberFromCatchingFaction++;
+                    }
+                }
+
+                if (in_array($room->voting_type, ['START', 'ENDING_COUNTDOWN', 'RESUME']) &&
+                    $confirmationsNumberFromCatchingFaction == $playersNumberFromCatchingFaction && $confirmationsNumberFromThievesFaction == $playersNumberFromThievesFaction)
+                {
+                    /** @var Player $reportingUser */
+                    $reportingUser = $room->players()->where('user_id', $room->reporting_user_id)->first();
+                    $reportingUser->next_voting_starts_at = null;
+                    $reportingUser->save();
+
+                    $successfulVote = true;
+
+                } else if (in_array($room->voting_type, ['PAUSE', 'END_GAME']) &&
+                    $confirmationsNumberFromCatchingFaction / $playersNumberFromCatchingFaction > 0.5 && $confirmationsNumberFromThievesFaction / $playersNumberFromThievesFaction > 0.5)
+                {
+                    /** @var Player $reportingUser */
+                    $reportingUser = $room->players()->where('user_id', $room->reporting_user_id)->first();
+                    $reportingUser->next_voting_starts_at = null;
+                    $reportingUser->save();
+
+                    $successfulVote = true;
+
+                } else if ($room->voting_type == 'GIVE_UP') {
+
+                    /** @var Player $reportingUser */
+                    $reportingUser = $room->players()->where('user_id', $room->reporting_user_id)->first();
+
+                    if ($reportingUser->role != 'THIEF' &&
+                        $confirmationsNumberFromCatchingFaction / $playersNumberFromCatchingFaction > 0.5)
+                    {
+                        $reportingUser->next_voting_starts_at = null;
+                        $reportingUser->save();
+
+                        $successfulVote = true;
+
+                    } else if ($reportingUser->role == 'THIEF' &&
+                        $confirmationsNumberFromThievesFaction / $playersNumberFromThievesFaction > 0.5)
+                    {
+                        $reportingUser->next_voting_starts_at = null;
+                        $reportingUser->save();
+
+                        $successfulVote = true;
+                    }
+                }
+
+                if ($successfulVote) {
+
+                    foreach ($players as $player) {
+                        $player->voting_answer = null;
+                        $player->save();
+                    }
+
+                } else {
+
+                    foreach ($players as $player) {
+                        $player->voting_answer = null;
+                        $player->failed_voting_type = $room->voting_type;
+                        $player->save();
+                    }
+                }
+
+                $room->reporting_user_id = null;
+                $room->voting_type = null;
+                $room->voting_ended_at = null;
+                $room->save();
+            }
         }
     }
 }

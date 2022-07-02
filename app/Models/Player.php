@@ -13,6 +13,7 @@ class Player extends BaseModel
         'global_position',
         'hidden_position',
         'fake_position',
+        'failed_voting_type',
         'average_ping',
         'standard_deviation',
         'samples_number',
