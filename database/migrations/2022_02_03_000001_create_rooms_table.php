@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('host_id')->nullable()->references('id')->on('users')->nullOnDelete();
             $table->foreignId('reporting_user_id')->nullable()->references('id')->on('users')->nullOnDelete(); // Użytkownik rozpoczynający głosowanie
+            $table->char('group_code', 48); // Kodowane automatycznie
             $table->char('code', 48); // Kodowane automatycznie
             $table->unsignedTinyInteger('counter')->default(1);
             $table->char('gps_location', 80)->nullable(); // Kodowane automatycznie | Struktura: -179.12345 -89.12345

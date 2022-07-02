@@ -130,9 +130,6 @@ class PlayerController extends Controller
 
         } else {
 
-            $now = date('Y-m-d H:i:s');
-            $expectedTimeAt = date('Y-m-d H:i:s', strtotime('+' . env('ROOM_REFRESH') . ' seconds', strtotime($now)));
-
             $player = new Player;
             $player->room_id = $room->id;
             $player->user_id = $user->id;
@@ -147,14 +144,14 @@ class PlayerController extends Controller
             }
 
             $player->avatar = $avatar;
-            $player->expected_time_at = $expectedTimeAt;
+            $player->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . env('ROOM_REFRESH') . ' seconds', strtotime(now())));
             $player->save();
 
             $user->default_avatar = $avatar;
             $user->save();
         }
 
-        $room->refresh();
+        $room = $room->fresh();
 
         JsonResponse::sendSuccess($request, $room->getData(), null, 201);
     }
@@ -164,6 +161,8 @@ class PlayerController extends Controller
      * Edycja danych gracza (zmiana parametrów podczas oczekiwania w pokoju i w trakcie gry)
      */
     public function updatePlayer(UpdatePlayerRequest $request) {
+
+        $reloadRoom = false;
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -212,9 +211,12 @@ class PlayerController extends Controller
             }
 
             $player->avatar = $request->avatar;
+            $player->save();
 
             $user->default_avatar = $request->avatar;
             $user->save();
+
+            $reloadRoom = true;
         }
 
         if ($room->status == 'GAME_IN_PROGRESS') {
@@ -222,14 +224,21 @@ class PlayerController extends Controller
             Validation::checkGpsLocation($request->gps_location);
 
             if (!in_array($player->role, ['THIEF', 'AGENT'])) {
-                $player->global_position = DB::raw("ST_GeomFromText('POINT({$request->gps_location})')");
+                $player->global_position = DB::raw("ST_GeomFromText('POINT($request->gps_location)')");
             }
 
-            $player->hidden_position = DB::raw("ST_GeomFromText('POINT({$request->gps_location})')");
+            $player->hidden_position = DB::raw("ST_GeomFromText('POINT($request->gps_location)')");
+            $player->save();
+
+            $reloadRoom = true;
         }
 
         if ($request->status !== null) {
+
             $player->status = $request->status;
+            $player->save();
+
+            $reloadRoom = true;
         }
 
         if ($request->voting_type !== null) {
@@ -238,11 +247,15 @@ class PlayerController extends Controller
 
             $room->reporting_user_id = $user->id;
             $room->voting_type = $request->voting_type;
-            $room->voting_ended_at = date('Y-m-d H:i:s', strtotime('+30 seconds', strtotime(now())));
+            $room->voting_ended_at = date('Y-m-d H:i:s', strtotime('+' . env('VOTING_DURATION') . ' seconds', strtotime(now())));
             $room->save();
 
             if (!in_array($request->voting_type, ['START', 'RESUME'])) {
-                $player->next_voting_starts_at = date('Y-m-d H:i:s', strtotime('+150 seconds', strtotime(now())));
+
+                $player->next_voting_starts_at = date('Y-m-d H:i:s', strtotime('+' . env('BLOCKING_TIME_VOTING_START') . ' seconds', strtotime(now())));
+                $player->save();
+
+                $reloadRoom = true;
             }
         }
 
@@ -266,6 +279,9 @@ class PlayerController extends Controller
             }
 
             $player->voting_answer = $request->voting_answer;
+            $player->save();
+
+            $reloadRoom = true;
         }
 
         if ($request->use_white_ticket) {
@@ -286,8 +302,6 @@ class PlayerController extends Controller
                 );
             }
 
-            $player->config['white_ticket']['used_number'] = $player->config['white_ticket']['used_number'] + 1;
-
             /** @var Player[] $thieves */
             $thieves = $room->players()->where('role', 'THIEF')->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
 
@@ -301,6 +315,11 @@ class PlayerController extends Controller
 
                 $thief->save();
             }
+
+            $player->config['white_ticket']['used_number'] = $player->config['white_ticket']['used_number'] + 1;
+            $player->save();
+
+            $reloadRoom = true;
         }
 
         if ($request->use_black_ticket) {
@@ -331,6 +350,9 @@ class PlayerController extends Controller
 
             $player->config['black_ticket']['used_number'] = $player->config['black_ticket']['used_number'] + 1;
             $player->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['black_ticket']['duration'] . ' seconds', strtotime(now())));
+            $player->save();
+
+            $reloadRoom = true;
         }
 
         if ($request->use_fake_position !== null) {
@@ -362,13 +384,16 @@ class PlayerController extends Controller
             Validation::checkGpsLocation($request->use_fake_position);
 
             $player->config['fake_position']['used_number'] = $player->config['fake_position']['used_number'] + 1;
-            $player->fake_position = DB::raw("ST_GeomFromText('POINT({$request->use_fake_position})')");
+            $player->fake_position = DB::raw("ST_GeomFromText('POINT($request->use_fake_position)')");
             $player->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['fake_position']['duration'] . ' seconds', strtotime(now())));
+            $player->save();
+
+            $reloadRoom = true;
         }
 
-        $player->save();
-
-        $room->refresh();
+        if ($reloadRoom) {
+            $room = $room->fresh();
+        }
 
         $this->checkGameCourse($room);
 
@@ -387,7 +412,8 @@ class PlayerController extends Controller
         /** @var Room $room */
         $room = $player->room()->first();
 
-        if ($user->id != $room->host_id || $user->id == $player->user_id || $room->voting_type == 'START' ||
+        if ($user->id != $room->host_id || $user->id == $player->user_id ||
+            in_array($room->voting_type, ['START', 'RESUME']) ||
             !in_array($room->status, ['WAITING_IN_ROOM', 'GAME_PAUSED']) ||
             in_array($player->status, ['CONNECTED', 'DISCONNECTED']) && $request->status == 'LEFT')
         {
@@ -406,7 +432,7 @@ class PlayerController extends Controller
         $player->status = $request->status;
         $player->save();
 
-        $room->refresh();
+        $room = $room->fresh();
 
         JsonResponse::sendSuccess($request, $room->getData());
     }
@@ -459,7 +485,7 @@ class PlayerController extends Controller
         $player->role = $request->role;
         $player->save();
 
-        $room->refresh();
+        $room = $room->fresh();
 
         JsonResponse::sendSuccess($request, $room->getData());
     }
@@ -468,6 +494,7 @@ class PlayerController extends Controller
 
         $i = 0;
         $avatars = Validation::getAvatars();
+        shuffle($avatars);
 
         do {
 
@@ -541,15 +568,7 @@ class PlayerController extends Controller
             );
         }
 
-        if ($votingType == 'END_GAME' && $room->status == 'GAME_OVER') {
-            throw new ApiException(
-                DefaultErrorCode::FAILED_VALIDATION(),
-                __('validation.custom.no-permission'),
-                __FUNCTION__
-            );
-        }
-
-        if ($votingType == 'GIVE_UP' && $room->status == 'GAME_OVER') {
+        if (in_array($votingType, ['END_GAME', 'GIVE_UP']) && $room->status == 'GAME_OVER') {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(),
                 __('validation.custom.no-permission'),

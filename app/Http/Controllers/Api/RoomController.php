@@ -54,18 +54,16 @@ class RoomController extends Controller
 
         $room = new Room;
         $room->host_id = $user->id;
+        $room->group_code = Encrypter::generateToken(11, Room::class, 'group_code', true);
         $room->code = Encrypter::generateToken(6, Room::class, 'code', true);
         $room->config = JsonConfig::getDefaultGameConfig();
         $room->save();
-
-        $now = date('Y-m-d H:i:s');
-        $expectedTimeAt = date('Y-m-d H:i:s', strtotime('+' . env('ROOM_REFRESH') . ' seconds', strtotime($now)));
 
         $player = new Player;
         $player->room_id = $room->id;
         $player->user_id = $user->id;
         $player->avatar = $user->default_avatar;
-        $player->expected_time_at = $expectedTimeAt;
+        $player->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . env('ROOM_REFRESH') . ' seconds', strtotime(now())));
         $player->save();
 
         $room = $room->fresh();
@@ -126,8 +124,8 @@ class RoomController extends Controller
 
             $newCode = Encrypter::generateToken(6, Room::class, 'code', true);
 
-            $encryptedOldCode = Encrypter::encrypt($room->code, 6, false);
-            $aesDecrypt = Encrypter::prepareAesDecrypt('code', $encryptedOldCode);
+            $encryptedOldGroupCode = Encrypter::encrypt($room->group_code, 11, false);
+            $aesDecrypt = Encrypter::prepareAesDecrypt('group_code', $encryptedOldGroupCode);
 
             /** @var Room[] $oldRooms */
             $oldRooms = Room::whereRaw($aesDecrypt)->where('id', '!=', $room->id)->get();
@@ -157,12 +155,13 @@ class RoomController extends Controller
 
             Validation::checkBoundary($request->boundary_points);
 
-            $room->boundary_polygon = DB::raw("ST_GeomFromText('POLYGON(({$request->boundary_points}))')");
+            $room->boundary_polygon = DB::raw("ST_GeomFromText('POLYGON(($request->boundary_points))')");
             $room->boundary_points = $request->boundary_points;
         }
 
         $room->save();
-        $room->refresh();
+
+        $room = $room->fresh();
 
         JsonResponse::sendSuccess($request, $room->getData());
     }

@@ -11,6 +11,7 @@ class Room extends BaseModel
     protected $hidden = [
         'host_id',
         'reporting_user_id',
+        'group_code',
         'gps_location',
         'house_number',
         'street',
@@ -41,6 +42,7 @@ class Room extends BaseModel
     ];
 
     protected $encryptable = [
+        'group_code' => 11,
         'code' => 6,
         'gps_location' => 20,
         'house_number' => 10,
