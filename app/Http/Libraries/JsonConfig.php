@@ -68,7 +68,6 @@ class JsonConfig
                 'real' => 0,
             ],
             'other' => [
-                'is_role_random' => true,
                 'bot_speed' => 2.5,
                 'max_speed' => 15,
                 'warning_number' => 2,
@@ -247,10 +246,6 @@ class JsonConfig
 
         if ($request->duration_scheduled !== null) {
             $gameConfig['duration']['scheduled'] = $request->duration_scheduled;
-        }
-
-        if ($request->other_is_role_random !== null) {
-            $gameConfig['other']['is_role_random'] = $request->other_is_role_random;
         }
 
         if ($request->other_bot_speed !== null) {

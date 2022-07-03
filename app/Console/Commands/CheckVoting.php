@@ -307,49 +307,64 @@ class CheckVoting extends Command
 
     private function setPlayersRoles(Room $room) {
 
-        if ($room->config['other']['is_role_random']) {
+        $agentNumber = $room->config['actor']['agent']['number'];
+        $pegasusNumber = $room->config['actor']['pegasus']['number'];
+        $fattyManNumber = $room->config['actor']['fatty_man']['number'];
+        $eagleNumber = $room->config['actor']['eagle']['number'];
+        $policemenNumber = $room->config['actor']['policeman']['number'] - ($agentNumber + $pegasusNumber + $fattyManNumber + $eagleNumber);
+        $thiefNumber = $room->config['actor']['thief']['number'];
 
-            $agentNumber = $room->config['actor']['agent']['number'];
-            $pegasusNumber = $room->config['actor']['pegasus']['number'];
-            $fattyManNumber = $room->config['actor']['fatty_man']['number'];
-            $eagleNumber = $room->config['actor']['eagle']['number'];
-            $policemenNumber = $room->config['actor']['policeman']['number'] - ($agentNumber + $pegasusNumber + $fattyManNumber + $eagleNumber);
-            $thiefNumber = $room->config['actor']['thief']['number'];
+        /** @var Player[] $players */
+        $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
 
-            $roles = null;
-
-            for ($i=0; $i<$policemenNumber; $i++) {
-                $roles[] = 'POLICEMAN';
+        foreach ($players as $player) {
+            if ($player->role == 'POLICEMAN') {
+                $policemenNumber--;
+            } else if ($player->role == 'THIEF') {
+                $thiefNumber--;
+            } else if ($player->role == 'AGENT') {
+                $agentNumber--;
+            } else if ($player->role == 'PEGASUS') {
+                $pegasusNumber--;
+            } else if ($player->role == 'FATTY_MAN') {
+                $fattyManNumber--;
+            } else if ($player->role == 'EAGLE') {
+                $eagleNumber--;
             }
+        }
 
-            for ($i=0; $i<$thiefNumber; $i++) {
-                $roles[] = 'THIEF';
-            }
+        $roles = null;
 
-            for ($i=0; $i<$agentNumber; $i++) {
-                $roles[] = 'AGENT';
-            }
+        for ($i=0; $i<$policemenNumber; $i++) {
+            $roles[] = 'POLICEMAN';
+        }
 
-            for ($i=0; $i<$pegasusNumber; $i++) {
-                $roles[] = 'PEGASUS';
-            }
+        for ($i=0; $i<$thiefNumber; $i++) {
+            $roles[] = 'THIEF';
+        }
 
-            for ($i=0; $i<$fattyManNumber; $i++) {
-                $roles[] = 'FATTY_MAN';
-            }
+        for ($i=0; $i<$agentNumber; $i++) {
+            $roles[] = 'AGENT';
+        }
 
-            for ($i=0; $i<$eagleNumber; $i++) {
-                $roles[] = 'EAGLE';
-            }
+        for ($i=0; $i<$pegasusNumber; $i++) {
+            $roles[] = 'PEGASUS';
+        }
 
-            shuffle($roles);
+        for ($i=0; $i<$fattyManNumber; $i++) {
+            $roles[] = 'FATTY_MAN';
+        }
 
-            /** @var Player[] $players */
-            $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+        for ($i=0; $i<$eagleNumber; $i++) {
+            $roles[] = 'EAGLE';
+        }
 
-            $i = 0;
+        shuffle($roles);
 
-            foreach ($players as $player) {
+        $i = 0;
+
+        foreach ($players as $player) {
+            if ($player->role === null) {
                 $player->role = $roles[$i++];
                 $player->save();
             }
@@ -417,11 +432,6 @@ class CheckVoting extends Command
             $newPlayer->room_id = $newRoom->id;
             $newPlayer->user_id = $player->user_id;
             $newPlayer->avatar = $player->avatar;
-
-            if (!$newRoom->config['other']['is_role_random']) {
-                $newPlayer->role = $player->role;
-            }
-
             $newPlayer->save();
         }
     }

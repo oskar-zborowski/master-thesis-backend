@@ -71,7 +71,6 @@ class Validation
             'actor_eagle_probability' => 'nullable|numeric|between:0,1',
             'actor_eagle_visibility_radius' => 'nullable|integer|between:-1,50000',
             'duration_scheduled' => 'nullable|integer|between:300,14400',
-            'other_is_role_random' => 'nullable|boolean',
             'other_bot_speed' => 'nullable|numeric|between:1.5,15',
             'other_max_speed' => 'nullable|numeric|between:-1,15',
             'other_warning_number' => 'nullable|integer|between:-1,5',

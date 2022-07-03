@@ -452,9 +452,7 @@ class PlayerController extends Controller
         /** @var Room $room */
         $room = $player->room()->first();
 
-        if ($user->id != $room->host_id || $room->voting_type == 'START' ||
-            $room->status != 'WAITING_IN_ROOM' || $room->config['other']['is_role_random'])
-        {
+        if ($user->id != $room->host_id || $room->voting_type == 'START' || $room->status != 'WAITING_IN_ROOM') {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(true),
                 __('validation.custom.no-permission'),
