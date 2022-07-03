@@ -427,11 +427,11 @@ class CheckVoting extends Command
         $players = $room->players()->where('is_bot', false)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
 
         foreach ($players as $player) {
-
             $newPlayer = new Player;
             $newPlayer->room_id = $newRoom->id;
             $newPlayer->user_id = $player->user_id;
             $newPlayer->avatar = $player->avatar;
+            $newPlayer->role = $player->role;
             $newPlayer->save();
         }
     }

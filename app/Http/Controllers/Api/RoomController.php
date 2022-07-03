@@ -138,6 +138,10 @@ class RoomController extends Controller
             $room->code = $newCode;
         }
 
+        if ($request->is_set_initial_settings) {
+            $room->config = JsonConfig::getDefaultGameConfig();
+        }
+
         if ($request->is_cleaning_roles) {
 
             /** @var Player[] $players */

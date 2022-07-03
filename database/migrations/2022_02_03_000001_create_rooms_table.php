@@ -54,9 +54,11 @@ return new class extends Migration
 //         "policeman": {
 //             "number": 5,
 //             "visibility_radius": -1,
+//             "is_circle_visible": false,
 //             "catching": {
 //                 "number": 3,
-//                 "radius": 100
+//                 "radius": 100,
+//                 "is_circle_visible": true
 //             }
 //         },
 //         "thief": {
@@ -76,13 +78,10 @@ return new class extends Migration
 //             }
 //         },
 //         "agent": {
-//             "number": 0,
-//             "visibility_radius": -1
+//             "number": 0
 //         },
 //         "pegasus": {
 //             "number": 0,
-//             "probability": 0.5,
-//             "visibility_radius": -1,
 //             "white_ticket": {
 //                 "number": 0,
 //                 "probability": 0.5
@@ -90,13 +89,11 @@ return new class extends Migration
 //         },
 //         "fatty_man": {
 //             "number": 0,
-//             "probability": 0.5,
-//             "visibility_radius": -1
+//             "probability": 0.5
 //         },
 //         "eagle": {
 //             "number": 0,
-//             "probability": 0.5,
-//             "visibility_radius": -1
+//             "probability": 0.5
 //         }
 //     },
 //     "duration": {
