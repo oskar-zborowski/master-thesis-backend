@@ -51,9 +51,13 @@ class Log
                 if ($isCheckingIp && env('IP_API_ACTIVE')) {
 
                     do {
+
                         sleep(env('IP_API_CONST_PAUSE'));
+
+                        /** @var Config $config */
                         $config = Config::where('id', 1)->first();
                         $isIpApiBusy = $config->is_ip_api_busy || $config->ip_api_last_used_at && Validation::timeComparison($config->ip_api_last_used_at, env('IP_API_CONST_PAUSE'), '<', 'seconds');
+
                     } while ($isIpApiBusy);
 
                     $config->is_ip_api_busy = true;
@@ -145,10 +149,10 @@ class Log
             }
 
             if ($userId) {
-                /** @var \App\Models\Connection $connection */
+                /** @var Connection $connection */
                 $connection = $ipAddressEntity->connections()->where('user_id', $userId)->first();
             } else {
-                /** @var \App\Models\Connection $connection */
+                /** @var Connection $connection */
                 $connection = $ipAddressEntity->connections()->where('user_id', null)->first();
             }
 
@@ -378,9 +382,13 @@ class Log
                 if (!$isDbConnectionError) {
 
                     do {
+
                         sleep(env('MAIL_CONST_PAUSE'));
+
+                        /** @var Config $config */
                         $config = Config::where('id', 1)->first();
                         $isMailBusy = $config->is_mail_busy || $config->mail_last_used_at && Validation::timeComparison($config->mail_last_used_at, env('MAIL_CONST_PAUSE'), '<', 'seconds');
+
                     } while ($isMailBusy);
 
                     $config->is_mail_busy = true;
@@ -918,9 +926,13 @@ class Log
             $nominatim = new Nominatim($url);
 
             do {
+
                 sleep(env('NOMINATIM_CONST_PAUSE'));
+
+                /** @var Config $config */
                 $config = Config::where('id', 1)->first();
                 $isNominatimBusy = $config->is_nominatim_busy || $config->nominatim_last_used_at && Validation::timeComparison($config->nominatim_last_used_at, env('NOMINATIM_CONST_PAUSE'), '<', 'seconds');
+
             } while ($isNominatimBusy);
 
             $config->is_nominatim_busy = true;

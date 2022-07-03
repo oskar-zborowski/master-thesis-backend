@@ -174,6 +174,9 @@ class Validation
         return [
             'POLICEMEN_WON_BY_CATCHING',
             'THIEVES_WON_ON_TIME',
+            'POLICEMEN_SURRENDERED',
+            'THIEVES_SURRENDERED',
+            'DRAW',
         ];
     }
 
@@ -375,7 +378,7 @@ class Validation
      */
     public static function timeComparison(string $timeReferencePoint, int $timeMarker, string $comparator, string $unit = 'minutes') {
 
-        $now = date('Y-m-d H:i:s');
+        $now = now();
         $expirationDate = date('Y-m-d H:i:s', strtotime('+' . $timeMarker . ' ' . $unit, strtotime($timeReferencePoint)));
 
         $comparasion = false;

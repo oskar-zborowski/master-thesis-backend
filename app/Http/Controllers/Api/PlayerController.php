@@ -251,12 +251,15 @@ class PlayerController extends Controller
             $room->save();
 
             if (!in_array($request->voting_type, ['START', 'RESUME'])) {
-
                 $player->next_voting_starts_at = date('Y-m-d H:i:s', strtotime('+' . env('BLOCKING_TIME_VOTING_START') . ' seconds', strtotime(now())));
-                $player->save();
-
-                $reloadRoom = true;
             }
+
+            $player->voting_answer = true;
+            $player->save();
+
+            $reloadRoom = true;
+
+            shell_exec("php {$_SERVER['DOCUMENT_ROOT']}/../artisan voting:check $room->id $user->id >/dev/null 2>/dev/null &");
         }
 
         if ($request->voting_answer !== null) {
@@ -395,7 +398,7 @@ class PlayerController extends Controller
             $room = $room->fresh();
         }
 
-        $this->checkGameCourse($room);
+        $this->checkGameCourse($player);
 
         JsonResponse::sendSuccess($request, $room->getData());
     }
@@ -577,134 +580,6 @@ class PlayerController extends Controller
         }
     }
 
-    private function checkGameCourse(Room $room) {
-
-        if ($room->voting_type) {
-
-            $votingEnd = false;
-            $timeIsUp = false;
-
-            if (now() < $room->voting_ended_at) {
-
-                $votersNumber = 0;
-
-                /** @var Player[] $players */
-                $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
-
-                foreach ($players as $player) {
-                    if ($player->voting_answer !== null) {
-                        $votersNumber++;
-                    } else {
-                        break;
-                    }
-                }
-
-                if ($votersNumber == count($players)) {
-                    $votingEnd = true;
-                }
-
-            } else {
-                $votingEnd = true;
-                $timeIsUp = true;
-            }
-
-            if ($votingEnd) {
-
-                $successfulVote = false;
-                $playersNumberFromCatchingFaction = 0;
-                $playersNumberFromThievesFaction = 0;
-                $confirmationsNumberFromCatchingFaction = 0;
-                $confirmationsNumberFromThievesFaction = 0;
-
-                if ($timeIsUp) {
-                    /** @var Player[] $players */
-                    $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
-                }
-
-                foreach ($players as $player) {
-
-                    if ($player->role == 'THIEF') {
-
-                        if ($player->voting_answer) {
-                            $confirmationsNumberFromThievesFaction++;
-                        }
-
-                        $playersNumberFromThievesFaction++;
-
-                    } else {
-
-                        if ($player->voting_answer) {
-                            $confirmationsNumberFromCatchingFaction++;
-                        }
-
-                        $playersNumberFromCatchingFaction++;
-                    }
-                }
-
-                if (in_array($room->voting_type, ['START', 'ENDING_COUNTDOWN', 'RESUME']) &&
-                    $confirmationsNumberFromCatchingFaction == $playersNumberFromCatchingFaction && $confirmationsNumberFromThievesFaction == $playersNumberFromThievesFaction)
-                {
-                    /** @var Player $reportingUser */
-                    $reportingUser = $room->players()->where('user_id', $room->reporting_user_id)->first();
-                    $reportingUser->next_voting_starts_at = null;
-                    $reportingUser->save();
-
-                    $successfulVote = true;
-
-                } else if (in_array($room->voting_type, ['PAUSE', 'END_GAME']) &&
-                    $confirmationsNumberFromCatchingFaction / $playersNumberFromCatchingFaction > 0.5 && $confirmationsNumberFromThievesFaction / $playersNumberFromThievesFaction > 0.5)
-                {
-                    /** @var Player $reportingUser */
-                    $reportingUser = $room->players()->where('user_id', $room->reporting_user_id)->first();
-                    $reportingUser->next_voting_starts_at = null;
-                    $reportingUser->save();
-
-                    $successfulVote = true;
-
-                } else if ($room->voting_type == 'GIVE_UP') {
-
-                    /** @var Player $reportingUser */
-                    $reportingUser = $room->players()->where('user_id', $room->reporting_user_id)->first();
-
-                    if ($reportingUser->role != 'THIEF' &&
-                        $confirmationsNumberFromCatchingFaction / $playersNumberFromCatchingFaction > 0.5)
-                    {
-                        $reportingUser->next_voting_starts_at = null;
-                        $reportingUser->save();
-
-                        $successfulVote = true;
-
-                    } else if ($reportingUser->role == 'THIEF' &&
-                        $confirmationsNumberFromThievesFaction / $playersNumberFromThievesFaction > 0.5)
-                    {
-                        $reportingUser->next_voting_starts_at = null;
-                        $reportingUser->save();
-
-                        $successfulVote = true;
-                    }
-                }
-
-                if ($successfulVote) {
-
-                    foreach ($players as $player) {
-                        $player->voting_answer = null;
-                        $player->save();
-                    }
-
-                } else {
-
-                    foreach ($players as $player) {
-                        $player->voting_answer = null;
-                        $player->failed_voting_type = $room->voting_type;
-                        $player->save();
-                    }
-                }
-
-                $room->reporting_user_id = null;
-                $room->voting_type = null;
-                $room->voting_ended_at = null;
-                $room->save();
-            }
-        }
+    private function checkGameCourse(Player $player) {
     }
 }
