@@ -185,7 +185,7 @@ class CheckVoting extends Command
                         $nextDisclosure = strtotime($room->game_ended_at) - strtotime($room->next_disclosure_at);
 
                         $room->status = 'GAME_IN_PROGRESS';
-                        $room->game_ended_at = date('Y-m-d H:i:s', strtotime('+' . ($room->config['duration']['scheduled']-$room->config['duration']['real']) . ' seconds', strtotime(now())));
+                        $room->game_ended_at = date('Y-m-d H:i:s', strtotime('+' . ($room->config['duration']['scheduled'] - $room->config['duration']['real']) . ' seconds', strtotime(now())));
 
                         if ($nextDisclosure > 0) {
                             $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('-' . $nextDisclosure . ' seconds', strtotime($room->game_ended_at)));

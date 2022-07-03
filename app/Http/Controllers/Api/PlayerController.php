@@ -310,10 +310,18 @@ class PlayerController extends Controller
 
             foreach ($thieves as $thief) {
 
-                if ($thief->fake_position) {
-                    $thief->global_position = $thief->fake_position;
+                if ($thief->black_ticket_finished_at === null || now() > $thief->black_ticket_finished_at) {
+
+                    if ($thief->fake_position) {
+                        $thief->global_position = $thief->fake_position;
+                    } else {
+                        $thief->global_position = $thief->hidden_position;
+                    }
+
+                    $thief->is_old_position = false;
+
                 } else {
-                    $thief->global_position = $thief->hidden_position;
+                    $thief->is_old_position = true;
                 }
 
                 $thief->save();

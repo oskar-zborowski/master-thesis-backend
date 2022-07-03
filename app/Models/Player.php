@@ -30,6 +30,7 @@ class Player extends BaseModel
         'config' => 'array',
         'track' => 'array',
         'is_bot' => 'boolean',
+        'is_old_position' => 'boolean',
         'is_crossing_boundary' => 'boolean',
         'voting_answer' => 'boolean',
         'warning_number' => 'integer',

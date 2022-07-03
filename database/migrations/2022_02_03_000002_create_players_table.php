@@ -23,6 +23,7 @@ return new class extends Migration
             $table->point('hidden_position')->nullable(); // Ostatnia pozycja gracza ujawniana tylko swojej frakcji (agent oraz złodziej) | Usuwane po zakończeniu gry
             $table->point('fake_position')->nullable(); // Fake'owa pozycja złodzieja | Usuwane po wygaśnięciu lub zakończeniu gry
             $table->boolean('is_bot')->default(false);
+            $table->boolean('is_old_position')->default(false);
             $table->boolean('is_crossing_boundary')->default(false);
             $table->boolean('voting_answer')->nullable();
             $table->enum('status', Validation::getPlayerStatuses())->default('CONNECTED');
