@@ -513,6 +513,7 @@ class Validation
             }
 
             if (!in_array($routeName, $routeNamesWhitelist)) {
+
                 if (!isset($token) && !isset($refreshToken)) {
                     throw new ApiException(
                         DefaultErrorCode::FAILED_VALIDATION(true),
@@ -521,6 +522,7 @@ class Validation
                         false
                     );
                 }
+
             } else if (isset($token) || isset($refreshToken)) {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(true),
@@ -567,7 +569,7 @@ class Validation
 
                 if (Validation::timeComparison($personalAccessToken->created_at, env('JWT_LIFETIME'), '>')) {
 
-                    if (!$personalAccessToken->expiry_alert_at) {
+                    if ($personalAccessToken->expiry_alert_at === null) {
 
                         $personalAccessToken->expiry_alert_at = now();
                         $personalAccessToken->save();

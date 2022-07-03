@@ -264,7 +264,7 @@ class PlayerController extends Controller
 
         if ($request->voting_answer !== null) {
 
-            if (!$room->voting_type) {
+            if ($room->voting_type === null) {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(),
                     __('validation.custom.no-permission'),

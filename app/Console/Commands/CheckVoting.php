@@ -52,7 +52,7 @@ class CheckVoting extends Command
             $votingEnd = false;
             $timeIsUp = false;
 
-            if (now() < $room->voting_ended_at) {
+            if ($room->voting_ended_at && now() < $room->voting_ended_at) {
 
                 $votersNumber = 0;
 

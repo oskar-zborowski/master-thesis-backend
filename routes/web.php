@@ -22,19 +22,23 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
+
     throw new ApiException(
         DefaultErrorCode::PERMISSION_DENIED(false, false, true),
         null,
         __FUNCTION__,
         false
     );
+
 })->name('crawler-get');
 
 Route::post('/', function () {
+
     throw new ApiException(
         DefaultErrorCode::PERMISSION_DENIED(false, false, true),
         null,
         __FUNCTION__,
         false
     );
+
 })->name('crawler-post');

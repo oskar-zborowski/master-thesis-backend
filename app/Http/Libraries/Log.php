@@ -237,7 +237,7 @@ class Log
 
             if (($connection->malicious_request_counter >= 50 || $connection->limit_exceeded_request_counter >= 100) && !env('APP_DEBUG')) {
 
-                if (!$ipAddressEntity->blocked_at) {
+                if ($ipAddressEntity->blocked_at === null) {
                     $ipAddressEntity->blocked_at = now();
                     $ipAddressEntity->save();
                 }
@@ -247,7 +247,7 @@ class Log
                     /** @var User $user */
                     $user = $connection->user()->first();
 
-                    if ($user && !$user->blocked_at) {
+                    if ($user && $user->blocked_at === null) {
                         $user->blocked_at = now();
                         $user->save();
                     }
