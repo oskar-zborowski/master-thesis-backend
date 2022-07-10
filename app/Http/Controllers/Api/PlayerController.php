@@ -43,7 +43,7 @@ class PlayerController extends Controller
         $room = Room::whereRaw($aesDecrypt)->orderBy('id', 'desc')->first();
 
         /** @var Player $player */
-        $player = $user->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->orderBy('id', 'desc')->first();
+        $player = $user->players()->where('status', 'CONNECTED')->orderBy('id', 'desc')->first();
 
         if ($player) {
 

@@ -36,7 +36,7 @@ class RoomController extends Controller
         }
 
         /** @var Player $player */
-        $player = $user->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->orderBy('id', 'desc')->first();
+        $player = $user->players()->where('status', 'CONNECTED')->orderBy('id', 'desc')->first();
 
         if ($player) {
 
@@ -81,7 +81,7 @@ class RoomController extends Controller
         $user = Auth::user();
 
         /** @var Player $player */
-        $player = $user->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->orderBy('id', 'desc')->first();
+        $player = $user->players()->where('status', 'CONNECTED')->orderBy('id', 'desc')->first();
 
         if (!$player) {
             throw new ApiException(
