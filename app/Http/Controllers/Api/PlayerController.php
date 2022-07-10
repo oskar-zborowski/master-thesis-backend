@@ -274,7 +274,7 @@ class PlayerController extends Controller
 
         if ($request->voting_type !== null) {
 
-            $this->startVoting($room, $player, $request->voting_type);
+            $this->startVoting($room, $player, $request->voting_type, $request->is_replenishment_with_bots);
 
             $room->reporting_user_id = $user->id;
             $room->voting_type = $request->voting_type;
@@ -425,6 +425,17 @@ class PlayerController extends Controller
 
             Validation::checkGpsLocation($request->use_fake_position);
 
+            $stTouches = DB::select(DB::raw("SELECT ST_TOUCHES($room->boundary_polygon, ST_GeomFromText('POINT($request->use_fake_position)')) AS stTouches"));
+            $stContains = DB::select(DB::raw("SELECT ST_CONTAINS($room->boundary_polygon, ST_GeomFromText('POINT($request->use_fake_position)')) AS stContains"));
+
+            if (!$stTouches[0]->stTouches && !$stContains[0]->stContains) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.location-beyond-boundary'),
+                    __FUNCTION__
+                );
+            }
+
             $player->config['fake_position']['used_number'] = $player->config['fake_position']['used_number'] + 1;
             $player->fake_position = DB::raw("ST_GeomFromText('POINT($request->use_fake_position)')");
             $player->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['fake_position']['duration'] . ' seconds', strtotime(now())));
@@ -548,7 +559,7 @@ class PlayerController extends Controller
         return $avatar;
     }
 
-    private function startVoting(Room $room, Player $player, string $votingType) {
+    private function startVoting(Room $room, Player $player, string $votingType, ?bool $isReplenishmentWithBots) {
 
         if ($room->voting_type) {
             throw new ApiException(
@@ -576,6 +587,10 @@ class PlayerController extends Controller
 
         if ($votingType == 'START') {
 
+            /** @var Player[] $allPlayers */
+            $allPlayers = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+            $allPlayersNumber = count($allPlayers);
+
             if ($player->user_id != $room->host_id || $room->status != 'WAITING_IN_ROOM') {
 
                 throw new ApiException(
@@ -586,9 +601,17 @@ class PlayerController extends Controller
                 );
 
             } else if ($room->boundary_points === null) {
+
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(),
-                    __('validation.custom.complete_boundary'),
+                    __('validation.custom.complete-boundary'),
+                    __FUNCTION__
+                );
+
+            } else if (!$isReplenishmentWithBots && $room->config['actor']['policeman']['number'] + $room->config['actor']['thief']['number'] > $allPlayersNumber) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.not-enough-players'),
                     __FUNCTION__
                 );
             }

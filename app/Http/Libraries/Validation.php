@@ -50,6 +50,7 @@ class Validation
             'actor_policeman_catching_number' => 'nullable|integer|between:1,29',
             'actor_policeman_catching_radius' => 'nullable|integer|between:5,5000',
             'actor_thief_number' => 'nullable|integer|between:1,29',
+            'actor_thief_probability' => 'nullable|numeric|between:0,1',
             'actor_thief_visibility_radius' => 'nullable|integer|between:-1,50000',
             'actor_thief_are_circles_visible' => 'nullable|boolean',
             'actor_thief_escape_duration' => 'nullable|integer|between:30,3600',
@@ -61,7 +62,9 @@ class Validation
             'actor_thief_fake_position_probability' => 'nullable|numeric|between:0,1',
             'actor_thief_fake_position_duration' => 'nullable|integer|between:30,3600',
             'actor_agent_number' => 'nullable|integer|between:0,29',
+            'actor_agent_probability' => 'nullable|numeric|between:0,1',
             'actor_pegasus_number' => 'nullable|integer|between:0,29',
+            'actor_pegasus_probability' => 'nullable|numeric|between:0,1',
             'actor_pegasus_white_ticket_number' => 'nullable|integer|between:0,20',
             'actor_pegasus_white_ticket_probability' => 'nullable|numeric|between:0,1',
             'actor_fatty_man_number' => 'nullable|integer|between:0,29',
@@ -91,10 +94,11 @@ class Validation
             'avatar' => ['nullable', Rule::in(self::getAvatars())],
             'use_white_ticket' => 'nullable|boolean',
             'use_black_ticket' => 'nullable|boolean',
-            'use_fake_position' => 'nullable|string|between:3,20', // TODO SPRAWDZIC CZY TO JEST SPRAWDZANE, ZE JEST W OBREBIE GRY
+            'use_fake_position' => 'nullable|string|between:3,20',
             'status' => ['nullable', Rule::in(['LEFT'])],
             'voting_type' => ['nullable', Rule::in(self::getVotingTypes())],
             'voting_answer' => 'nullable|boolean',
+            'is_replenishment_with_bots' => 'nullable|boolean',
         ];
     }
 

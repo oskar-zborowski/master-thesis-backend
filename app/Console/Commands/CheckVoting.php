@@ -307,12 +307,22 @@ class CheckVoting extends Command
 
     private function setPlayersRoles(Room $room) {
 
-        $agentNumber = $room->config['actor']['agent']['number'];
-        $pegasusNumber = $room->config['actor']['pegasus']['number'];
-        $fattyManNumber = $room->config['actor']['fatty_man']['number'];
-        $eagleNumber = $room->config['actor']['eagle']['number'];
-        $policemenNumber = $room->config['actor']['policeman']['number'] - ($agentNumber + $pegasusNumber + $fattyManNumber + $eagleNumber);
-        $thiefNumber = $room->config['actor']['thief']['number'];
+        $agentNumber = (int) ($room->config['actor']['agent']['number'] * rand((int) (200 * $room->config['actor']['agent']['probability']) - 100, 100) / 100);
+        $agentNumber = $agentNumber >= 0 ? $agentNumber : 0;
+
+        $pegasusNumber = (int) ($room->config['actor']['pegasus']['number'] * rand((int) (200 * $room->config['actor']['pegasus']['probability']) - 100, 100) / 100);
+        $pegasusNumber = $pegasusNumber >= 0 ? $pegasusNumber : 0;
+
+        $fattyManNumber = (int) ($room->config['actor']['fatty_man']['number'] * rand((int) (200 * $room->config['actor']['fatty_man']['probability']) - 100, 100) / 100);
+        $fattyManNumber = $fattyManNumber >= 0 ? $fattyManNumber : 0;
+
+        $eagleNumber = (int) ($room->config['actor']['eagle']['number'] * rand((int) (200 * $room->config['actor']['eagle']['probability']) - 100, 100) / 100);
+        $eagleNumber = $eagleNumber >= 0 ? $eagleNumber : 0;
+
+        $thiefNumber = (int) ($room->config['actor']['thief']['number'] * rand((int) (200 * $room->config['actor']['thief']['probability']) - 100, 100) / 100);
+        $thiefNumber = $thiefNumber >= 1 ? $thiefNumber : 1;
+
+        $policemenNumber = $room->config['actor']['policeman']['number'] + $room->config['actor']['thief']['number'] - ($agentNumber + $pegasusNumber + $fattyManNumber + $eagleNumber + $thiefNumber);
 
         /** @var Player[] $players */
         $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();

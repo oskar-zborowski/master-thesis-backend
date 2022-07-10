@@ -62,6 +62,7 @@ return new class extends Migration
 //         },
 //         "thief": {
 //             "number": 1,
+//             "probability": 1,
 //             "visibility_radius": -1,
 //             "are_circles_visible": true,
 //             "escape_duration": 300,
@@ -78,10 +79,12 @@ return new class extends Migration
 //             }
 //         },
 //         "agent": {
-//             "number": 0
+//             "number": 0,
+//             "probability": 0.5
 //         },
 //         "pegasus": {
 //             "number": 0,
+//             "probability": 0.5,
 //             "white_ticket": {
 //                 "number": 0,
 //                 "probability": 0.5

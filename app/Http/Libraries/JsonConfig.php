@@ -26,6 +26,7 @@ class JsonConfig
                 ],
                 'thief' => [
                     'number' => 1,
+                    'probability' => 1,
                     'visibility_radius' => -1,
                     'are_circles_visible' => true,
                     'escape_duration' => 300,
@@ -43,9 +44,11 @@ class JsonConfig
                 ],
                 'agent' => [
                     'number' => 0,
+                    'probability' => 0.5,
                 ],
                 'pegasus' => [
                     'number' => 0,
+                    'probability' => 0.5,
                     'white_ticket' => [
                         'number' => 0,
                         'probability' => 0.5,
@@ -157,6 +160,10 @@ class JsonConfig
             $gameConfig['actor']['thief']['number'] = $request->actor_thief_number;
         }
 
+        if ($request->actor_thief_probability !== null) {
+            $gameConfig['actor']['thief']['probability'] = $request->actor_thief_probability;
+        }
+
         if ($request->actor_thief_visibility_radius !== null) {
             $gameConfig['actor']['thief']['visibility_radius'] = $request->actor_thief_visibility_radius;
         }
@@ -201,8 +208,16 @@ class JsonConfig
             $gameConfig['actor']['agent']['number'] = $request->actor_agent_number;
         }
 
+        if ($request->actor_agent_probability !== null) {
+            $gameConfig['actor']['agent']['probability'] = $request->actor_agent_probability;
+        }
+
         if ($request->actor_pegasus_number !== null) {
             $gameConfig['actor']['pegasus']['number'] = $request->actor_pegasus_number;
+        }
+
+        if ($request->actor_pegasus_probability !== null) {
+            $gameConfig['actor']['pegasus']['probability'] = $request->actor_pegasus_probability;
         }
 
         if ($request->actor_pegasus_white_ticket_number !== null) {
