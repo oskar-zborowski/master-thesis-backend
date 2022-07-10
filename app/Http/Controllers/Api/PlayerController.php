@@ -238,6 +238,37 @@ class PlayerController extends Controller
             $player->status = $request->status;
             $player->save();
 
+            if ($player->user_id == $room->host_id) {
+
+                /** @var Player[] $newHosts */
+                $newHosts = $room->players()->where('status', 'CONNECTED')->get();
+
+                if (empty($newHosts)) {
+                    /** @var Player[] $newHosts */
+                    $newHosts = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+                }
+
+                if (!empty($newHosts)) {
+
+                    $newHostUserId = null;
+                    $newHostsNumber = count($newHosts);
+                    $randNewHost = rand(1, $newHostsNumber);
+
+                    foreach ($newHosts as $newHost) {
+
+                        $randNewHost--;
+
+                        if ($randNewHost == 0) {
+                            $newHostUserId = $newHost->user_id;
+                            break;
+                        }
+                    }
+
+                    $room->host_id = $newHostUserId;
+                    $room->save();
+                }
+            }
+
             $reloadRoom = true;
         }
 
@@ -543,13 +574,24 @@ class PlayerController extends Controller
             }
         }
 
-        if ($votingType == 'START' && ($player->user_id != $room->host_id || $room->status != 'WAITING_IN_ROOM')) {
-            throw new ApiException(
-                DefaultErrorCode::PERMISSION_DENIED(true),
-                __('validation.custom.no-permission'),
-                __FUNCTION__,
-                false
-            );
+        if ($votingType == 'START') {
+
+            if ($player->user_id != $room->host_id || $room->status != 'WAITING_IN_ROOM') {
+
+                throw new ApiException(
+                    DefaultErrorCode::PERMISSION_DENIED(true),
+                    __('validation.custom.no-permission'),
+                    __FUNCTION__,
+                    false
+                );
+
+            } else if ($room->boundary_points === null) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.complete_boundary'),
+                    __FUNCTION__
+                );
+            }
         }
 
         if ($votingType == 'ENDING_COUNTDOWN' && ($room->status != 'GAME_IN_PROGRESS' || now() >= $room->game_started_at)) {
