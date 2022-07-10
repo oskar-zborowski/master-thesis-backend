@@ -107,7 +107,10 @@ class RoomController extends Controller
         if ($request->host_id !== null) {
 
             /** @var Player $newHost */
-            $newHost = $room->players()->where('user_id', $request->host_id)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
+            $newHost = $room->players()->where([
+                'user_id' => $request->host_id,
+                'status' => 'CONNECTED',
+            ])->first();
 
             if (!$newHost) {
                 throw new ApiException(

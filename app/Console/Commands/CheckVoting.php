@@ -325,7 +325,7 @@ class CheckVoting extends Command
         $policemenNumber = $room->config['actor']['policeman']['number'] + $room->config['actor']['thief']['number'] - ($agentNumber + $pegasusNumber + $fattyManNumber + $eagleNumber + $thiefNumber);
 
         /** @var Player[] $players */
-        $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+        $players = $room->players()->where('status', 'CONNECTED')->get();
 
         foreach ($players as $player) {
             if ($player->role == 'POLICEMAN') {
@@ -384,7 +384,7 @@ class CheckVoting extends Command
     private function setPlayersConfig(Room $room) {
 
         /** @var Player[] $players */
-        $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->whereIn('role', ['THIEF', 'PEGASUS'])->get();
+        $players = $room->players()->where('status', 'CONNECTED')->whereIn('role', ['THIEF', 'PEGASUS'])->get();
 
         foreach ($players as $player) {
 
@@ -434,7 +434,10 @@ class CheckVoting extends Command
         $newRoom->save();
 
         /** @var Player[] $players */
-        $players = $room->players()->where('is_bot', false)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+        $players = $room->players()->where([
+            'is_bot' => false,
+            'status' => 'CONNECTED',
+        ])->get();
 
         foreach ($players as $player) {
             $newPlayer = new Player;

@@ -90,26 +90,12 @@ class PlayerController extends Controller
                     );
                 }
 
-                $avatar = $player->avatar;
-
-                /** @var Player $isAvatarExists */
-                $isAvatarExists = $room->players()->where('avatar', $avatar)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
-
-                if ($isAvatarExists) {
-                    $avatar = $this->findAvailableAvatar($room);
-                }
-
-                $player->avatar = $avatar;
-                $player->role = null;
-                $player->status = 'CONNECTED';
-                $player->save();
-
-                $user->default_avatar = $avatar;
-                $user->save();
+                $this->checkRoomLimit($room);
+                $this->checkAvatarExistence($player, $room);
 
             } else if ($player->status == 'DISCONNECTED') {
-                $player->status = 'CONNECTED';
-                $player->save();
+                $this->checkRoomLimit($room);
+                $this->checkAvatarExistence($player, $room);
             }
 
             if ($room->status == 'GAME_OVER') {
@@ -130,6 +116,8 @@ class PlayerController extends Controller
 
         } else {
 
+            $this->checkRoomLimit($room);
+
             $player = new Player;
             $player->room_id = $room->id;
             $player->user_id = $user->id;
@@ -137,7 +125,10 @@ class PlayerController extends Controller
             $avatar = $user->default_avatar;
 
             /** @var Player $isAvatarExists */
-            $isAvatarExists = $room->players()->where('avatar', $avatar)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
+            $isAvatarExists = $room->players()->where([
+                'avatar' => $avatar,
+                'status' => 'CONNECTED',
+            ])->first();
 
             if ($isAvatarExists) {
                 $avatar = $this->findAvailableAvatar($room);
@@ -189,6 +180,12 @@ class PlayerController extends Controller
         /** @var Room $room */
         $room = $player->room()->first();
 
+        if ($player->status == 'DISCONNECTED') {
+            $this->checkRoomLimit($room);
+            $this->checkAvatarExistence($player, $room);
+            $reloadRoom = true;
+        }
+
         if ($request->avatar !== null) {
 
             if ($room->voting_type == 'START' || $room->status != 'WAITING_IN_ROOM') {
@@ -200,7 +197,10 @@ class PlayerController extends Controller
             }
 
             /** @var Player $avatarExists */
-            $avatarExists = $room->players()->where('avatar', $request->avatar)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
+            $avatarExists = $room->players()->where([
+                'avatar' => $request->avatar,
+                'status' => 'CONNECTED',
+            ])->first();
 
             if ($avatarExists) {
                 throw new ApiException(
@@ -341,15 +341,13 @@ class PlayerController extends Controller
 
             foreach ($thieves as $thief) {
 
-                if ($thief->black_ticket_finished_at === null || now() > $thief->black_ticket_finished_at) {
+                if ($thief->black_ticket_finished_at && now() <= $thief->black_ticket_finished_at) {
+                    $thief->is_old_position = true;
+                } else if ($thief->fake_position_finished_at && now() <= $thief->fake_position_finished_at) {
 
-                    if ($thief->fake_position) {
-                        $thief->global_position = $thief->fake_position;
-                    } else {
-                        $thief->global_position = $thief->hidden_position;
+                    if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
+                        $distanceSphere = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
                     }
-
-                    $thief->is_old_position = false;
 
                 } else {
                     $thief->is_old_position = true;
@@ -425,10 +423,10 @@ class PlayerController extends Controller
 
             Validation::checkGpsLocation($request->use_fake_position);
 
-            $stTouches = DB::select(DB::raw("SELECT ST_TOUCHES($room->boundary_polygon, ST_GeomFromText('POINT($request->use_fake_position)')) AS stTouches"));
-            $stContains = DB::select(DB::raw("SELECT ST_CONTAINS($room->boundary_polygon, ST_GeomFromText('POINT($request->use_fake_position)')) AS stContains"));
+            $isTouches = DB::select(DB::raw("SELECT ST_TOUCHES($room->boundary_polygon, ST_GeomFromText('POINT($request->use_fake_position)')) AS isTouches"));
+            $isContains = DB::select(DB::raw("SELECT ST_CONTAINS($room->boundary_polygon, ST_GeomFromText('POINT($request->use_fake_position)')) AS isContains"));
 
-            if (!$stTouches[0]->stTouches && !$stContains[0]->stContains) {
+            if (!$isTouches[0]->isTouches && !$isContains[0]->isContains) {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(),
                     __('validation.custom.location-beyond-boundary'),
@@ -511,7 +509,7 @@ class PlayerController extends Controller
             );
         }
 
-        if (!in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
+        if ($player->status != 'CONNECTED') {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(),
                 __('validation.custom.user-is-not-in-room'),
@@ -520,7 +518,11 @@ class PlayerController extends Controller
         }
 
         /** @var Player[] $players */
-        $players = $room->players()->where('role', $request->role)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+        $players = $room->players()->where([
+            'role' => $request->role,
+            'status' => 'CONNECTED',
+        ])->get();
+
         $playersNumber = count($players);
 
         if ($request->role !== null && $request->role != $player->role &&
@@ -552,7 +554,10 @@ class PlayerController extends Controller
             $avatar = $avatars[$i++];
 
             /** @var Player $isAvatarExists */
-            $isAvatarExists = $room->players()->where('avatar', $avatar)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
+            $isAvatarExists = $room->players()->where([
+                'avatar' => $avatar,
+                'status' => 'CONNECTED',
+            ])->first();
 
         } while ($isAvatarExists);
 
@@ -588,7 +593,7 @@ class PlayerController extends Controller
         if ($votingType == 'START') {
 
             /** @var Player[] $allPlayers */
-            $allPlayers = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+            $allPlayers = $room->players()->where('status', 'CONNECTED')->get();
             $allPlayersNumber = count($allPlayers);
 
             if ($player->user_id != $room->host_id || $room->status != 'WAITING_IN_ROOM') {
@@ -649,6 +654,46 @@ class PlayerController extends Controller
                 __FUNCTION__
             );
         }
+    }
+
+    private function checkRoomLimit(Room $room) {
+
+        /** @var Player[] $allPlayers */
+        $allPlayers = $room->players()->where('status', 'CONNECTED')->get();
+        $allPlayersNumber = count($allPlayers);
+
+        if ($allPlayersNumber >= $room->config['actor']['policeman']['number'] + $room->config['actor']['thief']['number']) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.max-player-number-reached'),
+                __FUNCTION__
+            );
+        }
+    }
+
+    private function checkAvatarExistence(Player $player, Room $room) {
+
+        $avatar = $player->avatar;
+
+        /** @var Player $isAvatarExists */
+        $isAvatarExists = $room->players()->where([
+            'avatar' => $avatar,
+            'status' => 'CONNECTED',
+        ])->first();
+
+        if ($isAvatarExists) {
+            $avatar = $this->findAvailableAvatar($room);
+        }
+
+        $player->avatar = $avatar;
+        $player->role = null;
+        $player->status = 'CONNECTED';
+        $player->save();
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user->default_avatar = $avatar;
+        $user->save();
     }
 
     private function checkGameCourse(Player $player) {
