@@ -233,12 +233,14 @@ class PlayerController extends Controller
 
             if (!in_array($player->role, ['THIEF', 'AGENT'])) {
                 $player->global_position = DB::raw("ST_GeomFromText('POINT($request->gps_location)')");
+                $reloadRoom = true;
             }
 
-            $player->hidden_position = DB::raw("ST_GeomFromText('POINT($request->gps_location)')");
-            $player->save();
-
-            $reloadRoom = true;
+            if ($player->caught_at === null) {
+                $player->hidden_position = DB::raw("ST_GeomFromText('POINT($request->gps_location)')");
+                $player->save();
+                $reloadRoom = true;
+            }
         }
 
         if ($request->status !== null) {
@@ -381,7 +383,7 @@ class PlayerController extends Controller
 
         if ($request->use_black_ticket) {
 
-            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'THIEF') {
+            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'THIEF' || $player->caught_at) {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(),
                     __('validation.custom.no-permission'),
@@ -414,7 +416,7 @@ class PlayerController extends Controller
 
         if ($request->use_fake_position !== null) {
 
-            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'THIEF') {
+            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'THIEF' || $player->caught_at) {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(),
                     __('validation.custom.no-permission'),

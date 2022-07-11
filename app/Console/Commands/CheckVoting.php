@@ -209,6 +209,8 @@ class CheckVoting extends Command
 
                         $gameStarted = true;
 
+                        shell_exec("php {$_SERVER['DOCUMENT_ROOT']}/../artisan game-course:check $room->id >/dev/null 2>/dev/null &");
+
                     } else if ($room->voting_type == 'ENDING_COUNTDOWN') {
 
                         $room->game_started_at = now();
@@ -232,6 +234,8 @@ class CheckVoting extends Command
                         } else {
                             $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . abs($nextDisclosure) . ' seconds', strtotime($room->game_ended_at)));
                         }
+
+                        shell_exec("php {$_SERVER['DOCUMENT_ROOT']}/../artisan game-course:check $room->id >/dev/null 2>/dev/null &");
 
                     } else if ($room->voting_type == 'END_GAME') {
 
