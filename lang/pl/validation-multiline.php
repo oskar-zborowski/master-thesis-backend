@@ -167,6 +167,7 @@ return [
         'no-white-ticket-available' => 'Nie posiadasz już white ticketów.',
         'no-permission' => 'Nie możesz wykonać podanej akcji.',
         'not-enough-players' => 'Zbyt mało graczy w pokoju. Czy chcesz uzupełnić ich botami?',
+        'players-number-exceeded' => 'Gra nie może wystartować, ponieważ przekroczono liczbę graczy.',
         'policemen-number-exceeded' => 'Liczba graczy po stronie łapiących i posiadających specjalne umiejętności, nie może być większa niż całkowita liczba policjantów.',
         'undefined-request-fields-detected' => 'Wykryto niezdefiniowane pola żądania: :fields.',
         'user-is-not-in-room' => 'Podany użytkownik nie znajduje się w pokoju.',

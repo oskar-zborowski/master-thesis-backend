@@ -31,6 +31,15 @@ class CheckVoting extends Command
         $roomId = $this->argument('roomId');
         $userId = $this->argument('userId');
 
+        /** @var Player[] $players */
+        $players = Player::where([
+            'room_id' => $roomId,
+            'is_bot' => false,
+            'status' => 'CONNECTED',
+        ])->get();
+
+        $playersNumber = count($players);
+
         do {
 
             sleep(env('VOTING_CHECK_REFRESH'));
@@ -45,6 +54,33 @@ class CheckVoting extends Command
                 $reportingUser->voting_answer = null;
                 $reportingUser->next_voting_starts_at = null;
                 $reportingUser->save();
+
+                break;
+            }
+
+            /** @var Player[] $players */
+            $players = $room->players()->where([
+                'is_bot' => false,
+                'status' => 'CONNECTED',
+            ])->get();
+
+            if ($playersNumber != count($players)) {
+
+                /** @var Player $reportingUser */
+                $reportingUser = $room->players()->where('user_id', $room->reporting_user_id)->first();
+                $reportingUser->next_voting_starts_at = null;
+                $reportingUser->save();
+
+                foreach ($players as $player) {
+                    $player->voting_answer = null;
+                    $player->failed_voting_type = $room->voting_type;
+                    $player->save();
+                }
+
+                $room->reporting_user_id = null;
+                $room->voting_type = null;
+                $room->voting_ended_at = null;
+                $room->save();
 
                 break;
             }

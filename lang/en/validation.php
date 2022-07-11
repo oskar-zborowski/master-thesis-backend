@@ -167,6 +167,7 @@ return [
         'no-white-ticket-available' => 'You no longer have white tickets.',
         'no-permission' => 'You cannot perform the action given.',
         'not-enough-players' => 'Too few players in the room. Do you want to supplement them with bots?',
+        'players-number-exceeded' => 'The game cannot start because the number of players has been exceeded.',
         'policemen-number-exceeded' => 'The number of players on the side of catching and having special skills must not exceed the total number of policemen.',
         'undefined-request-fields-detected' => 'Undefined request fields detected: fields.',
         'user-is-not-in-room' => 'The specified user is not in the room.',

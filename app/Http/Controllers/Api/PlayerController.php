@@ -613,6 +613,14 @@ class PlayerController extends Controller
                     __FUNCTION__
                 );
 
+            } else if ($room->config['actor']['policeman']['number'] + $room->config['actor']['thief']['number'] < $allPlayersNumber) {
+
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.players-number-exceeded'),
+                    __FUNCTION__
+                );
+
             } else if (!$isReplenishmentWithBots && $room->config['actor']['policeman']['number'] + $room->config['actor']['thief']['number'] > $allPlayersNumber) {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(),
