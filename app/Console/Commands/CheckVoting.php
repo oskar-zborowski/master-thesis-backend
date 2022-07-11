@@ -194,6 +194,7 @@ class CheckVoting extends Command
 
                         foreach ($players as $player) {
                             if ($player->status == 'DISCONNECTED' && $player->voting_answer === null) {
+                                $player->role = null;
                                 $player->status = 'LEFT';
                                 $player->save();
                             }
