@@ -349,19 +349,28 @@ class PlayerController extends Controller
 
             foreach ($thieves as $thief) {
 
-                if ($thief->black_ticket_finished_at && now() <= $thief->black_ticket_finished_at) {
-                    $thief->is_old_position = true;
-                } else if ($thief->fake_position_finished_at && now() <= $thief->fake_position_finished_at) {
+                if ($thief->black_ticket_finished_at === null || now() > $thief->black_ticket_finished_at) {
 
-                    if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
-                        $distanceSphere = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                    if ($thief->fake_position_finished_at && now() <= $thief->fake_position_finished_at) {
+
+                        if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
+
+                            $disclosureThief = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+
+                            if (!empty($disclosureThief)) {
+                                $thief->global_position = $thief->fake_position;
+                            }
+
+                        } else {
+                            $thief->global_position = $thief->fake_position;
+                        }
+
+                    } else {
+                        $thief->global_position = $thief->hidden_position;
                     }
 
-                } else {
-                    $thief->is_old_position = true;
+                    $thief->save();
                 }
-
-                $thief->save();
             }
 
             $player->config['white_ticket']['used_number'] = $player->config['white_ticket']['used_number'] + 1;
