@@ -80,7 +80,7 @@ class PlayerController extends Controller
                     __FUNCTION__
                 );
 
-            } else if ($player->status == 'LEFT') {
+            } else if (in_array($player->status, ['LEFT', 'DISCONNECTED'])) {
 
                 if ($room->voting_type == 'START' || $room->status != 'WAITING_IN_ROOM') {
                     throw new ApiException(
@@ -93,9 +93,6 @@ class PlayerController extends Controller
                 $this->checkRoomLimit($room);
                 $this->checkAvatarExistence($player, $room);
 
-            } else if ($player->status == 'DISCONNECTED') {
-                $this->checkRoomLimit($room);
-                $this->checkAvatarExistence($player, $room);
             }
 
             if ($room->status == 'GAME_OVER') {
@@ -181,9 +178,20 @@ class PlayerController extends Controller
         $room = $player->room()->first();
 
         if ($player->status == 'DISCONNECTED') {
-            $this->checkRoomLimit($room);
-            $this->checkAvatarExistence($player, $room);
-            $reloadRoom = true;
+
+            if ($room->voting_type == 'START') {
+
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.game-already-started'),
+                    __FUNCTION__
+                );
+
+            } else if ($room->status == 'WAITING_IN_ROOM') {
+                $this->checkRoomLimit($room);
+                $this->checkAvatarExistence($player, $room);
+                $reloadRoom = true;
+            }
         }
 
         if ($request->avatar !== null) {

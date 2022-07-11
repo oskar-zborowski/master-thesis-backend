@@ -190,20 +190,23 @@ class CheckVoting extends Command
 
                 if ($successfulVote) {
 
-                    foreach ($players as $player) {
-                        $player->voting_answer = null;
-                        $player->save();
-                    }
-
                     if ($room->voting_type == 'START') {
 
-                        $this->saveGpsLocation($room, $userId);
+                        foreach ($players as $player) {
+                            if ($player->status == 'DISCONNECTED' && $player->voting_answer === null) {
+                                $player->status = 'LEFT';
+                                $player->save();
+                            }
+                        }
+
                         $this->setPlayersRoles($room);
                         $this->setPlayersConfig($room);
 
                         $room->status = 'GAME_IN_PROGRESS';
                         $room->game_started_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['escape_duration'] . ' seconds', strtotime(now())));
                         $room->game_ended_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['duration']['scheduled'] . ' seconds', strtotime($room->game_started_at)));
+
+                        $gameStarted = true;
 
                     } else if ($room->voting_type == 'ENDING_COUNTDOWN') {
 
@@ -276,6 +279,11 @@ class CheckVoting extends Command
                         }
                     }
 
+                    foreach ($players as $player) {
+                        $player->voting_answer = null;
+                        $player->save();
+                    }
+
                 } else {
                     foreach ($players as $player) {
                         $player->voting_answer = null;
@@ -288,57 +296,15 @@ class CheckVoting extends Command
                 $room->voting_type = null;
                 $room->voting_ended_at = null;
                 $room->save();
+
+                if (isset($gameStarted)) {
+                    $this->saveGpsLocation($room, $userId);
+                }
             }
 
         } while (!$votingEnd);
 
         return 0;
-    }
-
-    private function saveGpsLocation(Room $room, int $userId) {
-
-        $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid($room->boundary_polygon)) AS polygonCenter"));
-        $gpsLocation = substr($polygonCenter[0]->polygonCenter, 6, -1);
-
-        /** @var Connection $connection */
-        $connection = Connection::where('user_id', $userId)->orderBy('updated_at', 'desc')->first();
-
-        /** @var \App\Models\IpAddress */
-        $ipAddress = $connection->ipAddress()->first();
-
-        $location = Log::getLocation($gpsLocation, $ipAddress->ip_address, $userId);
-
-        $room->gps_location = $gpsLocation;
-
-        if (isset($location['house_number'])) {
-            $room->house_number = $location['house_number'];
-        }
-
-        if (isset($location['street'])) {
-            $room->street = $location['street'];
-        }
-
-        if (isset($location['housing_estate'])) {
-            $room->housing_estate = $location['housing_estate'];
-        }
-
-        if (isset($location['district'])) {
-            $room->district = $location['district'];
-        }
-
-        if (isset($location['city'])) {
-            $room->city = $location['city'];
-        }
-
-        if (isset($location['voivodeship'])) {
-            $room->voivodeship = $location['voivodeship'];
-        }
-
-        if (isset($location['country'])) {
-            $room->country = $location['country'];
-        }
-
-        $room->save();
     }
 
     private function setPlayersRoles(Room $room) {
@@ -483,5 +449,51 @@ class CheckVoting extends Command
             $newPlayer->role = $player->role;
             $newPlayer->save();
         }
+    }
+
+    private function saveGpsLocation(Room $room, int $userId) {
+
+        $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid($room->boundary_polygon)) AS polygonCenter"));
+        $gpsLocation = substr($polygonCenter[0]->polygonCenter, 6, -1);
+
+        /** @var Connection $connection */
+        $connection = Connection::where('user_id', $userId)->orderBy('updated_at', 'desc')->first();
+
+        /** @var \App\Models\IpAddress */
+        $ipAddress = $connection->ipAddress()->first();
+
+        $location = Log::getLocation($gpsLocation, $ipAddress->ip_address, $userId);
+
+        $room->gps_location = $gpsLocation;
+
+        if (isset($location['house_number'])) {
+            $room->house_number = $location['house_number'];
+        }
+
+        if (isset($location['street'])) {
+            $room->street = $location['street'];
+        }
+
+        if (isset($location['housing_estate'])) {
+            $room->housing_estate = $location['housing_estate'];
+        }
+
+        if (isset($location['district'])) {
+            $room->district = $location['district'];
+        }
+
+        if (isset($location['city'])) {
+            $room->city = $location['city'];
+        }
+
+        if (isset($location['voivodeship'])) {
+            $room->voivodeship = $location['voivodeship'];
+        }
+
+        if (isset($location['country'])) {
+            $room->country = $location['country'];
+        }
+
+        $room->save();
     }
 }
