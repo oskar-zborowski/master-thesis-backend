@@ -35,18 +35,80 @@ class CheckGameCourse extends Command
             /** @var Player[] $thieves */
             $thieves = $room->players()->where('role', 'THIEF')->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
 
-            foreach ($thieves as $thief) {
+            $gameStarted = false;
+            $revealThieves = false;
+            $now = now();
 
-                $thiefCaught = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
+            if ($now >= $room->game_started_at) {
+                $gameStarted = true;
+            }
 
-                if (count($thiefCaught) >= $room->config['actor']['policeman']['catching']['radius']) {
-                    $thief->is_caughting = false;
-                    $thief->caught_at = now();
-                } else if (!empty($thiefCaught)) {
-                    $thief->is_caughting = true;
+            if ($gameStarted) {
+
+                if ($now >= $room->next_disclosure_at) {
+                    $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['disclosure_interval'] . ' seconds', strtotime($now)));
+                    $room->save();
+                    $revealThieves = true;
                 }
 
-                $thief->save();
+                foreach ($thieves as $thief) {
+
+                    $thiefSave = false;
+
+                    if ($revealThieves) {
+
+                        if ($thief->black_ticket_finished_at === null || $now > $thief->black_ticket_finished_at) {
+
+                            if ($thief->black_ticket_finished_at && $now > $thief->black_ticket_finished_at) {
+                                $thief->black_ticket_finished_at = null;
+                                $thiefSave = true;
+                            }
+
+                            if ($thief->fake_position_finished_at && $now <= $thief->fake_position_finished_at) {
+
+                                if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
+
+                                    $disclosureThief = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+
+                                    if (!empty($disclosureThief)) {
+                                        $thief->global_position = $thief->fake_position;
+                                        $thiefSave = true;
+                                    }
+
+                                } else {
+                                    $thief->global_position = $thief->fake_position;
+                                    $thiefSave = true;
+                                }
+
+                            } else {
+
+                                if ($thief->fake_position_finished_at && $now > $thief->fake_position_finished_at) {
+                                    $thief->fake_position = null;
+                                    $thief->fake_position_finished_at = null;
+                                    $thiefSave = true;
+                                }
+
+                                $thief->global_position = $thief->hidden_position;
+                                $thiefSave = true;
+                            }
+                        }
+                    }
+
+                    $thiefCaught = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
+
+                    if (count($thiefCaught) >= $room->config['actor']['policeman']['catching']['radius']) {
+                        $thief->is_caughting = false;
+                        $thief->caught_at = now();
+                        $thiefSave = true;
+                    } else if (!empty($thiefCaught)) {
+                        $thief->is_caughting = true;
+                        $thiefSave = true;
+                    }
+
+                    if ($thiefSave) {
+                        $thief->save();
+                    }
+                }
             }
 
         } while ($room->status == 'GAME_IN_PROGRESS');

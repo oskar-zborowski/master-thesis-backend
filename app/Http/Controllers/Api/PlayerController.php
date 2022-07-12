@@ -330,7 +330,9 @@ class PlayerController extends Controller
 
         if ($request->use_white_ticket) {
 
-            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'PEGASUS') {
+            $now = now();
+
+            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'PEGASUS' || $now < $room->game_started_at) {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(),
                     __('validation.custom.no-permission'),
@@ -351,9 +353,9 @@ class PlayerController extends Controller
 
             foreach ($thieves as $thief) {
 
-                if ($thief->black_ticket_finished_at === null || now() > $thief->black_ticket_finished_at) {
+                if ($thief->black_ticket_finished_at === null || $now > $thief->black_ticket_finished_at) {
 
-                    if ($thief->fake_position_finished_at && now() <= $thief->fake_position_finished_at) {
+                    if ($thief->fake_position_finished_at && $now <= $thief->fake_position_finished_at) {
 
                         if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
 
@@ -383,7 +385,7 @@ class PlayerController extends Controller
 
         if ($request->use_black_ticket) {
 
-            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'THIEF' || $player->caught_at) {
+            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'THIEF' || now() < $room->game_started_at || $player->caught_at) {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(),
                     __('validation.custom.no-permission'),
@@ -416,7 +418,7 @@ class PlayerController extends Controller
 
         if ($request->use_fake_position !== null) {
 
-            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'THIEF' || $player->caught_at) {
+            if ($room->status != 'GAME_IN_PROGRESS' || $player->role != 'THIEF' || now() < $room->game_started_at || $player->caught_at) {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(),
                     __('validation.custom.no-permission'),

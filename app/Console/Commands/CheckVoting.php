@@ -206,6 +206,7 @@ class CheckVoting extends Command
                         $room->status = 'GAME_IN_PROGRESS';
                         $room->game_started_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['escape_duration'] . ' seconds', strtotime(now())));
                         $room->game_ended_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['duration']['scheduled'] . ' seconds', strtotime($room->game_started_at)));
+                        $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['disclosure_interval'] . ' seconds', strtotime($room->game_started_at)));
 
                         $gameStarted = true;
 
@@ -224,10 +225,18 @@ class CheckVoting extends Command
 
                     } else if ($room->voting_type == 'RESUME') {
 
+                        $now = now();
+
                         $nextDisclosure = strtotime($room->game_ended_at) - strtotime($room->next_disclosure_at);
 
                         $room->status = 'GAME_IN_PROGRESS';
-                        $room->game_ended_at = date('Y-m-d H:i:s', strtotime('+' . ($room->config['duration']['scheduled'] - $room->config['duration']['real']) . ' seconds', strtotime(now())));
+
+                        if ($room->config['duration']['real'] >= 0) {
+                            $room->game_ended_at = date('Y-m-d H:i:s', strtotime('+' . ($room->config['duration']['scheduled'] - $room->config['duration']['real']) . ' seconds', strtotime($now)));
+                        } else {
+                            $room->game_started_at = date('Y-m-d H:i:s', strtotime('+' . abs($room->config['duration']['real']) . ' seconds', strtotime($now)));
+                            $room->game_ended_at = date('Y-m-d H:i:s', strtotime('+' . ($room->config['duration']['scheduled'] + abs($room->config['duration']['real'])) . ' seconds', strtotime($now)));
+                        }
 
                         if ($nextDisclosure > 0) {
                             $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('-' . $nextDisclosure . ' seconds', strtotime($room->game_ended_at)));
@@ -242,19 +251,7 @@ class CheckVoting extends Command
                         $room->status = 'GAME_OVER';
                         $room->game_result = 'DRAW';
 
-                        $this->createNewRoom($room);
-
-                        $room->boundary_polygon = null;
-
-                        /** @var Player[] $players */
-                        $players = $room->players()->get();
-
-                        foreach ($players as $player) {
-                            $player->global_position = null;
-                            $player->hidden_position = null;
-                            $player->fake_position = null;
-                            $player->save();
-                        }
+                        $gameEnded = true;
 
                     } else if ($room->voting_type == 'GIVE_UP') {
 
@@ -269,22 +266,15 @@ class CheckVoting extends Command
                             $room->game_result = 'POLICEMEN_SURRENDERED';
                         }
 
-                        $this->createNewRoom($room);
-
-                        $room->boundary_polygon = null;
-
-                        /** @var Player[] $players */
-                        $players = $room->players()->get();
-
-                        foreach ($players as $player) {
-                            $player->global_position = null;
-                            $player->hidden_position = null;
-                            $player->fake_position = null;
-                            $player->save();
-                        }
+                        $gameEnded = true;
                     }
 
                     foreach ($players as $player) {
+
+                        if (isset($gameEnded)) {
+                            $player->global_position = $player->hidden_position;
+                        }
+
                         $player->voting_answer = null;
                         $player->save();
                     }
@@ -304,6 +294,11 @@ class CheckVoting extends Command
 
                 if (isset($gameStarted)) {
                     $this->saveGpsLocation($room, $userId);
+                }
+
+                if (isset($gameEnded)) {
+                    sleep(env('GAME_OVER_PAUSE'));
+                    $this->createNewRoom($room);
                 }
             }
 
@@ -440,19 +435,28 @@ class CheckVoting extends Command
         $newRoom->boundary_points = $room->boundary_points;
         $newRoom->save();
 
+        $room->boundary_polygon = null;
+        $room->save();
+
         /** @var Player[] $players */
-        $players = $room->players()->where([
-            'is_bot' => false,
-            'status' => 'CONNECTED',
-        ])->get();
+        $players = $room->players()->get();
 
         foreach ($players as $player) {
-            $newPlayer = new Player;
-            $newPlayer->room_id = $newRoom->id;
-            $newPlayer->user_id = $player->user_id;
-            $newPlayer->avatar = $player->avatar;
-            $newPlayer->role = $player->role;
-            $newPlayer->save();
+
+            if (!$player->is_bot && $player->status == 'CONNECTED') {
+                $newPlayer = new Player;
+                $newPlayer->room_id = $newRoom->id;
+                $newPlayer->user_id = $player->user_id;
+                $newPlayer->avatar = $player->avatar;
+                $newPlayer->role = $player->role;
+                $newPlayer->save();
+            }
+
+            $player->global_position = null;
+            $player->hidden_position = null;
+            $player->fake_position = null;
+            $player->status = 'LEFT';
+            $player->save();
         }
     }
 
