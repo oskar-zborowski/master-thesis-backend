@@ -156,7 +156,8 @@ class CheckVoting extends Command
                     $successfulVote = true;
 
                 } else if (in_array($room->voting_type, ['PAUSE', 'END_GAME']) &&
-                    $confirmationsNumberFromCatchingFaction / $playersNumberFromCatchingFaction > 0.5 && $confirmationsNumberFromThievesFaction / $playersNumberFromThievesFaction > 0.5)
+                    ($playersNumberFromCatchingFaction == 0 || $confirmationsNumberFromCatchingFaction / $playersNumberFromCatchingFaction > 0.5) &&
+                    ($playersNumberFromThievesFaction == 0 || $confirmationsNumberFromThievesFaction / $playersNumberFromThievesFaction > 0.5))
                 {
                     /** @var Player $reportingUser */
                     $reportingUser = $room->players()->where('user_id', $room->reporting_user_id)->first();
@@ -171,7 +172,7 @@ class CheckVoting extends Command
                     $reportingUser = $room->players()->where('user_id', $room->reporting_user_id)->first();
 
                     if ($reportingUser->role != 'THIEF' &&
-                        $confirmationsNumberFromCatchingFaction / $playersNumberFromCatchingFaction > 0.5)
+                        ($playersNumberFromCatchingFaction == 0 || $confirmationsNumberFromCatchingFaction / $playersNumberFromCatchingFaction > 0.5))
                     {
                         $reportingUser->next_voting_starts_at = null;
                         $reportingUser->save();
@@ -179,7 +180,7 @@ class CheckVoting extends Command
                         $successfulVote = true;
 
                     } else if ($reportingUser->role == 'THIEF' &&
-                        $confirmationsNumberFromThievesFaction / $playersNumberFromThievesFaction > 0.5)
+                        ($playersNumberFromThievesFaction == 0 || $confirmationsNumberFromThievesFaction / $playersNumberFromThievesFaction > 0.5))
                     {
                         $reportingUser->next_voting_starts_at = null;
                         $reportingUser->save();
@@ -293,10 +294,14 @@ class CheckVoting extends Command
                     if (isset($gameEnded)) {
 
                         /** @var Player[] $players */
-                        $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+                        $players = $room->players()->get();
 
                         foreach ($players as $player) {
-                            $player->global_position = $player->hidden_position;
+
+                            if (in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
+                                $player->global_position = $player->hidden_position;
+                            }
+
                             $player->voting_answer = null;
                             $player->black_ticket_finished_at = null;
                             $player->fake_position_finished_at = null;
@@ -361,7 +366,7 @@ class CheckVoting extends Command
         $policemenNumber = $room->config['actor']['policeman']['number'] + $room->config['actor']['thief']['number'] - ($agentNumber + $pegasusNumber + $fattyManNumber + $eagleNumber + $thiefNumber);
 
         /** @var Player[] $players */
-        $players = $room->players()->where('status', 'CONNECTED')->get();
+        $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
 
         foreach ($players as $player) {
             if ($player->role == 'POLICEMAN') {
@@ -420,7 +425,7 @@ class CheckVoting extends Command
     private function setPlayersConfig(Room $room) {
 
         /** @var Player[] $players */
-        $players = $room->players()->where('status', 'CONNECTED')->whereIn('role', ['THIEF', 'PEGASUS'])->get();
+        $players = $room->players()->whereIn('role', ['THIEF', 'PEGASUS'])->get();
 
         foreach ($players as $player) {
 

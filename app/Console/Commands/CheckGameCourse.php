@@ -33,11 +33,8 @@ class CheckGameCourse extends Command
             /** @var Room $room */
             $room = Room::where('id', $roomId)->first();
 
-            /** @var Player[] $thieves */
-            $thieves = $room->players()->where([
-                'role' => 'THIEF',
-                'caught_at' => null,
-            ])->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+            /** @var \App\Models\Player[] $players */
+            $players = $room->players()->get();
 
             $gameStarted = false;
             $revealThieves = false;
@@ -61,11 +58,12 @@ class CheckGameCourse extends Command
                     $room->voting_ended_at = null;
                     $room->save();
 
-                    /** @var Player[] $players */
-                    $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
-
                     foreach ($players as $player) {
-                        $player->global_position = $player->hidden_position;
+
+                        if (in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
+                            $player->global_position = $player->hidden_position;
+                        }
+
                         $player->voting_answer = null;
                         $player->black_ticket_finished_at = null;
                         $player->fake_position_finished_at = null;
@@ -89,69 +87,72 @@ class CheckGameCourse extends Command
 
                 $thievesNotCaught = 0;
 
-                foreach ($thieves as $thief) {
+                foreach ($players as $thief) {
 
-                    $thiefSave = false;
+                    if ($thief->role == 'THIEF' && $thief->caught_at === null && in_array($thief->status, ['CONNECTED', 'DISCONNECTED'])) {
 
-                    if ($revealThieves) {
+                        $thiefSave = false;
 
-                        if ($thief->black_ticket_finished_at === null || $now > $thief->black_ticket_finished_at) {
+                        if ($revealThieves) {
 
-                            if ($thief->black_ticket_finished_at && $now > $thief->black_ticket_finished_at) {
-                                $thief->black_ticket_finished_at = null;
-                                $thiefSave = true;
-                            }
+                            if ($thief->black_ticket_finished_at === null || $now > $thief->black_ticket_finished_at) {
 
-                            if ($thief->fake_position_finished_at && $now <= $thief->fake_position_finished_at) {
+                                if ($thief->black_ticket_finished_at && $now > $thief->black_ticket_finished_at) {
+                                    $thief->black_ticket_finished_at = null;
+                                    $thiefSave = true;
+                                }
 
-                                if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
+                                if ($thief->fake_position_finished_at && $now <= $thief->fake_position_finished_at) {
 
-                                    $disclosureThief = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                                    if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
 
-                                    if (!empty($disclosureThief)) {
+                                        $disclosureThief = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+
+                                        if (!empty($disclosureThief)) {
+                                            $thief->global_position = $thief->fake_position;
+                                            $thiefSave = true;
+                                        }
+
+                                    } else {
                                         $thief->global_position = $thief->fake_position;
                                         $thiefSave = true;
                                     }
 
                                 } else {
-                                    $thief->global_position = $thief->fake_position;
+
+                                    if ($thief->fake_position_finished_at && $now > $thief->fake_position_finished_at) {
+                                        $thief->fake_position = null;
+                                        $thief->fake_position_finished_at = null;
+                                        $thiefSave = true;
+                                    }
+
+                                    $thief->global_position = $thief->hidden_position;
                                     $thiefSave = true;
                                 }
-
-                            } else {
-
-                                if ($thief->fake_position_finished_at && $now > $thief->fake_position_finished_at) {
-                                    $thief->fake_position = null;
-                                    $thief->fake_position_finished_at = null;
-                                    $thiefSave = true;
-                                }
-
-                                $thief->global_position = $thief->hidden_position;
-                                $thiefSave = true;
                             }
                         }
-                    }
 
-                    $thiefCaught = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
+                        $thiefCaught = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
 
-                    if (count($thiefCaught) >= $room->config['actor']['policeman']['catching']['radius']) {
-                        $thief->is_caughting = false;
-                        $thief->caught_at = now();
-                        $thiefSave = true;
-                    } else if (!empty($thiefCaught)) {
-                        $thief->is_caughting = true;
-                        $thievesNotCaught++;
-                        $thiefSave = true;
-                    } else {
-                        $thievesNotCaught++;
-                    }
+                        if (count($thiefCaught) >= $room->config['actor']['policeman']['catching']['number']) {
+                            $thief->is_caughting = false;
+                            $thief->caught_at = now();
+                            $thiefSave = true;
+                        } else if (!empty($thiefCaught)) {
+                            $thief->is_caughting = true;
+                            $thievesNotCaught++;
+                            $thiefSave = true;
+                        } else {
+                            $thievesNotCaught++;
+                        }
 
-                    if ($thiefSave) {
-                        $thief->save();
+                        if ($thiefSave) {
+                            $thief->save();
+                        }
                     }
                 }
 
-                if (!$thievesNotCaught) {
+                if ($thievesNotCaught == 0) {
 
                     $room->reporting_user_id = null;
 
@@ -169,11 +170,12 @@ class CheckGameCourse extends Command
                     $room->voting_ended_at = null;
                     $room->save();
 
-                    /** @var Player[] $players */
-                    $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
-
                     foreach ($players as $player) {
-                        $player->global_position = $player->hidden_position;
+
+                        if (in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
+                            $player->global_position = $player->hidden_position;
+                        }
+
                         $player->voting_answer = null;
                         $player->black_ticket_finished_at = null;
                         $player->fake_position_finished_at = null;

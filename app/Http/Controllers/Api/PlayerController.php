@@ -92,7 +92,6 @@ class PlayerController extends Controller
 
                 $this->checkRoomLimit($room);
                 $this->checkAvatarExistence($player, $room);
-
             }
 
             if ($room->status == 'GAME_OVER') {
@@ -230,6 +229,17 @@ class PlayerController extends Controller
         if ($room->status == 'GAME_IN_PROGRESS') {
 
             Validation::checkGpsLocation($request->gps_location);
+
+            $isTouches = DB::select(DB::raw("SELECT ST_TOUCHES($room->boundary_polygon, ST_GeomFromText('POINT($request->gps_location)')) AS isTouches"));
+            $isContains = DB::select(DB::raw("SELECT ST_CONTAINS($room->boundary_polygon, ST_GeomFromText('POINT($request->gps_location)')) AS isContains"));
+
+            if (!$isTouches[0]->isTouches && !$isContains[0]->isContains) {
+                $player->is_crossing_boundary = true;
+                $player->warning_number = $player->warning_number + 1;
+                $player->crossing_boundary_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['other']['crossing_boundary_countdown'] . ' seconds', strtotime(now())));
+                $player->save();
+                $reloadRoom = true;
+            }
 
             if (!in_array($player->role, ['THIEF', 'AGENT'])) {
                 $player->global_position = DB::raw("ST_GeomFromText('POINT($request->gps_location)')");
