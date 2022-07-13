@@ -54,4 +54,30 @@ class Other
             $player->save();
         }
     }
+
+    public static function setNewHost(Room $room) {
+
+        /** @var Player[] $newHosts */
+        $newHosts = $room->players()->where('status', 'CONNECTED')->get();
+
+        if (!empty($newHosts)) {
+
+            $newHostUserId = null;
+            $newHostsNumber = count($newHosts);
+            $randNewHost = rand(1, $newHostsNumber);
+
+            foreach ($newHosts as $newHost) {
+
+                $randNewHost--;
+
+                if ($randNewHost == 0) {
+                    $newHostUserId = $newHost->user_id;
+                    break;
+                }
+            }
+
+            $room->host_id = $newHostUserId;
+            $room->save();
+        }
+    }
 }

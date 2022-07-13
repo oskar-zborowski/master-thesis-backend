@@ -6,6 +6,7 @@ use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Libraries\Encrypter;
+use App\Http\Libraries\Other;
 use App\Http\Libraries\Validation;
 use App\Http\Requests\CreatePlayerRequest;
 use App\Http\Requests\SetRoleRequest;
@@ -288,34 +289,7 @@ class PlayerController extends Controller
             $player->save();
 
             if ($player->user_id == $room->host_id) {
-
-                /** @var Player[] $newHosts */
-                $newHosts = $room->players()->where('status', 'CONNECTED')->get();
-
-                if (empty($newHosts)) {
-                    /** @var Player[] $newHosts */
-                    $newHosts = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
-                }
-
-                if (!empty($newHosts)) {
-
-                    $newHostUserId = null;
-                    $newHostsNumber = count($newHosts);
-                    $randNewHost = rand(1, $newHostsNumber);
-
-                    foreach ($newHosts as $newHost) {
-
-                        $randNewHost--;
-
-                        if ($randNewHost == 0) {
-                            $newHostUserId = $newHost->user_id;
-                            break;
-                        }
-                    }
-
-                    $room->host_id = $newHostUserId;
-                    $room->save();
-                }
+                Other::setNewHost($room);
             }
 
             $reloadRoom = true;
