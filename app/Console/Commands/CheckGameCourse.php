@@ -87,10 +87,22 @@ class CheckGameCourse extends Command
 
                 $thievesNotCaught = 0;
 
-                foreach ($players as $thief) {
+                foreach ($players as $player) {
 
-                    if ($thief->role == 'THIEF' && $thief->caught_at === null && in_array($thief->status, ['CONNECTED', 'DISCONNECTED'])) {
+                    if ($now > $player->disconnecting_finished_at || $now > $player->crossing_boundary_finished_at) {
+                        $player->warning_number = $room->config['other']['warning_number'] + 1;
+                        $player->status = 'LEFT';
+                        $player->save();
+                    }
 
+                    if ($player->warning_number > $room->config['other']['warning_number']) {
+                        $player->status = 'LEFT';
+                        $player->save();
+                    }
+
+                    if ($player->role == 'THIEF' && $player->caught_at === null && in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
+
+                        $thief = $player;
                         $thiefSave = false;
 
                         if ($revealThieves) {

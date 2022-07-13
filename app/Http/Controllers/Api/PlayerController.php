@@ -155,7 +155,7 @@ class PlayerController extends Controller
         $user = Auth::user();
 
         /** @var Player $player */
-        $player = $user->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED', 'BANNED'])->orderBy('id', 'desc')->first();
+        $player = $user->players()->orderBy('updated_at', 'desc')->first();
 
         if (!$player) {
             throw new ApiException(
@@ -176,6 +176,23 @@ class PlayerController extends Controller
         /** @var Room $room */
         $room = $player->room()->first();
 
+        if ($player->status == 'LEFT') {
+
+            if ($player->warning_number > $room->config['other']['warning_number']) {
+                throw new ApiException(
+                    DefaultErrorCode::PERMISSION_DENIED(),
+                    __('validation.custom.warnings-number-exceeded'),
+                    __FUNCTION__
+                );
+            } else {
+                throw new ApiException(
+                    DefaultErrorCode::PERMISSION_DENIED(),
+                    __('validation.custom.you-left-the-room'),
+                    __FUNCTION__
+                );
+            }
+        }
+
         if ($player->status == 'DISCONNECTED') {
 
             if ($room->voting_type == 'START') {
@@ -187,8 +204,14 @@ class PlayerController extends Controller
                 );
 
             } else if ($room->status == 'WAITING_IN_ROOM') {
+
                 $this->checkRoomLimit($room);
                 $this->checkAvatarExistence($player, $room);
+                $reloadRoom = true;
+
+            } else {
+                $player->status = 'CONNECTED';
+                $player->save();
                 $reloadRoom = true;
             }
         }
@@ -477,8 +500,6 @@ class PlayerController extends Controller
             $room = $room->fresh();
         }
 
-        $this->checkGameCourse($player);
-
         JsonResponse::sendSuccess($request, $room->getData());
     }
 
@@ -733,8 +754,5 @@ class PlayerController extends Controller
         $user = Auth::user();
         $user->default_avatar = $avatar;
         $user->save();
-    }
-
-    private function checkGameCourse(Player $player) {
     }
 }

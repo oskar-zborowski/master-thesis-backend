@@ -39,17 +39,11 @@ class RoomController extends Controller
         $player = $user->players()->where('status', 'CONNECTED')->orderBy('id', 'desc')->first();
 
         if ($player) {
-
-            /** @var Room $room */
-            $room = $player->room()->first();
-
-            if ($room->status != 'GAME_OVER') {
-                throw new ApiException(
-                    DefaultErrorCode::PERMISSION_DENIED(),
-                    __('validation.custom.you-are-already-in-another-room'),
-                    __FUNCTION__
-                );
-            }
+            throw new ApiException(
+                DefaultErrorCode::PERMISSION_DENIED(),
+                __('validation.custom.you-are-already-in-another-room'),
+                __FUNCTION__
+            );
         }
 
         $room = new Room;
