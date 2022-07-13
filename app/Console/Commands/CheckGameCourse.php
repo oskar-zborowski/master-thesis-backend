@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Libraries\Other;
 use App\Models\Room;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +34,10 @@ class CheckGameCourse extends Command
             $room = Room::where('id', $roomId)->first();
 
             /** @var Player[] $thieves */
-            $thieves = $room->players()->where('role', 'THIEF')->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+            $thieves = $room->players()->where([
+                'role' => 'THIEF',
+                'caught_at' => null,
+            ])->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
 
             $gameStarted = false;
             $revealThieves = false;
@@ -45,11 +49,45 @@ class CheckGameCourse extends Command
 
             if ($gameStarted) {
 
+                if ($now >= $room->game_ended_at) {
+
+                    $room->reporting_user_id = null;
+                    $room->config['duration']['real'] = $room->config['duration']['scheduled'];
+                    $room->status = 'GAME_OVER';
+                    $room->game_result = 'THIEVES_WON_ON_TIME';
+                    $room->voting_type = null;
+                    $room->game_ended_at = $now;
+                    $room->next_disclosure_at = null;
+                    $room->voting_ended_at = null;
+                    $room->save();
+
+                    /** @var Player[] $players */
+                    $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+
+                    foreach ($players as $player) {
+                        $player->global_position = $player->hidden_position;
+                        $player->voting_answer = null;
+                        $player->black_ticket_finished_at = null;
+                        $player->fake_position_finished_at = null;
+                        $player->disconnecting_finished_at = null;
+                        $player->crossing_boundary_finished_at = null;
+                        $player->next_voting_starts_at = null;
+                        $player->save();
+                    }
+
+                    sleep(env('GAME_OVER_PAUSE'));
+                    Other::createNewRoom($room);
+
+                    break;
+                }
+
                 if ($now >= $room->next_disclosure_at) {
                     $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['disclosure_interval'] . ' seconds', strtotime($now)));
                     $room->save();
                     $revealThieves = true;
                 }
+
+                $thievesNotCaught = 0;
 
                 foreach ($thieves as $thief) {
 
@@ -102,12 +140,53 @@ class CheckGameCourse extends Command
                         $thiefSave = true;
                     } else if (!empty($thiefCaught)) {
                         $thief->is_caughting = true;
+                        $thievesNotCaught++;
                         $thiefSave = true;
+                    } else {
+                        $thievesNotCaught++;
                     }
 
                     if ($thiefSave) {
                         $thief->save();
                     }
+                }
+
+                if (!$thievesNotCaught) {
+
+                    $room->reporting_user_id = null;
+
+                    if ($now <= $room->game_ended_at) {
+                        $room->config['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                    } else {
+                        $room->config['duration']['real'] = $room->config['duration']['scheduled'];
+                    }
+
+                    $room->status = 'GAME_OVER';
+                    $room->game_result = 'POLICEMEN_WON_BY_CATCHING';
+                    $room->voting_type = null;
+                    $room->game_ended_at = $now;
+                    $room->next_disclosure_at = null;
+                    $room->voting_ended_at = null;
+                    $room->save();
+
+                    /** @var Player[] $players */
+                    $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+
+                    foreach ($players as $player) {
+                        $player->global_position = $player->hidden_position;
+                        $player->voting_answer = null;
+                        $player->black_ticket_finished_at = null;
+                        $player->fake_position_finished_at = null;
+                        $player->disconnecting_finished_at = null;
+                        $player->crossing_boundary_finished_at = null;
+                        $player->next_voting_starts_at = null;
+                        $player->save();
+                    }
+
+                    sleep(env('GAME_OVER_PAUSE'));
+                    Other::createNewRoom($room);
+
+                    break;
                 }
             }
 

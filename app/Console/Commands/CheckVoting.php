@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Libraries\Encrypter;
 use App\Http\Libraries\JsonConfig;
 use App\Http\Libraries\Log;
+use App\Http\Libraries\Other;
 use App\Models\Connection;
 use App\Models\Player;
 use App\Models\Room;
@@ -248,12 +248,30 @@ class CheckVoting extends Command
 
                     } else if ($room->voting_type == 'END_GAME') {
 
+                        $now = now();
+
+                        if ($now <= $room->game_ended_at) {
+                            $room->config['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                        } else {
+                            $room->config['duration']['real'] = $room->config['duration']['scheduled'];
+                        }
+
                         $room->status = 'GAME_OVER';
                         $room->game_result = 'DRAW';
+                        $room->game_ended_at = $now;
+                        $room->next_disclosure_at = null;
 
                         $gameEnded = true;
 
                     } else if ($room->voting_type == 'GIVE_UP') {
+
+                        $now = now();
+
+                        if ($now <= $room->game_ended_at) {
+                            $room->config['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                        } else {
+                            $room->config['duration']['real'] = $room->config['duration']['scheduled'];
+                        }
 
                         $room->status = 'GAME_OVER';
 
@@ -266,17 +284,33 @@ class CheckVoting extends Command
                             $room->game_result = 'POLICEMEN_SURRENDERED';
                         }
 
+                        $room->game_ended_at = $now;
+                        $room->next_disclosure_at = null;
+
                         $gameEnded = true;
                     }
 
-                    foreach ($players as $player) {
+                    if (isset($gameEnded)) {
 
-                        if (isset($gameEnded)) {
+                        /** @var Player[] $players */
+                        $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+
+                        foreach ($players as $player) {
                             $player->global_position = $player->hidden_position;
+                            $player->voting_answer = null;
+                            $player->black_ticket_finished_at = null;
+                            $player->fake_position_finished_at = null;
+                            $player->disconnecting_finished_at = null;
+                            $player->crossing_boundary_finished_at = null;
+                            $player->next_voting_starts_at = null;
+                            $player->save();
                         }
 
-                        $player->voting_answer = null;
-                        $player->save();
+                    } else {
+                        foreach ($players as $player) {
+                            $player->voting_answer = null;
+                            $player->save();
+                        }
                     }
 
                 } else {
@@ -298,7 +332,7 @@ class CheckVoting extends Command
 
                 if (isset($gameEnded)) {
                     sleep(env('GAME_OVER_PAUSE'));
-                    $this->createNewRoom($room);
+                    Other::createNewRoom($room);
                 }
             }
 
@@ -411,51 +445,6 @@ class CheckVoting extends Command
                 $player->config['white_ticket']['number'] = $whiteTicketRand;
             }
 
-            $player->save();
-        }
-    }
-
-    private function createNewRoom(Room $room) {
-
-        $newRoom = new Room;
-        $newRoom->host_id = $room->host_id;
-
-        if ($room->counter < 255) {
-            $newRoom->group_code = $room->group_code;
-            $newRoom->code = $room->code;
-            $newRoom->counter = $room->counter + 1;
-        } else {
-            $newRoom->group_code = Encrypter::generateToken(11, Room::class, 'group_code', true);
-            $newRoom->code = Encrypter::generateToken(6, Room::class, 'code', true);
-        }
-
-        $newRoom->config = $room->config;
-        $newRoom->config['duration']['real'] = 0;
-        $newRoom->boundary_polygon = $room->boundary_polygon;
-        $newRoom->boundary_points = $room->boundary_points;
-        $newRoom->save();
-
-        $room->boundary_polygon = null;
-        $room->save();
-
-        /** @var Player[] $players */
-        $players = $room->players()->get();
-
-        foreach ($players as $player) {
-
-            if (!$player->is_bot && $player->status == 'CONNECTED') {
-                $newPlayer = new Player;
-                $newPlayer->room_id = $newRoom->id;
-                $newPlayer->user_id = $player->user_id;
-                $newPlayer->avatar = $player->avatar;
-                $newPlayer->role = $player->role;
-                $newPlayer->save();
-            }
-
-            $player->global_position = null;
-            $player->hidden_position = null;
-            $player->fake_position = null;
-            $player->status = 'LEFT';
             $player->save();
         }
     }
