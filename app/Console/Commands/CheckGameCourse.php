@@ -89,15 +89,25 @@ class CheckGameCourse extends Command
 
                 foreach ($players as $player) {
 
-                    if ($now > $player->disconnecting_finished_at || $now > $player->crossing_boundary_finished_at) {
-                        $player->warning_number = $room->config['other']['warning_number'] + 1;
-                        $player->status = 'LEFT';
-                        $player->save();
-                    }
+                    if (in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
 
-                    if ($player->warning_number > $room->config['other']['warning_number']) {
-                        $player->status = 'LEFT';
-                        $player->save();
+                        if ($player->disconnecting_finished_at === null && $now > date('Y-m-d H:i:s', strtotime('+' . env('DISCONNECTING_TIMEOUT') . ' seconds', strtotime($player->expected_time_at)))) {
+                            $player->status = 'DISCONNECTED';
+                            $player->warning_number = $player->warning_number + 1;
+                            $player->disconnecting_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['other']['disconnecting_countdown'] . ' seconds', strtotime($now)));
+                            $player->save();
+                        }
+
+                        if ($player->warning_number > $room->config['other']['warning_number']) {
+                            $player->status = 'LEFT';
+                            $player->save();
+                        }
+
+                        if ($player->disconnecting_finished_at && $now > $player->disconnecting_finished_at || $player->crossing_boundary_finished_at && $now > $player->crossing_boundary_finished_at) {
+                            $player->warning_number = $room->config['other']['warning_number'] + 1;
+                            $player->status = 'LEFT';
+                            $player->save();
+                        }
                     }
 
                     if ($player->role == 'THIEF' && $player->caught_at === null && in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {

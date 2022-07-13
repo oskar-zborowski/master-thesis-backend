@@ -211,6 +211,7 @@ class PlayerController extends Controller
 
             } else {
                 $player->status = 'CONNECTED';
+                $player->disconnecting_finished_at = null;
                 $player->save();
                 $reloadRoom = true;
             }
@@ -260,6 +261,11 @@ class PlayerController extends Controller
                 $player->is_crossing_boundary = true;
                 $player->warning_number = $player->warning_number + 1;
                 $player->crossing_boundary_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['other']['crossing_boundary_countdown'] . ' seconds', strtotime(now())));
+                $player->save();
+                $reloadRoom = true;
+            } else if ($player->is_crossing_boundary) {
+                $player->is_crossing_boundary = false;
+                $player->crossing_boundary_finished_at = null;
                 $player->save();
                 $reloadRoom = true;
             }
