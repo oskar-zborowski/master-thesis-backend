@@ -302,7 +302,10 @@ class CheckVoting extends Command
                                 $player->global_position = $player->hidden_position;
                             }
 
+                            $player->is_caughting = false;
+                            $player->is_crossing_boundary = false;
                             $player->voting_answer = null;
+                            $player->failed_voting_type = null;
                             $player->black_ticket_finished_at = null;
                             $player->fake_position_finished_at = null;
                             $player->disconnecting_finished_at = null;

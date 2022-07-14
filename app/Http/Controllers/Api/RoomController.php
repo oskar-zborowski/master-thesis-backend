@@ -98,6 +98,9 @@ class RoomController extends Controller
             );
         }
 
+        $player->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . env('ROOM_REFRESH') . ' seconds', strtotime(now())));
+        $player->save();
+
         if ($request->host_id !== null) {
 
             /** @var Player $newHost */

@@ -211,11 +211,13 @@ class PlayerController extends Controller
                 $reloadRoom = true;
 
             } else {
-                $player->status = 'CONNECTED';
-                $player->disconnecting_finished_at = null;
-                $player->save();
+                $this->nextConnection($player, $room);
                 $reloadRoom = true;
             }
+
+        } else {
+            $this->nextConnection($player, $room);
+            $reloadRoom = true;
         }
 
         if ($request->avatar !== null) {
@@ -299,7 +301,20 @@ class PlayerController extends Controller
 
         if ($request->status !== null) {
 
+            $player->global_position = null;
+            $player->hidden_position = null;
+            $player->fake_position = null;
+            $player->is_caughting = false;
+            $player->is_crossing_boundary = false;
+            $player->voting_answer = null;
             $player->status = $request->status;
+            $player->failed_voting_type = null;
+            $player->black_ticket_finished_at = null;
+            $player->fake_position_finished_at = null;
+            $player->disconnecting_finished_at = null;
+            $player->crossing_boundary_finished_at = null;
+            $player->speed_exceeded_at = null;
+            $player->next_voting_starts_at = null;
             $player->save();
 
             if ($player->user_id == $room->host_id) {
@@ -526,8 +541,26 @@ class PlayerController extends Controller
             $player->role = null;
         }
 
+        $player->global_position = null;
+        $player->hidden_position = null;
+        $player->fake_position = null;
+        $player->is_caughting = false;
+        $player->is_crossing_boundary = false;
+        $player->voting_answer = null;
         $player->status = $request->status;
+        $player->failed_voting_type = null;
+        $player->black_ticket_finished_at = null;
+        $player->fake_position_finished_at = null;
+        $player->disconnecting_finished_at = null;
+        $player->crossing_boundary_finished_at = null;
+        $player->speed_exceeded_at = null;
+        $player->next_voting_starts_at = null;
         $player->save();
+
+        /** @var Player $host */
+        $host = $room->players()->where('user_id', $user->id)->first();
+        $host->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . env('ROOM_REFRESH') . ' seconds', strtotime(now())));
+        $host->save();
 
         $room = $room->fresh();
 
@@ -583,6 +616,11 @@ class PlayerController extends Controller
 
         $player->role = $request->role;
         $player->save();
+
+        /** @var Player $host */
+        $host = $room->players()->where('user_id', $user->id)->first();
+        $host->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . env('ROOM_REFRESH') . ' seconds', strtotime(now())));
+        $host->save();
 
         $room = $room->fresh();
 
@@ -742,11 +780,40 @@ class PlayerController extends Controller
         $player->avatar = $avatar;
         $player->role = null;
         $player->status = 'CONNECTED';
+        $player->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . env('ROOM_REFRESH') . ' seconds', strtotime(now())));
+        $player->disconnecting_finished_at = null;
         $player->save();
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
         $user->default_avatar = $avatar;
         $user->save();
+    }
+
+    private function nextConnection(Player $player, Room $room) {
+
+        $minPause = null;
+
+        /** @var Player $isAnyoneCaught */
+        $isAnyoneCaught = $room->players()->where('is_caughting', true)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
+
+        if ($room->voting_type && ($minPause === null || env('VOTING_REFRESH') < $minPause)) {
+            $minPause = env('VOTING_REFRESH');
+        }
+
+        if ($isAnyoneCaught && ($minPause === null || env('CATCHING_REFRESH') < $minPause)) {
+            $minPause = env('CATCHING_REFRESH');
+        }
+
+        if ($room->status == 'GAME_IN_PROGRESS' && ($minPause === null || env('GAME_REFRESH') < $minPause)) {
+            $minPause = env('GAME_REFRESH');
+        } else if ($room->status != 'GAME_IN_PROGRESS' && ($minPause === null || env('ROOM_REFRESH') < $minPause)) {
+            $minPause = env('ROOM_REFRESH');
+        }
+
+        $player->status = 'CONNECTED';
+        $player->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . $minPause . ' seconds', strtotime(now())));
+        $player->disconnecting_finished_at = null;
+        $player->save();
     }
 }

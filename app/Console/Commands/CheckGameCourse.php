@@ -64,7 +64,10 @@ class CheckGameCourse extends Command
                             $player->global_position = $player->hidden_position;
                         }
 
+                        $player->is_caughting = false;
+                        $player->is_crossing_boundary = false;
                         $player->voting_answer = null;
+                        $player->failed_voting_type = null;
                         $player->black_ticket_finished_at = null;
                         $player->fake_position_finished_at = null;
                         $player->disconnecting_finished_at = null;
@@ -112,7 +115,20 @@ class CheckGameCourse extends Command
 
                         if ($player->warning_number > $room->config['other']['warning_number']) {
 
+                            $player->global_position = null;
+                            $player->hidden_position = null;
+                            $player->fake_position = null;
+                            $player->is_caughting = false;
+                            $player->is_crossing_boundary = false;
+                            $player->voting_answer = null;
                             $player->status = 'LEFT';
+                            $player->failed_voting_type = null;
+                            $player->black_ticket_finished_at = null;
+                            $player->fake_position_finished_at = null;
+                            $player->disconnecting_finished_at = null;
+                            $player->crossing_boundary_finished_at = null;
+                            $player->speed_exceeded_at = null;
+                            $player->next_voting_starts_at = null;
                             $player->save();
 
                             if ($player->user_id == $room->host_id) {
@@ -122,8 +138,21 @@ class CheckGameCourse extends Command
 
                         if ($player->disconnecting_finished_at && $now > $player->disconnecting_finished_at || $player->crossing_boundary_finished_at && $now > $player->crossing_boundary_finished_at) {
 
-                            $player->warning_number = $room->config['other']['warning_number'] + 1;
+                            $player->global_position = null;
+                            $player->hidden_position = null;
+                            $player->fake_position = null;
+                            $player->is_caughting = false;
+                            $player->is_crossing_boundary = false;
+                            $player->voting_answer = null;
                             $player->status = 'LEFT';
+                            $player->failed_voting_type = null;
+                            $player->warning_number = $room->config['other']['warning_number'] + 1;
+                            $player->black_ticket_finished_at = null;
+                            $player->fake_position_finished_at = null;
+                            $player->disconnecting_finished_at = null;
+                            $player->crossing_boundary_finished_at = null;
+                            $player->speed_exceeded_at = null;
+                            $player->next_voting_starts_at = null;
                             $player->save();
 
                             if ($player->user_id == $room->host_id) {
@@ -222,7 +251,10 @@ class CheckGameCourse extends Command
                             $player->global_position = $player->hidden_position;
                         }
 
+                        $player->is_caughting = false;
+                        $player->is_crossing_boundary = false;
                         $player->voting_answer = null;
+                        $player->failed_voting_type = null;
                         $player->black_ticket_finished_at = null;
                         $player->fake_position_finished_at = null;
                         $player->disconnecting_finished_at = null;
@@ -263,8 +295,11 @@ class CheckGameCourse extends Command
                         $player->global_position = null;
                         $player->hidden_position = null;
                         $player->fake_position = null;
+                        $player->is_caughting = false;
+                        $player->is_crossing_boundary = false;
                         $player->voting_answer = null;
                         $player->status = 'LEFT';
+                        $player->failed_voting_type = null;
                         $player->black_ticket_finished_at = null;
                         $player->fake_position_finished_at = null;
                         $player->disconnecting_finished_at = null;
