@@ -21,24 +21,25 @@ class Room extends BaseModel
         'voivodeship',
         'country',
         'boundary_polygon',
-        'created_at',
         'updated_at',
     ];
 
     protected $casts = [
         'id' => 'integer',
+        'host_id' => 'integer',
+        'reporting_user_id' => 'integer',
         'counter' => 'integer',
         'config' => 'array',
         'game_started_at' => 'string',
         'game_ended_at' => 'string',
         'next_disclosure_at' => 'string',
         'voting_ended_at' => 'string',
+        'created_at' => 'string',
     ];
 
     protected $with = [
         'host',
         'reportingUser',
-        'players',
     ];
 
     protected $encryptable = [
@@ -70,7 +71,8 @@ class Room extends BaseModel
     public function getData() {
         return [
             'Room' => $this,
-            // Przysyłać dodatkowo informację o UTC żeby aplikacja wiedziała o ile skorygować czas względem czasu serwera
+            // Tutaj wstawić playerów
+            'UTC' => config('app.timezone'),
         ];
     }
 }

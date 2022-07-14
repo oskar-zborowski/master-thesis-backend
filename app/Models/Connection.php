@@ -19,6 +19,8 @@ class Connection extends BaseModel
 
     protected $casts = [
         'id' => 'integer',
+        'user_id' => 'integer',
+        'ip_address_id' => 'integer',
         'successful_request_counter' => 'integer',
         'failed_request_counter' => 'integer',
         'limit_exceeded_request_counter' => 'integer',

@@ -23,7 +23,8 @@ class PersonalAccessToken extends BaseModel
     ];
 
     protected $casts = [
-        'expiry_alert_at' => 'boolean',
+        'tokenable_id' => 'integer',
+        'expiry_alert_at' => 'string',
         'created_at' => 'string',
     ];
 

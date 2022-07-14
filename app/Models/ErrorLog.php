@@ -21,5 +21,7 @@ class ErrorLog extends BaseModel
 
     protected $casts = [
         'number' => 'integer',
+        'connection_id' => 'integer',
+        'line' => 'integer',
     ];
 }

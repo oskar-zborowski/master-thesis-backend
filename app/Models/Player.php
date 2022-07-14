@@ -48,10 +48,6 @@ class Player extends BaseModel
         'updated_at' => 'string',
     ];
 
-    protected $with = [
-        'user',
-    ];
-
     public function room() {
         return $this->belongsTo(Room::class);
     }
