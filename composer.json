@@ -10,6 +10,7 @@
         "laravel/framework": "^9.2",
         "laravel/sanctum": "^2.14",
         "laravel/tinker": "^2.7",
+        "matanyadaev/laravel-eloquent-spatial": "^2.0",
         "maxh/php-nominatim": "^2.3"
     },
     "require-dev": {
