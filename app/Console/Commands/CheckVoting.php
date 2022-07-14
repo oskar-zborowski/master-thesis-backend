@@ -307,6 +307,7 @@ class CheckVoting extends Command
                             $player->fake_position_finished_at = null;
                             $player->disconnecting_finished_at = null;
                             $player->crossing_boundary_finished_at = null;
+                            $player->speed_exceeded_at = null;
                             $player->next_voting_starts_at = null;
                             $player->save();
                         }

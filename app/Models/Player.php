@@ -43,6 +43,7 @@ class Player extends BaseModel
         'caught_at' => 'boolean',
         'disconnecting_finished_at' => 'string',
         'crossing_boundary_finished_at' => 'string',
+        'speed_exceeded_at' => 'string',
         'next_voting_starts_at' => 'string',
         'updated_at' => 'string',
     ];

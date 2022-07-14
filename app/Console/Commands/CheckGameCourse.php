@@ -69,6 +69,7 @@ class CheckGameCourse extends Command
                         $player->fake_position_finished_at = null;
                         $player->disconnecting_finished_at = null;
                         $player->crossing_boundary_finished_at = null;
+                        $player->speed_exceeded_at = null;
                         $player->next_voting_starts_at = null;
                         $player->save();
                     }
@@ -86,8 +87,14 @@ class CheckGameCourse extends Command
                 }
 
                 $thievesNotCaught = 0;
+                $activePlayersNumber = 0;
 
                 foreach ($players as $player) {
+
+                    if ($player->speed_exceeded_at && $now > date('Y-m-d H:i:s', strtotime('+' . env('SPEED_EXCEEDED_TIMEOUT') . ' seconds', strtotime($player->speed_exceeded_at)))) {
+                        $player->speed_exceeded_at = null;
+                        $player->save();
+                    }
 
                     if (in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
 
@@ -123,6 +130,8 @@ class CheckGameCourse extends Command
                                 Other::setNewHost($room);
                             }
                         }
+
+                        $activePlayersNumber++;
                     }
 
                     if ($player->role == 'THIEF' && $player->caught_at === null && in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
@@ -218,12 +227,52 @@ class CheckGameCourse extends Command
                         $player->fake_position_finished_at = null;
                         $player->disconnecting_finished_at = null;
                         $player->crossing_boundary_finished_at = null;
+                        $player->speed_exceeded_at = null;
                         $player->next_voting_starts_at = null;
                         $player->save();
                     }
 
                     sleep(env('GAME_OVER_PAUSE'));
                     Other::createNewRoom($room);
+
+                    break;
+                }
+
+                if ($activePlayersNumber == 0) {
+
+                    if ($now <= $room->game_ended_at) {
+                        $room->config['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                    } else {
+                        $room->config['duration']['real'] = $room->config['duration']['scheduled'];
+                    }
+
+                    $room->reporting_user_id = null;
+                    $room->boundary_polygon = null;
+                    $room->status = 'GAME_OVER';
+                    $room->game_result = 'DRAW';
+                    $room->voting_type = null;
+                    $room->game_ended_at = $now;
+                    $room->next_disclosure_at = null;
+                    $room->voting_ended_at = null;
+                    $room->save();
+
+                    /** @var Player[] $players */
+                    $players = $room->players()->get();
+
+                    foreach ($players as $player) {
+                        $player->global_position = null;
+                        $player->hidden_position = null;
+                        $player->fake_position = null;
+                        $player->voting_answer = null;
+                        $player->status = 'LEFT';
+                        $player->black_ticket_finished_at = null;
+                        $player->fake_position_finished_at = null;
+                        $player->disconnecting_finished_at = null;
+                        $player->crossing_boundary_finished_at = null;
+                        $player->speed_exceeded_at = null;
+                        $player->next_voting_starts_at = null;
+                        $player->save();
+                    }
 
                     break;
                 }

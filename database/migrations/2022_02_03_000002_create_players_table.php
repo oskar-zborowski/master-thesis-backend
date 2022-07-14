@@ -38,6 +38,7 @@ return new class extends Migration
             $table->timestamp('caught_at')->nullable();
             $table->timestamp('disconnecting_finished_at')->nullable();
             $table->timestamp('crossing_boundary_finished_at')->nullable();
+            $table->timestamp('speed_exceeded_at')->nullable();
             $table->timestamp('next_voting_starts_at')->nullable();
             $table->timestamps();
         });

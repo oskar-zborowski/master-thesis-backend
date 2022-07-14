@@ -253,6 +253,8 @@ class PlayerController extends Controller
 
         if ($room->status == 'GAME_IN_PROGRESS') {
 
+            $now = now();
+
             Validation::checkGpsLocation($request->gps_location);
 
             $isTouches = DB::select(DB::raw("SELECT ST_TOUCHES($room->boundary_polygon, ST_GeomFromText('POINT($request->gps_location)')) AS isTouches"));
@@ -267,6 +269,18 @@ class PlayerController extends Controller
             } else if ($player->is_crossing_boundary) {
                 $player->is_crossing_boundary = false;
                 $player->crossing_boundary_finished_at = null;
+                $player->save();
+                $reloadRoom = true;
+            }
+
+            $timeDifference = strtotime($now) - strtotime($player->updated_at);
+            $maxDistance = $room->config['other']['max_speed'] * $timeDifference;
+
+            $speedExceeded = DB::select(DB::raw("SELECT id FROM players WHERE id == $player->id AND ST_Distance_Sphere(ST_GeomFromText('POINT($request->gps_location)'), hidden_position) > $maxDistance"));
+
+            if (!empty($speedExceeded)) {
+                $player->warning_number = $player->warning_number + 1;
+                $player->speed_exceeded_at = $now;
                 $player->save();
                 $reloadRoom = true;
             }
