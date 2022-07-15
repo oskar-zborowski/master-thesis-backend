@@ -18,7 +18,6 @@ return new class extends Migration
             $table->enum('avatar', Validation::getAvatars());
             $table->enum('role', Validation::getPlayerRoles())->nullable();
             $table->json('config')->nullable();
-            $table->json('track')->nullable();
             $table->point('global_position')->nullable(); // Ostatnia ujawniona globalnie pozycja gracza (wszyscy gracze poza agentem, a złodziej tylko podczas ujawniania) | Usuwane po zakończeniu gry
             $table->point('hidden_position')->nullable(); // Ostatnia pozycja gracza ujawniana tylko swojej frakcji (agent oraz złodziej) | Usuwane po zakończeniu gry
             $table->point('fake_position')->nullable(); // Fake'owa pozycja złodzieja | Usuwane po wygaśnięciu lub zakończeniu gry
@@ -69,49 +68,3 @@ return new class extends Migration
 //         "number": 0,
 //         "used_number": 0
 //     }
-
-// Struktura JSONa z przykładowymi wartościami dla pola "track"
-//     {
-//         "time": "2022-03-31 09:15:45",
-//         "type": "standard",
-//         "position": {
-//              "latitude": 51.6946562, // Kodowane automatycznie
-//              "longitude": 17.5437434 // Kodowane automatycznie
-//         },
-//         "is_fake_position": false,
-//         "players_id": null
-//     },
-//     {
-//         "time": "2022-03-31 09:15:45",
-//         "type": "disclosure",
-//         "position": {
-//              "latitude": 51.6946562, // Kodowane automatycznie
-//              "longitude": 17.5437434 // Kodowane automatycznie
-//         },
-//         "is_fake_position": true,
-//         "players_id": null
-//     },
-//     {
-//         "time": "2022-03-31 09:15:45",
-//         "type": "white_ticket",
-//         "position": {
-//              "latitude": 51.6946562, // Kodowane automatycznie
-//              "longitude": 17.5437434 // Kodowane automatycznie
-//         },
-//         "is_fake_position": true,
-//         "players_id": {
-//             18
-//         }
-//     },
-//     {
-//         "time": "2022-03-31 09:15:45",
-//         "type": "black_ticket",
-//         "position": {
-//              "latitude": 51.6946562, // Kodowane automatycznie
-//              "longitude": 17.5437434 // Kodowane automatycznie
-//         },
-//         "is_fake_position": false,
-//         "players_id": {
-//             18
-//         }
-//     },
