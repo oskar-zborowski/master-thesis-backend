@@ -64,6 +64,7 @@ class CheckGameCourse extends Command
                             $player->global_position = $player->hidden_position;
                         }
 
+                        $player->is_catching = false;
                         $player->is_caughting = false;
                         $player->is_crossing_boundary = false;
                         $player->voting_answer = null;
@@ -92,6 +93,8 @@ class CheckGameCourse extends Command
                 $thievesNotCaught = 0;
                 $activePlayersNumber = 0;
 
+                $catchers = [];
+
                 foreach ($players as $player) {
 
                     if ($player->speed_exceeded_at && $now > date('Y-m-d H:i:s', strtotime('+' . env('SPEED_EXCEEDED_TIMEOUT') . ' seconds', strtotime($player->speed_exceeded_at)))) {
@@ -118,6 +121,7 @@ class CheckGameCourse extends Command
                             $player->global_position = null;
                             $player->hidden_position = null;
                             $player->fake_position = null;
+                            $player->is_catching = false;
                             $player->is_caughting = false;
                             $player->is_crossing_boundary = false;
                             $player->voting_answer = null;
@@ -141,6 +145,7 @@ class CheckGameCourse extends Command
                             $player->global_position = null;
                             $player->hidden_position = null;
                             $player->fake_position = null;
+                            $player->is_catching = false;
                             $player->is_caughting = false;
                             $player->is_crossing_boundary = false;
                             $player->voting_answer = null;
@@ -181,9 +186,10 @@ class CheckGameCourse extends Command
 
                                     if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
 
-                                        $disclosureThief = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                                        $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                                        $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
 
-                                        if (!empty($disclosureThief)) {
+                                        if (!empty($disclosureThiefByPoliceman) || !empty($disclosureThiefByEagle)) {
                                             $thief->global_position = $thief->fake_position;
                                             $thiefSave = true;
                                         }
@@ -201,22 +207,52 @@ class CheckGameCourse extends Command
                                         $thiefSave = true;
                                     }
 
-                                    $thief->global_position = $thief->hidden_position;
-                                    $thiefSave = true;
+                                    if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
+
+                                        $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                                        $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+
+                                        if (!empty($disclosureThiefByPoliceman) || !empty($disclosureThiefByEagle)) {
+                                            $thief->global_position = $thief->hidden_position;
+                                            $thiefSave = true;
+                                        }
+
+                                    } else {
+                                        $thief->global_position = $thief->hidden_position;
+                                        $thiefSave = true;
+                                    }
                                 }
                             }
                         }
 
-                        $thiefCaught = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
+                        $thiefCaughtByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND role <> 'FATTY_MAN' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
+                        $thiefCaughtByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {2 * $room->config['actor']['policeman']['catching']['radius']}"));
+                        $thiefCaughtByFattyMan = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'FATTY_MAN' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
 
-                        if (count($thiefCaught) >= $room->config['actor']['policeman']['catching']['number']) {
+
+                        if (count($thiefCaughtByPoliceman) + count($thiefCaughtByEagle) + 2 * count($thiefCaughtByFattyMan) >= $room->config['actor']['policeman']['catching']['number']) {
                             $thief->is_caughting = false;
                             $thief->caught_at = now();
                             $thiefSave = true;
-                        } else if (!empty($thiefCaught)) {
+                        } else if (!empty($thiefCaughtByPoliceman) || !empty($thiefCaughtByEagle) || !empty($thiefCaughtByFattyMan)) {
+
+                            $allPolicemenId = array_merge($thiefCaughtByPoliceman, $thiefCaughtByEagle, $thiefCaughtByFattyMan);
+
+                            /** @var \App\Models\Player[] $policemen */
+                            $policemen = $room->players()->whereIn('id', $allPolicemenId)->get();
+
+                            foreach ($policemen as $policeman) {
+                                if (!in_array($policeman->id, $catchers)) {
+                                    $catchers[] = $policeman->id;
+                                    $policeman->is_catching = true;
+                                    $policeman->save();
+                                }
+                            }
+
                             $thief->is_caughting = true;
                             $thievesNotCaught++;
                             $thiefSave = true;
+
                         } else {
                             $thievesNotCaught++;
                         }
@@ -225,6 +261,14 @@ class CheckGameCourse extends Command
                             $thief->save();
                         }
                     }
+                }
+
+                /** @var \App\Models\Player[] $policemen */
+                $policemen = $room->players()->whereNotIn('id', $catchers)->where('status', 'CONNECTED')->get();
+
+                foreach ($policemen as $policeman) {
+                    $policeman->is_catching = false;
+                    $policeman->save();
                 }
 
                 if ($thievesNotCaught == 0) {
@@ -251,6 +295,7 @@ class CheckGameCourse extends Command
                             $player->global_position = $player->hidden_position;
                         }
 
+                        $player->is_catching = false;
                         $player->is_caughting = false;
                         $player->is_crossing_boundary = false;
                         $player->voting_answer = null;
@@ -295,6 +340,7 @@ class CheckGameCourse extends Command
                         $player->global_position = null;
                         $player->hidden_position = null;
                         $player->fake_position = null;
+                        $player->is_catching = false;
                         $player->is_caughting = false;
                         $player->is_crossing_boundary = false;
                         $player->voting_answer = null;

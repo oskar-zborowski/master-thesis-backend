@@ -302,6 +302,7 @@ class CheckVoting extends Command
                                 $player->global_position = $player->hidden_position;
                             }
 
+                            $player->is_catching = false;
                             $player->is_caughting = false;
                             $player->is_crossing_boundary = false;
                             $player->voting_answer = null;

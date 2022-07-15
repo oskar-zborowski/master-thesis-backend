@@ -81,7 +81,7 @@ class PlayerController extends Controller
                     __FUNCTION__
                 );
 
-            } else if (in_array($player->status, ['LEFT', 'DISCONNECTED'])) {
+            } else if ($player->status == 'LEFT') {
 
                 if ($room->voting_type == 'START' || $room->status != 'WAITING_IN_ROOM') {
                     throw new ApiException(
@@ -93,14 +93,41 @@ class PlayerController extends Controller
 
                 $this->checkRoomLimit($room);
                 $this->checkAvatarExistence($player, $room);
-            }
 
-            if ($room->status == 'GAME_OVER') {
-                throw new ApiException(
-                    DefaultErrorCode::PERMISSION_DENIED(),
-                    __('validation.custom.game-is-over'),
-                    __FUNCTION__
-                );
+            } else if ($player->status == 'DISCONNECTED') {
+
+                if ($room->voting_type == 'START') {
+
+                    throw new ApiException(
+                        DefaultErrorCode::PERMISSION_DENIED(),
+                        __('validation.custom.game-already-started'),
+                        __FUNCTION__
+                    );
+
+                } else if ($room->status == 'GAME_OVER') {
+
+                    throw new ApiException(
+                        DefaultErrorCode::PERMISSION_DENIED(),
+                        __('validation.custom.game-is-over'),
+                        __FUNCTION__
+                    );
+
+                } else if ($room->status == 'WAITING_IN_ROOM') {
+                    $this->checkRoomLimit($room);
+                    $this->checkAvatarExistence($player, $room);
+                } else {
+                    $this->nextConnection($player, $room);
+                }
+
+            } else {
+
+                if ($room->status == 'GAME_OVER') {
+                    throw new ApiException(
+                        DefaultErrorCode::PERMISSION_DENIED(),
+                        __('validation.custom.game-is-over'),
+                        __FUNCTION__
+                    );
+                }
             }
 
         } else if ($room->voting_type == 'START' || $room->status != 'WAITING_IN_ROOM') {
@@ -180,11 +207,13 @@ class PlayerController extends Controller
         if ($player->status == 'LEFT') {
 
             if ($player->warning_number > $room->config['other']['warning_number']) {
+
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(),
                     __('validation.custom.warnings-number-exceeded'),
                     __FUNCTION__
                 );
+
             } else {
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(),
@@ -205,17 +234,16 @@ class PlayerController extends Controller
                 );
 
             } else if ($room->status == 'WAITING_IN_ROOM') {
-
                 $this->checkRoomLimit($room);
                 $this->checkAvatarExistence($player, $room);
                 $reloadRoom = true;
-
             } else {
                 $this->nextConnection($player, $room);
                 $reloadRoom = true;
             }
 
         } else {
+            $this->savePing($player);
             $this->nextConnection($player, $room);
             $reloadRoom = true;
         }
@@ -278,7 +306,7 @@ class PlayerController extends Controller
             $timeDifference = strtotime($now) - strtotime($player->updated_at);
             $maxDistance = $room->config['other']['max_speed'] * $timeDifference;
 
-            $speedExceeded = DB::select(DB::raw("SELECT id FROM players WHERE id == $player->id AND ST_Distance_Sphere(ST_GeomFromText('POINT($request->gps_location)'), hidden_position) > $maxDistance"));
+            $speedExceeded = DB::select(DB::raw("SELECT id FROM players WHERE id = $player->id AND ST_Distance_Sphere(ST_GeomFromText('POINT($request->gps_location)'), hidden_position) > $maxDistance"));
 
             if (!empty($speedExceeded)) {
                 $player->warning_number = $player->warning_number + 1;
@@ -304,6 +332,7 @@ class PlayerController extends Controller
             $player->global_position = null;
             $player->hidden_position = null;
             $player->fake_position = null;
+            $player->is_catching = false;
             $player->is_caughting = false;
             $player->is_crossing_boundary = false;
             $player->voting_answer = null;
@@ -401,9 +430,10 @@ class PlayerController extends Controller
 
                         if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
 
-                            $disclosureThief = DB::select(DB::raw("SELECT id FROM players WHERE room_id == $room->id AND status == 'CONNECTED' AND role <> 'THIEF' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                            $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                            $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
 
-                            if (!empty($disclosureThief)) {
+                            if (!empty($disclosureThiefByPoliceman) || !empty($disclosureThiefByEagle)) {
                                 $thief->global_position = $thief->fake_position;
                             }
 
@@ -412,7 +442,19 @@ class PlayerController extends Controller
                         }
 
                     } else {
-                        $thief->global_position = $thief->hidden_position;
+
+                        if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
+
+                            $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                            $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+
+                            if (!empty($disclosureThiefByPoliceman) || !empty($disclosureThiefByEagle)) {
+                                $thief->global_position = $thief->hidden_position;
+                            }
+
+                        } else {
+                            $thief->global_position = $thief->hidden_position;
+                        }
                     }
 
                     $thief->save();
@@ -544,6 +586,7 @@ class PlayerController extends Controller
         $player->global_position = null;
         $player->hidden_position = null;
         $player->fake_position = null;
+        $player->is_catching = false;
         $player->is_caughting = false;
         $player->is_crossing_boundary = false;
         $player->voting_answer = null;

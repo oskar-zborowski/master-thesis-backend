@@ -98,8 +98,9 @@ class RoomController extends Controller
             );
         }
 
-        $player->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . env('ROOM_REFRESH') . ' seconds', strtotime(now())));
-        $player->save();
+        $this->savePing($player);
+
+        $host = $player;
 
         if ($request->host_id !== null) {
 
@@ -164,6 +165,9 @@ class RoomController extends Controller
         }
 
         $room->save();
+
+        $host->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . env('ROOM_REFRESH') . ' seconds', strtotime(now())));
+        $host->save();
 
         $room = $room->fresh();
 

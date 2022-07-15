@@ -23,20 +23,23 @@ return new class extends Migration
             $table->point('hidden_position')->nullable(); // Ostatnia pozycja gracza ujawniana tylko swojej frakcji (agent oraz złodziej) | Usuwane po zakończeniu gry
             $table->point('fake_position')->nullable(); // Fake'owa pozycja złodzieja | Usuwane po wygaśnięciu lub zakończeniu gry
             $table->boolean('is_bot')->default(false);
-            $table->boolean('is_caughting')->default(false);
+            $table->boolean('is_catching')->default(false); // Flaga określająca czy gracz łapie złodzieja
+            $table->boolean('is_caughting')->default(false); // Flaga określająca czy złodziej jest łapany
             $table->boolean('is_crossing_boundary')->default(false);
             $table->boolean('voting_answer')->nullable();
             $table->enum('status', Validation::getPlayerStatuses())->default('CONNECTED');
-            $table->enum('failed_voting_type', Validation::getVotingTypes())->nullable();
+            $table->enum('failed_voting_type', Validation::getVotingTypes())->nullable(); // Flaga informująca każdego użytkownika jednokrotnie, że głosowanie się nie powiodło
             $table->unsignedTinyInteger('warning_number')->default(0);
             $table->unsignedSmallInteger('ping')->default(0); // wyrażone w [ms]
+            $table->unsignedSmallInteger('average_ping')->default(0); // wyrażone w [ms]
+            $table->unsignedSmallInteger('samples_number')->default(0);
             $table->timestamp('expected_time_at')->nullable();
             $table->timestamp('black_ticket_finished_at')->nullable();
             $table->timestamp('fake_position_finished_at')->nullable();
             $table->timestamp('caught_at')->nullable();
             $table->timestamp('disconnecting_finished_at')->nullable();
             $table->timestamp('crossing_boundary_finished_at')->nullable();
-            $table->timestamp('speed_exceeded_at')->nullable();
+            $table->timestamp('speed_exceeded_at')->nullable(); // Data przekroczenia prędkości przez jakiegoś gracza i trzymana przez SPEED_EXCEEDED_TIMEOUT sekund
             $table->timestamp('next_voting_starts_at')->nullable();
             $table->timestamps();
         });
