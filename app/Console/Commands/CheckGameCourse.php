@@ -229,7 +229,6 @@ class CheckGameCourse extends Command
                         $thiefCaughtByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {2 * $room->config['actor']['policeman']['catching']['radius']}"));
                         $thiefCaughtByFattyMan = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'FATTY_MAN' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
 
-
                         if (count($thiefCaughtByPoliceman) + count($thiefCaughtByEagle) + 2 * count($thiefCaughtByFattyMan) >= $room->config['actor']['policeman']['catching']['number']) {
                             $thief->is_caughting = false;
                             $thief->caught_at = now();
@@ -264,7 +263,10 @@ class CheckGameCourse extends Command
                 }
 
                 /** @var \App\Models\Player[] $policemen */
-                $policemen = $room->players()->whereNotIn('id', $catchers)->where('status', 'CONNECTED')->get();
+                $policemen = $room->players()->whereNotIn('id', $catchers)->where([
+                    'status' => 'CONNECTED',
+                    'is_catching' => true,
+                ])->get();
 
                 foreach ($policemen as $policeman) {
                     $policeman->is_catching = false;
