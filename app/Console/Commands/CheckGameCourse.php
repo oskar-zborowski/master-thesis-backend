@@ -328,7 +328,7 @@ class CheckGameCourse extends Command
                     $room->reporting_user_id = null;
                     $room->boundary_polygon = null;
                     $room->status = 'GAME_OVER';
-                    $room->game_result = 'DRAW';
+                    $room->game_result = 'UNFINISHED';
                     $room->voting_type = null;
                     $room->game_ended_at = $now;
                     $room->next_disclosure_at = null;

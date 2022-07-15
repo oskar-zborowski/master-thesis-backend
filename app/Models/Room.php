@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Http\Traits\Encryptable;
+use Illuminate\Support\Facades\Auth;
 
 class Room extends BaseModel
 {
@@ -69,9 +70,25 @@ class Room extends BaseModel
     }
 
     public function getData() {
+
+        /** @var User $user */
+        $user = Auth::user();
+
+        /** @var Player $currentPlayer */
+        $currentPlayer = $this->players()->where('user_id', $user->id)->first();
+
+        /** @var Player[] $players */
+        $players = $this->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+
+        $allPlayers = null;
+
+        foreach ($players as $player) {
+            $allPlayers[] = $player->getData($currentPlayer);
+        }
+
         return [
             'Room' => $this,
-            // Tutaj wstawić playerów
+            'Player' => $allPlayers,
             'UTC' => config('app.timezone'),
         ];
     }

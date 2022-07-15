@@ -178,6 +178,7 @@ class Validation
             'POLICEMEN_SURRENDERED',
             'THIEVES_SURRENDERED',
             'DRAW',
+            'UNFINISHED',
         ];
     }
 

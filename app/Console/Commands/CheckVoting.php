@@ -224,6 +224,8 @@ class CheckVoting extends Command
                         $room->config['duration']['real'] = strtotime(now()) - strtotime($room->game_started_at);
                         $room->status = 'GAME_PAUSED';
 
+                        shell_exec("php {$_SERVER['DOCUMENT_ROOT']}/../artisan room:check $room->id >/dev/null 2>/dev/null &");
+
                     } else if ($room->voting_type == 'RESUME') {
 
                         $now = now();
