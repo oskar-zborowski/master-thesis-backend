@@ -60,7 +60,7 @@ class Other
         /** @var Player[] $newHosts */
         $newHosts = $room->players()->where('status', 'CONNECTED')->get();
 
-        if (!empty($newHosts)) {
+        if (count($newHosts) > 0) {
 
             $newHostUserId = null;
             $newHostsNumber = count($newHosts);
