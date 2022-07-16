@@ -10,9 +10,12 @@ class Room extends BaseModel
     use Encryptable;
 
     protected $hidden = [
+        'id',
         'host_id',
         'reporting_user_id',
         'group_code',
+        'code',
+        'counter',
         'gps_location',
         'house_number',
         'street',
@@ -21,7 +24,17 @@ class Room extends BaseModel
         'city',
         'voivodeship',
         'country',
+        'config',
         'boundary_polygon',
+        'boundary_points',
+        'status',
+        'game_result',
+        'voting_type',
+        'game_started_at',
+        'game_ended_at',
+        'next_disclosure_at',
+        'voting_ended_at',
+        'created_at',
         'updated_at',
     ];
 
@@ -77,6 +90,12 @@ class Room extends BaseModel
         /** @var Player $currentPlayer */
         $currentPlayer = $this->players()->where('user_id', $user->id)->first();
 
+        /** @var User $host */
+        $host = $this->host()->first();
+
+        /** @var User $reportingUser */
+        $reportingUser = $this->reportingUser()->first();
+
         /** @var Player[] $players */
         $players = $this->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
 
@@ -87,7 +106,23 @@ class Room extends BaseModel
         }
 
         return [
-            'Room' => $this,
+            'Room' => [
+                'id' => $this->id,
+                'Host' => $host,
+                'ReportingUser' => $reportingUser,
+                'code' => $this->code,
+                'counter' => $this->counter,
+                'config' => $this->config,
+                'boundary_points' => $this->boundary_points,
+                'status' => $this->status,
+                'game_result' => $this->game_result,
+                'voting_type' => $this->voting_type,
+                'game_started_at' => $this->game_started_at,
+                'game_ended_at' => $this->game_ended_at,
+                'next_disclosure_at' => $this->next_disclosure_at,
+                'voting_ended_at' => $this->voting_ended_at,
+                'created_at' => $this->created_at,
+            ],
             'Player' => $allPlayers,
             'UTC' => config('app.timezone'),
         ];
