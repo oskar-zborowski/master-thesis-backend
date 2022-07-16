@@ -311,7 +311,7 @@ class Validation
             );
         }
 
-        if ((int) $gpsLocation[0] <= -180 || (int) $gpsLocation[0] > 180 || (int) $gpsLocation[1] < -90 || (int) $gpsLocation[1] > 90) {
+        if ((float) $gpsLocation[0] <= -180 || (float) $gpsLocation[0] > 180 || (float) $gpsLocation[1] < -90 || (float) $gpsLocation[1] > 90) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(true),
                 __('validation.custom.invalid-coordinate-format'),
