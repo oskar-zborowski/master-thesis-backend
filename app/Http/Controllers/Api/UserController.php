@@ -19,6 +19,8 @@ class UserController extends Controller
      */
     public function createUser(CreateUserRequest $request) {
 
+        Validation::checkGpsLocation($request->gps_location);
+
         $user = new User;
         $user->name = null;
         $user->default_avatar = Validation::chooseAvatar();
@@ -44,8 +46,20 @@ class UserController extends Controller
      */
     public function updateUser(UpdateUserRequest $request) {
 
+        Validation::checkGpsLocation($request->gps_location);
+
         /** @var User $user */
         $user = Auth::user();
+
+        $startDate = date('Y-m-d 00:00:00');
+        $endDate = date('Y-m-d 23:59:59');
+
+        /** @var \App\Models\GpsLog $gpsLog */
+        $gpsLog = $user->gpsLogs()->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)->first();
+
+        if (!$gpsLog) {
+            $this->saveGpsLog($request->gps_location, $request);
+        }
 
         if ($request->name !== null) {
             $user->name = $request->name;
@@ -58,22 +72,10 @@ class UserController extends Controller
         $user->app_version = $request->app_version;
         $user->save();
 
-        $startDate = date('Y-m-d 00:00:00');
-        $endDate = date('Y-m-d 23:59:59');
-
-        /** @var \App\Models\GpsLog $gpsLog */
-        $gpsLog = $user->gpsLogs()->where('created_at', '>=', $startDate)->where('created_at', '<=', $endDate)->first();
-
-        if (!$gpsLog) {
-            $this->saveGpsLog($request->gps_location, $request);
-        }
-
         JsonResponse::sendSuccess($request, $user->getData());
     }
 
     private function saveGpsLog(string $gpsLocation, $request) {
-
-        Validation::checkGpsLocation($gpsLocation);
 
         /** @var User $user */
         $user = Auth::user();
