@@ -70,7 +70,7 @@ class CheckRoom extends Command
                 }
             }
 
-            if (empty($players)) {
+            if (count($players) == 0) {
                 $room->delete();
                 $emptyRoom = true;
             }
