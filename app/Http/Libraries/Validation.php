@@ -310,6 +310,15 @@ class Validation
                 false
             );
         }
+
+        if ((int) $gpsLocation[0] <= -180 || (int) $gpsLocation[0] > 180 || (int) $gpsLocation[1] < -90 || (int) $gpsLocation[1] > 90) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(true),
+                __('validation.custom.invalid-coordinate-format'),
+                __FUNCTION__,
+                false
+            );
+        }
     }
 
     public static function checkNumber(string $number, int $digitsBeforeDecimalPoint) {
