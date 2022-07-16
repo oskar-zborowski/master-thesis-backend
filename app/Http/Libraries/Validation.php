@@ -302,7 +302,7 @@ class Validation
             );
         }
 
-        if (!self::checkNumber($gpsLocation[0], 3) || !self::checkNumber($gpsLocation[1], 2)) {
+        if (!self::checkNumber($gpsLocation[0], 3, 5) || !self::checkNumber($gpsLocation[1], 2, 5)) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(true),
                 __('validation.custom.invalid-coordinate-format'),
@@ -321,10 +321,11 @@ class Validation
         }
     }
 
-    public static function checkNumber(string $number, int $digitsBeforeDecimalPoint) {
+    public static function checkNumber(string $number, int $maxDigitsBeforeDecimalPoint, ?int $maxDigitsAfterDecimalPoint = null) {
 
         $result = true;
         $dot = false;
+        $digitsAfterDot = 0;
         $minus = 0;
         $i = 1;
         $length = strlen($number);
@@ -355,13 +356,31 @@ class Validation
                     break;
                 } else if (ord($number[$i]) == 46) {
 
-                    if ($i - $minus > $digitsBeforeDecimalPoint || $dot) {
+                    if ($maxDigitsAfterDecimalPoint !== null && $maxDigitsAfterDecimalPoint == 0) {
+                        $result = false;
+                        break;
+                    } else if ($i - $minus > $maxDigitsBeforeDecimalPoint || $dot) {
                         $result = false;
                         break;
                     } else {
                         $dot = true;
                     }
+
+                } else {
+
+                    if ($dot) {
+                        $digitsAfterDot++;
+                    }
+
+                    if ($maxDigitsAfterDecimalPoint !== null && $digitsAfterDot > $maxDigitsAfterDecimalPoint) {
+                        $result = false;
+                        break;
+                    }
                 }
+            }
+
+            if ($dot && $digitsAfterDot == 0) {
+                $result = false;
             }
         }
 
