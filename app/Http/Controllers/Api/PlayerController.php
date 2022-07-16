@@ -782,7 +782,7 @@ class PlayerController extends Controller
             );
         }
 
-        if (in_array($votingType, ['END_GAME', 'GIVE_UP']) && $room->status == 'GAME_OVER') {
+        if (in_array($votingType, ['END_GAME', 'GIVE_UP']) && in_array($room->status, ['WAITING_IN_ROOM', 'GAME_OVER'])) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(),
                 __('validation.custom.no-permission'),

@@ -217,17 +217,17 @@ class Log
                     $status = 1;
                 } else if ($connection->malicious_request_counter == 2) {
                     $status = 2;
-                } else if ($connection->malicious_request_counter == 3) {
+                } else if ($connection->malicious_request_counter == env('MALICIOUS_BLOCKING_TRESHOLD')) {
                     $status = 3;
-                } else if ($connection->malicious_request_counter == 50) {
+                } else if ($connection->malicious_request_counter == env('MALICIOUS_PERMANANT_BLOCKING_TRESHOLD')) {
                     $status = 4;
                 }
 
             } else if ($isLimitExceeded) {
 
-                if ($connection->limit_exceeded_request_counter == 100) {
+                if ($connection->limit_exceeded_request_counter == env('LIMIT_EXCEEDED_BLOCKING_TRESHOLD')) {
                     $status = 3;
-                } else if ($connection->limit_exceeded_request_counter == 500) {
+                } else if ($connection->limit_exceeded_request_counter == env('LIMIT_EXCEEDED_PERMANANT_BLOCKING_TRESHOLD')) {
                     $status = 4;
                 }
 

@@ -6,7 +6,7 @@ use App\Http\Libraries\Other;
 use App\Models\Room;
 use Illuminate\Console\Command;
 
-class CheckVoting extends Command
+class CheckRoom extends Command
 {
     /**
      * The name and signature of the console command.
