@@ -78,6 +78,11 @@ class Player extends BaseModel
 
     public function getData(Player $player) {
 
+        $this->mergeCasts([
+            'global_position' => Point::class,
+            'hidden_position' => Point::class,
+        ]);
+
         if ($player->role != 'THIEF' || $this->role == 'THIEF') {
             $role = $this->role;
         } else {
