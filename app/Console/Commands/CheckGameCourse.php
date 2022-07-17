@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Http\Libraries\Other;
+use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,15 @@ class CheckGameCourse extends Command
 
         $roomId = $this->argument('roomId');
 
+        /** @var Player[] $allPlayers */
+        $allPlayers = Player::where([
+            'room_id' => $roomId,
+            'is_bot' => false,
+            'status' => 'CONNECTED',
+        ])->get();
+
+        $allPlayersNumber = count($allPlayers);
+
         do {
 
             sleep(env('GAME_COURSE_CHECK_REFRESH'));
@@ -33,7 +43,7 @@ class CheckGameCourse extends Command
             /** @var Room $room */
             $room = Room::where('id', $roomId)->first();
 
-            /** @var \App\Models\Player[] $players */
+            /** @var Player[] $players */
             $players = $room->players()->get();
 
             $gameStarted = false;
@@ -237,7 +247,7 @@ class CheckGameCourse extends Command
 
                             $policemenInRange = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status IN ('CONNECTED', 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['thief']['visibility_radius']}"));
 
-                            /** @var \App\Models\Player[] $policemen */
+                            /** @var Player[] $policemen */
                             $policemen = $room->players()->whereIn('id', $policemenInRange)->get();
 
                             foreach ($policemen as $policeman) {
@@ -261,7 +271,7 @@ class CheckGameCourse extends Command
 
                             $allPolicemenId = array_merge($thiefCaughtByPoliceman, $thiefCaughtByEagle, $thiefCaughtByFattyMan);
 
-                            /** @var \App\Models\Player[] $policemen */
+                            /** @var Player[] $policemen */
                             $policemen = $room->players()->whereIn('id', $allPolicemenId)->get();
 
                             foreach ($policemen as $policeman) {
@@ -286,7 +296,7 @@ class CheckGameCourse extends Command
                     }
                 }
 
-                /** @var \App\Models\Player[] $policemen */
+                /** @var Player[] $policemen */
                 $policemen = $room->players()->whereNotIn('id', $catchers)->where([
                     'status' => 'CONNECTED',
                     'is_catching' => true,
@@ -380,6 +390,28 @@ class CheckGameCourse extends Command
                         $player->next_voting_starts_at = null;
                         $player->save();
                     }
+
+                    break;
+                }
+            }
+
+            $room = $room->fresh();
+
+            if ($room->status == 'GAME_IN_PROGRESS' && $room->config['other']['is_pause_after_disconnecting']) {
+
+                /** @var Player[] $allPlayers */
+                $allPlayers = $room->players()->where([
+                    'is_bot' => false,
+                    'status' => 'CONNECTED',
+                ])->get();
+
+                if (count($allPlayers) != $allPlayersNumber) {
+
+                    $room->config['duration']['real'] = strtotime($now) - strtotime($room->game_started_at);
+                    $room->status = 'GAME_PAUSED';
+                    $room->save();
+
+                    shell_exec("php {$_SERVER['DOCUMENT_ROOT']}/../artisan room:check $room->id >/dev/null 2>/dev/null &");
 
                     break;
                 }
