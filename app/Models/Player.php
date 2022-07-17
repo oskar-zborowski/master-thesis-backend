@@ -86,12 +86,12 @@ class Player extends BaseModel
 
         if ($player->role != 'THIEF' && $this->role != 'THIEF' || $player->role == 'THIEF' && $this->role == 'THIEF') {
             $config = $this->config;
-            $hiddenPosition = $this->hidden_position ? "{$this->hidden_position->longitude} {$this->hidden_position->latitude}" : null;
+            $globalPosition = $this->hidden_position ? "{$this->hidden_position->longitude} {$this->hidden_position->latitude}" : null;
             $blackTicketFinishedAt = $this->black_ticket_finished_at;
             $fakePositionFinishedAt = $this->fake_position_finished_at;
         } else {
             $config = null;
-            $hiddenPosition = null;
+            $globalPosition = $this->global_position ? "{$this->global_position->longitude} {$this->global_position->latitude}" : null;
             $blackTicketFinishedAt = null;
             $fakePositionFinishedAt = null;
         }
@@ -123,8 +123,7 @@ class Player extends BaseModel
             'avatar' => $this->avatar,
             'role' => $role,
             'config' => $config,
-            'global_position' => $this->global_position ? "{$this->global_position->longitude} {$this->global_position->latitude}" : null,
-            'hidden_position' => $hiddenPosition,
+            'global_position' => $globalPosition,
             'is_bot' => $this->is_bot,
             'is_catching' => $this->is_catching,
             'is_caughting' => $this->is_caughting,

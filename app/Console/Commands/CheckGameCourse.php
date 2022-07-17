@@ -94,6 +94,7 @@ class CheckGameCourse extends Command
                 $activePlayersNumber = 0;
 
                 $catchers = [];
+                $disclosedPolicemen = [];
 
                 foreach ($players as $player) {
 
@@ -228,6 +229,22 @@ class CheckGameCourse extends Command
                                         $thief->global_position = $thief->hidden_position;
                                         $thiefSave = true;
                                     }
+                                }
+                            }
+                        }
+
+                        if ($room->config['actor']['thief']['visibility_radius'] != -1) {
+
+                            $policemenInRange = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status IN ('CONNECTED', 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['thief']['visibility_radius']}"));
+
+                            /** @var \App\Models\Player[] $policemen */
+                            $policemen = $room->players()->whereIn('id', $policemenInRange)->get();
+
+                            foreach ($policemen as $policeman) {
+                                if (!in_array($policeman->id, $disclosedPolicemen)) {
+                                    $disclosedPolicemen[] = $policeman->id;
+                                    $policeman->global_position = $policeman->hidden_position;
+                                    $policeman->save();
                                 }
                             }
                         }
