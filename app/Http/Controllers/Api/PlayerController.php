@@ -773,12 +773,20 @@ class PlayerController extends Controller
             }
         }
 
-        if ($votingType == 'ENDING_COUNTDOWN' && ($room->status != 'GAME_IN_PROGRESS' || now() >= $room->game_started_at)) {
-            throw new ApiException(
-                DefaultErrorCode::FAILED_VALIDATION(),
-                __('validation.custom.game-already-started'),
-                __FUNCTION__
-            );
+        if ($votingType == 'ENDING_COUNTDOWN') {
+            if ($room->status != 'GAME_IN_PROGRESS') {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.no-permission'),
+                    __FUNCTION__
+                );
+            } else if (now() >= $room->game_started_at) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.game-already-started'),
+                    __FUNCTION__
+                );
+            }
         }
 
         if ($votingType == 'PAUSE' && $room->status != 'GAME_IN_PROGRESS') {
