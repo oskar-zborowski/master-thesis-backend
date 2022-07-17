@@ -393,6 +393,134 @@ class CheckGameCourse extends Command
 
                     break;
                 }
+
+            } else {
+
+                $activePlayersNumber = 0;
+
+                foreach ($players as $player) {
+
+                    if ($player->speed_exceeded_at && $now > date('Y-m-d H:i:s', strtotime('+' . env('SPEED_EXCEEDED_TIMEOUT') . ' seconds', strtotime($player->speed_exceeded_at)))) {
+                        $player->speed_exceeded_at = null;
+                        $player->save();
+                    }
+
+                    if (in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
+
+                        if ($player->disconnecting_finished_at === null && $now > date('Y-m-d H:i:s', strtotime('+' . env('DISCONNECTING_TIMEOUT') . ' seconds', strtotime($player->expected_time_at)))) {
+
+                            $player->status = 'DISCONNECTED';
+
+                            if ($room->config['other']['warning_number'] != -1) {
+                                $player->warning_number = $player->warning_number + 1;
+                            }
+
+                            if ($room->config['other']['disconnecting_countdown'] != -1) {
+                                $player->disconnecting_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['other']['disconnecting_countdown'] . ' seconds', strtotime($now)));
+                            }
+
+                            $player->save();
+
+                            if ($player->user_id == $room->host_id) {
+                                Other::setNewHost($room);
+                            }
+                        }
+
+                        if ($room->config['other']['warning_number'] != -1 && $player->warning_number > $room->config['other']['warning_number']) {
+
+                            $player->global_position = null;
+                            $player->hidden_position = null;
+                            $player->fake_position = null;
+                            $player->is_catching = false;
+                            $player->is_caughting = false;
+                            $player->is_crossing_boundary = false;
+                            $player->voting_answer = null;
+                            $player->status = 'LEFT';
+                            $player->failed_voting_type = null;
+                            $player->black_ticket_finished_at = null;
+                            $player->fake_position_finished_at = null;
+                            $player->disconnecting_finished_at = null;
+                            $player->crossing_boundary_finished_at = null;
+                            $player->speed_exceeded_at = null;
+                            $player->next_voting_starts_at = null;
+                            $player->save();
+
+                            if ($player->user_id == $room->host_id) {
+                                Other::setNewHost($room);
+                            }
+                        }
+
+                        if ($player->disconnecting_finished_at && $now > $player->disconnecting_finished_at || $player->crossing_boundary_finished_at && $now > $player->crossing_boundary_finished_at) {
+
+                            $player->global_position = null;
+                            $player->hidden_position = null;
+                            $player->fake_position = null;
+                            $player->is_catching = false;
+                            $player->is_caughting = false;
+                            $player->is_crossing_boundary = false;
+                            $player->voting_answer = null;
+                            $player->status = 'LEFT';
+                            $player->failed_voting_type = null;
+                            $player->warning_number = $room->config['other']['warning_number'] + 1;
+                            $player->black_ticket_finished_at = null;
+                            $player->fake_position_finished_at = null;
+                            $player->disconnecting_finished_at = null;
+                            $player->crossing_boundary_finished_at = null;
+                            $player->speed_exceeded_at = null;
+                            $player->next_voting_starts_at = null;
+                            $player->save();
+
+                            if ($player->user_id == $room->host_id) {
+                                Other::setNewHost($room);
+                            }
+                        }
+
+                        $activePlayersNumber++;
+                    }
+                }
+
+                if ($activePlayersNumber == 0) {
+
+                    if ($now <= $room->game_ended_at) {
+                        $room->config['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                    } else {
+                        $room->config['duration']['real'] = $room->config['duration']['scheduled'];
+                    }
+
+                    $room->reporting_user_id = null;
+                    $room->boundary_polygon = null;
+                    $room->status = 'GAME_OVER';
+                    $room->game_result = 'UNFINISHED';
+                    $room->voting_type = null;
+                    $room->game_ended_at = $now;
+                    $room->next_disclosure_at = null;
+                    $room->voting_ended_at = null;
+                    $room->save();
+
+                    /** @var Player[] $players */
+                    $players = $room->players()->get();
+
+                    foreach ($players as $player) {
+                        $player->global_position = null;
+                        $player->hidden_position = null;
+                        $player->fake_position = null;
+                        $player->is_catching = false;
+                        $player->is_caughting = false;
+                        $player->is_crossing_boundary = false;
+                        $player->voting_answer = null;
+                        $player->status = 'LEFT';
+                        $player->failed_voting_type = null;
+                        $player->black_ticket_finished_at = null;
+                        $player->fake_position_finished_at = null;
+                        $player->disconnecting_finished_at = null;
+                        $player->crossing_boundary_finished_at = null;
+                        $player->speed_exceeded_at = null;
+                        $player->next_voting_starts_at = null;
+                        $player->save();
+                    }
+
+                    break;
+                }
             }
 
             $room = $room->fresh();
