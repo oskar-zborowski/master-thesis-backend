@@ -287,8 +287,8 @@ class PlayerController extends Controller
 
             Validation::checkGpsLocation($request->gps_location);
 
-            $isTouches = DB::select(DB::raw("SELECT ST_TOUCHES($room->boundary_polygon, ST_GeomFromText('POINT($request->gps_location)')) AS isTouches"));
-            $isContains = DB::select(DB::raw("SELECT ST_CONTAINS($room->boundary_polygon, ST_GeomFromText('POINT($request->gps_location)')) AS isContains"));
+            $isTouches = DB::select(DB::raw("SELECT ST_TOUCHES(ST_GeomFromText('POLYGON(($room->boundary_points))'), ST_GeomFromText('POINT($request->gps_location)')) AS isTouches"));
+            $isContains = DB::select(DB::raw("SELECT ST_CONTAINS(ST_GeomFromText('POLYGON(($room->boundary_points))'), ST_GeomFromText('POINT($request->gps_location)')) AS isContains"));
 
             if (!$isTouches[0]->isTouches && !$isContains[0]->isContains) {
 
@@ -544,8 +544,8 @@ class PlayerController extends Controller
 
             Validation::checkGpsLocation($request->use_fake_position);
 
-            $isTouches = DB::select(DB::raw("SELECT ST_TOUCHES($room->boundary_polygon, ST_GeomFromText('POINT($request->use_fake_position)')) AS isTouches"));
-            $isContains = DB::select(DB::raw("SELECT ST_CONTAINS($room->boundary_polygon, ST_GeomFromText('POINT($request->use_fake_position)')) AS isContains"));
+            $isTouches = DB::select(DB::raw("SELECT ST_TOUCHES(ST_GeomFromText('POLYGON(($room->boundary_points))'), ST_GeomFromText('POINT($request->gps_location)')) AS isTouches"));
+            $isContains = DB::select(DB::raw("SELECT ST_CONTAINS(ST_GeomFromText('POLYGON(($room->boundary_points))'), ST_GeomFromText('POINT($request->gps_location)')) AS isContains"));
 
             if (!$isTouches[0]->isTouches && !$isContains[0]->isContains) {
                 throw new ApiException(
