@@ -175,7 +175,7 @@ return [
         'voting-limit' => 'You can start voting in :seconds seconds.',
         'warnings-number-exceeded' => 'Number of warnings exceeded.',
         'you-are-already-in-another-room' => "You're still in another room. You have to leave it first.",
-        'you-left-the-room' => "You left the room. You can't go back to it anymore.",
+        'you-left-the-room' => "You left the room.",
         'you-must-set-player-name' => 'You must first set a player name.',
         'you-have-been-banned' => 'You have been banned from this room.',
     ],
