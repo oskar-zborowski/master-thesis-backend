@@ -75,7 +75,7 @@ class Validation
             'other_bot_speed' => 'nullable|numeric|between:1.5,15',
             'other_max_speed' => 'nullable|numeric|between:-1,15',
             'other_warning_number' => 'nullable|integer|between:-1,5',
-            'is_pause_after_disconnecting' => 'nullable|boolean',
+            'other_is_pause_after_disconnecting' => 'nullable|boolean',
             'other_disconnecting_countdown' => 'nullable|integer|between:-1,900',
             'other_crossing_boundary_countdown' => 'nullable|integer|between:-1,900',
             'boundary_points' => 'nullable|string|between:15,419',
