@@ -36,6 +36,7 @@ class CheckRoom extends Command
             $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
 
             $now = now();
+            $playerUpdated = false;
 
             foreach ($players as $player) {
 
@@ -55,6 +56,7 @@ class CheckRoom extends Command
                 }
 
                 if ($player->disconnecting_finished_at && $now > $player->disconnecting_finished_at) {
+
                     $player->global_position = null;
                     $player->hidden_position = null;
                     $player->fake_position = null;
@@ -71,7 +73,14 @@ class CheckRoom extends Command
                     $player->speed_exceeded_at = null;
                     $player->next_voting_starts_at = null;
                     $player->save();
+
+                    $playerUpdated = true;
                 }
+            }
+
+            if ($playerUpdated) {
+                /** @var \App\Models\Player[] $players */
+                $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
             }
 
             if (count($players) == 0) {
