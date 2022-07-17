@@ -207,7 +207,10 @@ class CheckVoting extends Command
                         $room->status = 'GAME_IN_PROGRESS';
                         $room->game_started_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['escape_duration'] . ' seconds', strtotime(now())));
                         $room->game_ended_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['duration']['scheduled'] . ' seconds', strtotime($room->game_started_at)));
-                        $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['disclosure_interval'] . ' seconds', strtotime($room->game_started_at)));
+
+                        if ($room->config['actor']['thief']['disclosure_interval'] != -1) {
+                            $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['disclosure_interval'] . ' seconds', strtotime($room->game_started_at)));
+                        }
 
                         $gameStarted = true;
 
@@ -217,7 +220,10 @@ class CheckVoting extends Command
 
                         $room->game_started_at = now();
                         $room->game_ended_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['duration']['scheduled'] . ' seconds', strtotime($room->game_started_at)));
-                        $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['disclosure_interval'] . ' seconds', strtotime($room->game_started_at)));
+
+                        if ($room->config['actor']['thief']['disclosure_interval'] != -1) {
+                            $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['disclosure_interval'] . ' seconds', strtotime($room->game_started_at)));
+                        }
 
                     } else if ($room->voting_type == 'PAUSE') {
 

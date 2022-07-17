@@ -206,7 +206,7 @@ class PlayerController extends Controller
 
         if ($player->status == 'LEFT') {
 
-            if ($player->warning_number > $room->config['other']['warning_number']) {
+            if ($player->warning_number > 0 && $player->warning_number > $room->config['other']['warning_number']) {
 
                 throw new ApiException(
                     DefaultErrorCode::PERMISSION_DENIED(),
@@ -291,11 +291,20 @@ class PlayerController extends Controller
             $isContains = DB::select(DB::raw("SELECT ST_CONTAINS($room->boundary_polygon, ST_GeomFromText('POINT($request->gps_location)')) AS isContains"));
 
             if (!$isTouches[0]->isTouches && !$isContains[0]->isContains) {
+
                 $player->is_crossing_boundary = true;
-                $player->warning_number = $player->warning_number + 1;
-                $player->crossing_boundary_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['other']['crossing_boundary_countdown'] . ' seconds', strtotime(now())));
+
+                if ($room->config['other']['warning_number'] != -1) {
+                    $player->warning_number = $player->warning_number + 1;
+                }
+
+                if ($room->config['other']['crossing_boundary_countdown'] != -1) {
+                    $player->crossing_boundary_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['other']['crossing_boundary_countdown'] . ' seconds', strtotime(now())));
+                }
+
                 $player->save();
                 $reloadRoom = true;
+
             } else if ($player->is_crossing_boundary) {
                 $player->is_crossing_boundary = false;
                 $player->crossing_boundary_finished_at = null;
@@ -303,16 +312,23 @@ class PlayerController extends Controller
                 $reloadRoom = true;
             }
 
-            $timeDifference = strtotime($now) - strtotime($player->updated_at);
-            $maxDistance = $room->config['other']['max_speed'] * $timeDifference;
+            if ($room->config['other']['max_speed'] != -1) {
 
-            $speedExceeded = DB::select(DB::raw("SELECT id FROM players WHERE id = $player->id AND ST_Distance_Sphere(ST_GeomFromText('POINT($request->gps_location)'), hidden_position) > $maxDistance"));
+                $timeDifference = strtotime($now) - strtotime($player->updated_at);
+                $maxDistance = $room->config['other']['max_speed'] * $timeDifference;
 
-            if (!empty($speedExceeded)) {
-                $player->warning_number = $player->warning_number + 1;
-                $player->speed_exceeded_at = $now;
-                $player->save();
-                $reloadRoom = true;
+                $speedExceeded = DB::select(DB::raw("SELECT id FROM players WHERE id = $player->id AND ST_Distance_Sphere(ST_GeomFromText('POINT($request->gps_location)'), hidden_position) > $maxDistance"));
+
+                if (count($speedExceeded) > 0) {
+
+                    if ($room->config['other']['warning_number'] != -1) {
+                        $player->warning_number = $player->warning_number + 1;
+                    }
+
+                    $player->speed_exceeded_at = $now;
+                    $player->save();
+                    $reloadRoom = true;
+                }
             }
 
             if (!in_array($player->role, ['THIEF', 'AGENT'])) {
@@ -433,7 +449,7 @@ class PlayerController extends Controller
                             $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
                             $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
 
-                            if (!empty($disclosureThiefByPoliceman) || !empty($disclosureThiefByEagle)) {
+                            if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                 $thief->global_position = $thief->fake_position;
                             }
 
@@ -448,7 +464,7 @@ class PlayerController extends Controller
                             $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
                             $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
 
-                            if (!empty($disclosureThiefByPoliceman) || !empty($disclosureThiefByEagle)) {
+                            if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                 $thief->global_position = $thief->hidden_position;
                             }
 

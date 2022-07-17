@@ -84,7 +84,7 @@ class CheckGameCourse extends Command
                     break;
                 }
 
-                if ($now >= $room->next_disclosure_at) {
+                if ($room->next_disclosure_at !== null && $now >= $room->next_disclosure_at) {
                     $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['disclosure_interval'] . ' seconds', strtotime($now)));
                     $room->save();
                     $revealThieves = true;
@@ -107,8 +107,15 @@ class CheckGameCourse extends Command
                         if ($player->disconnecting_finished_at === null && $now > date('Y-m-d H:i:s', strtotime('+' . env('DISCONNECTING_TIMEOUT') . ' seconds', strtotime($player->expected_time_at)))) {
 
                             $player->status = 'DISCONNECTED';
-                            $player->warning_number = $player->warning_number + 1;
-                            $player->disconnecting_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['other']['disconnecting_countdown'] . ' seconds', strtotime($now)));
+
+                            if ($room->config['other']['warning_number'] != -1) {
+                                $player->warning_number = $player->warning_number + 1;
+                            }
+
+                            if ($room->config['other']['disconnecting_countdown'] != -1) {
+                                $player->disconnecting_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['other']['disconnecting_countdown'] . ' seconds', strtotime($now)));
+                            }
+
                             $player->save();
 
                             if ($player->user_id == $room->host_id) {
@@ -116,7 +123,7 @@ class CheckGameCourse extends Command
                             }
                         }
 
-                        if ($player->warning_number > $room->config['other']['warning_number']) {
+                        if ($room->config['other']['warning_number'] != -1 && $player->warning_number > $room->config['other']['warning_number']) {
 
                             $player->global_position = null;
                             $player->hidden_position = null;
@@ -189,7 +196,7 @@ class CheckGameCourse extends Command
                                         $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
                                         $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere($thief->fake_position, hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
 
-                                        if (!empty($disclosureThiefByPoliceman) || !empty($disclosureThiefByEagle)) {
+                                        if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                             $thief->global_position = $thief->fake_position;
                                             $thiefSave = true;
                                         }
@@ -212,7 +219,7 @@ class CheckGameCourse extends Command
                                         $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
                                         $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere($thief->hidden_position, hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
 
-                                        if (!empty($disclosureThiefByPoliceman) || !empty($disclosureThiefByEagle)) {
+                                        if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                             $thief->global_position = $thief->hidden_position;
                                             $thiefSave = true;
                                         }
@@ -233,7 +240,7 @@ class CheckGameCourse extends Command
                             $thief->is_caughting = false;
                             $thief->caught_at = now();
                             $thiefSave = true;
-                        } else if (!empty($thiefCaughtByPoliceman) || !empty($thiefCaughtByEagle) || !empty($thiefCaughtByFattyMan)) {
+                        } else if (count($thiefCaughtByPoliceman) > 0 || count($thiefCaughtByEagle) > 0 || count($thiefCaughtByFattyMan) > 0) {
 
                             $allPolicemenId = array_merge($thiefCaughtByPoliceman, $thiefCaughtByEagle, $thiefCaughtByFattyMan);
 

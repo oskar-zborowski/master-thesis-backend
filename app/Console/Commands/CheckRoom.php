@@ -42,7 +42,11 @@ class CheckRoom extends Command
                 if ($player->disconnecting_finished_at === null && $now > date('Y-m-d H:i:s', strtotime('+' . env('DISCONNECTING_TIMEOUT') . ' seconds', strtotime($player->expected_time_at)))) {
 
                     $player->status = 'DISCONNECTED';
-                    $player->disconnecting_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['other']['disconnecting_countdown'] . ' seconds', strtotime($now)));
+
+                    if ($room->config['other']['disconnecting_countdown'] != -1) {
+                        $player->disconnecting_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['other']['disconnecting_countdown'] . ' seconds', strtotime($now)));
+                    }
+
                     $player->save();
 
                     if ($player->user_id == $room->host_id) {
