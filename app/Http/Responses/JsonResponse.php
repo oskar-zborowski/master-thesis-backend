@@ -189,7 +189,7 @@ class JsonResponse
 
         $command .= ' >/dev/null 2>/dev/null &';
 
-        echo json_encode($command);
+        echo $command;
         die;
         shell_exec($command);
     }
