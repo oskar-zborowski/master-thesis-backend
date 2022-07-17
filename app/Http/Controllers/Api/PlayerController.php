@@ -262,7 +262,7 @@ class PlayerController extends Controller
             $avatarExists = $room->players()->where([
                 'avatar' => $request->avatar,
                 'status' => 'CONNECTED',
-            ])->first();
+            ])->where('id', '!=', $player->id)->first();
 
             if ($avatarExists) {
                 throw new ApiException(
