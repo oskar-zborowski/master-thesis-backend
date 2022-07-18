@@ -92,8 +92,6 @@ class CheckVoting extends Command
 
             if ($room->voting_ended_at && now() < $room->voting_ended_at) {
 
-                FacadesLog::alert('Jestem w voting2');
-
                 $votersNumber = 0;
 
                 /** @var Player[] $players */
@@ -108,7 +106,6 @@ class CheckVoting extends Command
                 }
 
                 if ($votersNumber == count($players)) {
-                    FacadesLog::alert('Jestem w voting3');
                     $votingEnd = true;
                 }
 
@@ -126,9 +123,12 @@ class CheckVoting extends Command
                 $confirmationsNumberFromThievesFaction = 0;
 
                 if ($timeIsUp) {
+                    FacadesLog::alert('Jestem w voting4');
                     /** @var Player[] $players */
                     $players = $room->players()->where('is_bot', false)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
                 }
+
+                FacadesLog::alert('Jestem w voting5');
 
                 foreach ($players as $player) {
 
