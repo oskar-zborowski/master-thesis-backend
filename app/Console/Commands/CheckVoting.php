@@ -479,11 +479,11 @@ class CheckVoting extends Command
                 $fakePositionRand = (int) ($room->config['actor']['thief']['fake_position']['number'] * rand((int) (200 * $room->config['actor']['thief']['fake_position']['probability']) - 100, 100) / 100);
                 $fakePositionRand = $fakePositionRand >= 0 ? $fakePositionRand : 0;
 
+                FacadesLog::alert('Jestem thief');
+
                 $player->config = JsonConfig::getDefaultThiefConfig();
                 $player->config['black_ticket']['number'] = $blackTicketRand;
                 $player->config['fake_position']['number'] = $fakePositionRand;
-
-                FacadesLog::alert('Jestem thief');
 
             } else {
 
