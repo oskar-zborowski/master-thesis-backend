@@ -119,20 +119,19 @@ class CheckVoting extends Command
                 $successfulVote = false;
                 $playersNumberFromCatchingFaction = 0;
                 $playersNumberFromThievesFaction = 0;
+                $playersNumberFromBothFaction = 0;
                 $confirmationsNumberFromCatchingFaction = 0;
                 $confirmationsNumberFromThievesFaction = 0;
+                $confirmationsNumberFromBothFaction = 0;
 
                 if ($timeIsUp) {
-                    FacadesLog::alert('Jestem w voting4');
                     /** @var Player[] $players */
                     $players = $room->players()->where('is_bot', false)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
                 }
 
-                FacadesLog::alert('Jestem w voting5');
-
                 foreach ($players as $player) {
 
-                    if ($player->role == 'THIEF') {
+                    if ($room->voting_type != 'START' && $player->role == 'THIEF') {
 
                         if ($player->voting_answer) {
                             $confirmationsNumberFromThievesFaction++;
@@ -140,13 +139,22 @@ class CheckVoting extends Command
 
                         $playersNumberFromThievesFaction++;
 
-                    } else {
+                    } else if ($room->voting_type != 'START' && $player->role !== null && $player->role != 'THIEF') {
 
                         if ($player->voting_answer) {
                             $confirmationsNumberFromCatchingFaction++;
                         }
 
                         $playersNumberFromCatchingFaction++;
+
+                    } else {
+
+                        if ($player->voting_answer) {
+                            FacadesLog::alert('Jestem!');
+                            $confirmationsNumberFromBothFaction++;
+                        }
+
+                        $playersNumberFromBothFaction++;
                     }
                 }
 
