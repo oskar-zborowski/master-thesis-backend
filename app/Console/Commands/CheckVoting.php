@@ -473,8 +473,6 @@ class CheckVoting extends Command
 
             if ($player->role == 'THIEF') {
 
-                FacadesLog::alert('Jestem thief');
-
                 $blackTicketRand = (int) ($room->config['actor']['thief']['black_ticket']['number'] * rand((int) (200 * $room->config['actor']['thief']['black_ticket']['probability']) - 100, 100) / 100);
                 $blackTicketRand = $blackTicketRand >= 0 ? $blackTicketRand : 0;
 
@@ -485,9 +483,9 @@ class CheckVoting extends Command
                 $player->config['black_ticket']['number'] = $blackTicketRand;
                 $player->config['fake_position']['number'] = $fakePositionRand;
 
-            } else {
+                FacadesLog::alert('Jestem thief');
 
-                FacadesLog::alert('Jestem !thief');
+            } else {
 
                 $whiteTicketRand = (int) ($room->config['actor']['pegasus']['white_ticket']['number'] * rand((int) (200 * $room->config['actor']['pegasus']['white_ticket']['probability']) - 100, 100) / 100);
                 $whiteTicketRand = $whiteTicketRand >= 0 ? $whiteTicketRand : 0;
