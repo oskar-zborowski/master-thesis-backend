@@ -481,8 +481,8 @@ class CheckVoting extends Command
 
                 $player->config = JsonConfig::getDefaultThiefConfig();
                 FacadesLog::alert($player->config['black_ticket']['number']);
-                $player->config['black_ticket']['number'] = $blackTicketRand;
-                $player->config['fake_position']['number'] = $fakePositionRand;
+                $player->config = $blackTicketRand;
+                // $player->config['fake_position']['number'] = $fakePositionRand;
 
             } else {
 
