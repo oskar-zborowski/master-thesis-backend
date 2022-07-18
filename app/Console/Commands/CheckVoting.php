@@ -482,6 +482,7 @@ class CheckVoting extends Command
                 $player->config = JsonConfig::getDefaultThiefConfig();
                 $player->save();
 
+                $player = $player->fresh();
                 $player->config['black_ticket']['number'] = $blackTicketRand;
                 FacadesLog::alert('Jestem thief3');
                 $player->config['fake_position']['number'] = $fakePositionRand;
