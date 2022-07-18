@@ -68,8 +68,6 @@ class CheckVoting extends Command
 
             if ($playersNumber != count($players)) {
 
-                FacadesLog::alert('Jestem w voting2');
-
                 /** @var Player $reportingUser */
                 $reportingUser = $room->players()->where('user_id', $room->reporting_user_id)->first();
                 $reportingUser->next_voting_starts_at = null;
@@ -94,6 +92,8 @@ class CheckVoting extends Command
 
             if ($room->voting_ended_at && now() < $room->voting_ended_at) {
 
+                FacadesLog::alert('Jestem w voting2');
+
                 $votersNumber = 0;
 
                 /** @var Player[] $players */
@@ -108,6 +108,7 @@ class CheckVoting extends Command
                 }
 
                 if ($votersNumber == count($players)) {
+                    FacadesLog::alert('Jestem w voting3');
                     $votingEnd = true;
                 }
 
