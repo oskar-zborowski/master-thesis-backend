@@ -307,6 +307,12 @@ class CheckVoting extends Command
                         foreach ($players as $player) {
 
                             if (in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
+
+                                $player->mergeCasts([
+                                    'global_position' => Point::class,
+                                    'hidden_position' => Point::class,
+                                ]);
+
                                 $player->global_position = $player->hidden_position;
                             }
 
@@ -469,7 +475,7 @@ class CheckVoting extends Command
 
     private function saveGpsLocation(Room $room, int $userId) {
 
-        $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid($room->boundary_polygon)) AS polygonCenter"));
+        $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($room->boundary_points))'))) AS polygonCenter"));
         $gpsLocation = substr($polygonCenter[0]->polygonCenter, 6, -1);
 
         /** @var Connection $connection */
