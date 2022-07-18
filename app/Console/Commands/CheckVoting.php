@@ -46,8 +46,6 @@ class CheckVoting extends Command
 
             sleep(env('VOTING_CHECK_REFRESH'));
 
-            FacadesLog::alert('Jestem w voting');
-
             /** @var Room $room */
             $room = Room::where('id', $roomId)->first();
 
@@ -69,6 +67,8 @@ class CheckVoting extends Command
             ])->get();
 
             if ($playersNumber != count($players)) {
+
+                FacadesLog::alert('Jestem w voting2');
 
                 /** @var Player $reportingUser */
                 $reportingUser = $room->players()->where('user_id', $room->reporting_user_id)->first();
