@@ -167,8 +167,6 @@ class CheckVoting extends Command
 
                     $successfulVote = true;
 
-                    FacadesLog::alert('Jestem!!!');
-
                 } else if (in_array($room->voting_type, ['ENDING_COUNTDOWN', 'RESUME']) &&
                     $confirmationsNumberFromCatchingFaction == $playersNumberFromCatchingFaction && $confirmationsNumberFromThievesFaction == $playersNumberFromThievesFaction)
                 {
@@ -216,6 +214,8 @@ class CheckVoting extends Command
                 if ($successfulVote) {
 
                     if ($room->voting_type == 'START') {
+
+                        FacadesLog::alert('Jestem111');
 
                         foreach ($players as $player) {
                             if ($player->status == 'DISCONNECTED' && $player->voting_answer === null) {
