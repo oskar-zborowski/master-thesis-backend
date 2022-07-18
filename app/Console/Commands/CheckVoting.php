@@ -223,6 +223,8 @@ class CheckVoting extends Command
                             }
                         }
 
+                        FacadesLog::alert('Jestem xd');
+
                         $this->setPlayersRoles($room);
                         $this->setPlayersConfig($room);
 
@@ -231,7 +233,6 @@ class CheckVoting extends Command
                         $room->game_ended_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['duration']['scheduled'] . ' seconds', strtotime($room->game_started_at)));
 
                         if ($room->config['actor']['thief']['disclosure_interval'] != -1) {
-                            FacadesLog::alert('Jestem xd');
                             $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['disclosure_interval'] . ' seconds', strtotime($room->game_started_at)));
                         }
 
