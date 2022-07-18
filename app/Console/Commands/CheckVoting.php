@@ -480,9 +480,6 @@ class CheckVoting extends Command
                 $fakePositionRand = $fakePositionRand >= 0 ? $fakePositionRand : 0;
 
                 $player->config = JsonConfig::getDefaultThiefConfig();
-                $player->save();
-
-                $player = $player->fresh();
                 FacadesLog::alert($player->config['black_ticket']['number']);
                 $player->config['black_ticket']['number'] = $blackTicketRand;
                 $player->config['fake_position']['number'] = $fakePositionRand;
