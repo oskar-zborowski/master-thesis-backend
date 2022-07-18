@@ -224,7 +224,7 @@ class CheckVoting extends Command
                         }
 
                         $this->setPlayersRoles($room);
-                        FacadesLog::alert('Jestem xdd');
+                        FacadesLog::alert('Jestem xddd');
                         $this->setPlayersConfig($room);
 
                         $room->status = 'GAME_IN_PROGRESS';
