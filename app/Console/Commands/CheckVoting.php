@@ -150,7 +150,6 @@ class CheckVoting extends Command
                     } else {
 
                         if ($player->voting_answer) {
-                            FacadesLog::alert('Jestem!');
                             $confirmationsNumberFromBothFaction++;
                         }
 
@@ -158,7 +157,19 @@ class CheckVoting extends Command
                     }
                 }
 
-                if (in_array($room->voting_type, ['START', 'ENDING_COUNTDOWN', 'RESUME']) &&
+                if ($room->voting_type == 'START' &&
+                    $confirmationsNumberFromBothFaction == $playersNumberFromBothFaction)
+                {
+                    /** @var Player $reportingUser */
+                    $reportingUser = $room->players()->where('user_id', $room->reporting_user_id)->first();
+                    $reportingUser->next_voting_starts_at = null;
+                    $reportingUser->save();
+
+                    $successfulVote = true;
+
+                    FacadesLog::alert('Jestem!!!');
+
+                } else if (in_array($room->voting_type, ['ENDING_COUNTDOWN', 'RESUME']) &&
                     $confirmationsNumberFromCatchingFaction == $playersNumberFromCatchingFaction && $confirmationsNumberFromThievesFaction == $playersNumberFromThievesFaction)
                 {
                     /** @var Player $reportingUser */
