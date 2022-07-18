@@ -483,8 +483,8 @@ class CheckVoting extends Command
                 $player->save();
 
                 $player = $player->fresh();
+                FacadesLog::alert($blackTicketRand);
                 $player->config['black_ticket']['number'] = $blackTicketRand;
-                FacadesLog::alert('Jestem thief3');
                 $player->config['fake_position']['number'] = $fakePositionRand;
 
             } else {
