@@ -224,8 +224,8 @@ class CheckVoting extends Command
                         }
 
                         $this->setPlayersRoles($room);
-                        FacadesLog::alert('Jestem xdd');
                         $this->setPlayersConfig($room);
+                        FacadesLog::alert('Jestem xdd');
 
                         $room->status = 'GAME_IN_PROGRESS';
                         $room->game_started_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['escape_duration'] . ' seconds', strtotime(now())));
