@@ -236,7 +236,7 @@ class CheckVoting extends Command
 
                         $gameStarted = true;
 
-                        FacadesLog::alert("php {$_SERVER['DOCUMENT_ROOT']}/../artisan game-course:check $room->id >/dev/null 2>/dev/null &");
+                        // FacadesLog::alert("php {$_SERVER['DOCUMENT_ROOT']}/../artisan game-course:check $room->id >/dev/null 2>/dev/null &");
                         shell_exec("php {$_SERVER['DOCUMENT_ROOT']}/../artisan game-course:check $room->id >/dev/null 2>/dev/null &");
 
                     } else if ($room->voting_type == 'ENDING_COUNTDOWN') {

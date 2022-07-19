@@ -17,6 +17,7 @@ use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class PlayerController extends Controller
@@ -388,6 +389,7 @@ class PlayerController extends Controller
 
             $reloadRoom = true;
 
+            Log::alert("php {$_SERVER['DOCUMENT_ROOT']}/../artisan voting:check $room->id $user->id >/dev/null 2>/dev/null &");
             shell_exec("php {$_SERVER['DOCUMENT_ROOT']}/../artisan voting:check $room->id $user->id >/dev/null 2>/dev/null &");
         }
 
