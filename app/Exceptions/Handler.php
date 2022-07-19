@@ -29,20 +29,20 @@ class Handler extends ExceptionHandler
      * @var array<int, class-string<Throwable>>
      */
     protected $dontReport = [
-        ApiException::class,
-        ArgumentCountError::class,
-        BadMethodCallException::class,
-        ConnectException::class,
-        Exception::class,
-        ErrorException::class,
-        MethodNotAllowedHttpException::class,
-        ModelNotFoundException::class,
-        NotFoundHttpException::class,
-        QueryException::class,
-        ParseError::class,
-        RuntimeException::class,
-        ThrottleRequestsException::class,
-        ValidationException::class,
+        // ApiException::class,
+        // ArgumentCountError::class,
+        // BadMethodCallException::class,
+        // ConnectException::class,
+        // Exception::class,
+        // ErrorException::class,
+        // MethodNotAllowedHttpException::class,
+        // ModelNotFoundException::class,
+        // NotFoundHttpException::class,
+        // QueryException::class,
+        // ParseError::class,
+        // RuntimeException::class,
+        // ThrottleRequestsException::class,
+        // ValidationException::class,
     ];
 
     /**
