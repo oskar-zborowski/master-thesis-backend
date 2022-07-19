@@ -30,7 +30,7 @@ class CheckRoom extends Command
 
             sleep(env('ROOM_CHECK_REFRESH'));
 
-            Log::alert('Jestem w room check.');
+            Log::alert('Jestem w room check. 222');
 
             /** @var Room $room */
             $room = Room::where('id', $roomId)->first();
