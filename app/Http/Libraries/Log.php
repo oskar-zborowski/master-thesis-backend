@@ -919,8 +919,8 @@ class Log
         if (env('NOMINATIM_ACTIVE')) {
 
             $gpsLocation = explode(' ', $gpsLocation);
-            $longitude = $gpsLocation[0];
-            $latitude = $gpsLocation[1];
+            $latitude = $gpsLocation[0];
+            $longitude = $gpsLocation[1];
 
             $url = 'https://nominatim.openstreetmap.org';
             $nominatim = new Nominatim($url);

@@ -512,12 +512,6 @@ class CheckVoting extends Command
         $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($room->boundary_points))'))) AS polygonCenter"));
         $gpsLocation = substr($polygonCenter[0]->polygonCenter, 6, -1);
 
-        $gpsLocation = explode(' ', $gpsLocation);
-        $latitude = $gpsLocation[0];
-        $longitude = $gpsLocation[1];
-
-        $gpsLocation = "$longitude $latitude";
-
         /** @var Connection $connection */
         $connection = Connection::where('user_id', $userId)->orderBy('updated_at', 'desc')->first();
 
