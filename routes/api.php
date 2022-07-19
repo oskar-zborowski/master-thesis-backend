@@ -24,7 +24,7 @@ Route::get('/v1/ip-address', function (Request $request) {
     $content = json_decode(file_get_contents('http://worldtimeapi.org/api/ip'));
 
     JsonResponse::sendSuccess($request, [
-        'test' => $content
+        'test' => $content->client_ip,
         // 'ip_address' => $content['client_ip'],
         // 'timezone' => $content['timezone'],
         // 'utc' => $content['utc_offset'],
