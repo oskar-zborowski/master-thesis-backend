@@ -488,7 +488,9 @@ class PlayerController extends Controller
                 }
             }
 
-            $player->config['white_ticket']['used_number'] = $player->config['white_ticket']['used_number'] + 1;
+            $tempConfig = $player->config;
+            $tempConfig['white_ticket']['used_number'] = $player->config['white_ticket']['used_number'] + 1;
+            $player->config = $tempConfig;
             $player->save();
 
             $reloadRoom = true;
@@ -520,7 +522,10 @@ class PlayerController extends Controller
                 );
             }
 
-            $player->config['black_ticket']['used_number'] = $player->config['black_ticket']['used_number'] + 1;
+            $tempConfig = $player->config;
+            $tempConfig['black_ticket']['used_number'] = $player->config['black_ticket']['used_number'] + 1;
+            $player->config = $tempConfig;
+
             $player->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['black_ticket']['duration'] . ' seconds', strtotime(now())));
             $player->save();
 
@@ -566,7 +571,10 @@ class PlayerController extends Controller
                 );
             }
 
-            $player->config['fake_position']['used_number'] = $player->config['fake_position']['used_number'] + 1;
+            $tempConfig = $player->config;
+            $tempConfig['fake_position']['used_number'] = $player->config['fake_position']['used_number'] + 1;
+            $player->config = $tempConfig;
+
             $player->fake_position = DB::raw("ST_GeomFromText('POINT($request->use_fake_position)')");
             $player->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['fake_position']['duration'] . ' seconds', strtotime(now())));
             $player->save();

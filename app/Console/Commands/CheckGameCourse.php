@@ -7,7 +7,6 @@ use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class CheckGameCourse extends Command
@@ -42,8 +41,6 @@ class CheckGameCourse extends Command
 
             sleep(env('GAME_COURSE_CHECK_REFRESH'));
 
-            Log::alert('Jestem w game course');
-
             /** @var Room $room */
             $room = Room::where('id', $roomId)->first();
 
@@ -63,7 +60,11 @@ class CheckGameCourse extends Command
                 if ($now >= $room->game_ended_at) {
 
                     $room->reporting_user_id = null;
-                    $room->config['duration']['real'] = $room->config['duration']['scheduled'];
+
+                    $tempConfig = $room->config;
+                    $tempConfig['duration']['real'] = $room->config['duration']['scheduled'];
+                    $room->config = $tempConfig;
+
                     $room->status = 'GAME_OVER';
                     $room->game_result = 'THIEVES_WON_ON_TIME';
                     $room->voting_type = null;
@@ -340,12 +341,15 @@ class CheckGameCourse extends Command
 
                     $room->reporting_user_id = null;
 
+                    $tempConfig = $room->config;
+
                     if ($now <= $room->game_ended_at) {
-                        $room->config['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                        $tempConfig['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
                     } else {
-                        $room->config['duration']['real'] = $room->config['duration']['scheduled'];
+                        $tempConfig['duration']['real'] = $room->config['duration']['scheduled'];
                     }
 
+                    $room->config = $tempConfig;
                     $room->status = 'GAME_OVER';
                     $room->game_result = 'POLICEMEN_WON_BY_CATCHING';
                     $room->voting_type = null;
@@ -388,12 +392,15 @@ class CheckGameCourse extends Command
 
                 if ($activePlayersNumber == 0) {
 
+                    $tempConfig = $room->config;
+
                     if ($now <= $room->game_ended_at) {
-                        $room->config['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                        $tempConfig['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
                     } else {
-                        $room->config['duration']['real'] = $room->config['duration']['scheduled'];
+                        $tempConfig['duration']['real'] = $room->config['duration']['scheduled'];
                     }
 
+                    $room->config = $tempConfig;
                     $room->reporting_user_id = null;
                     $room->boundary_polygon = null;
                     $room->status = 'GAME_OVER';
@@ -516,12 +523,15 @@ class CheckGameCourse extends Command
 
                 if ($activePlayersNumber == 0) {
 
+                    $tempConfig = $room->config;
+
                     if ($now <= $room->game_ended_at) {
-                        $room->config['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                        $tempConfig['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
                     } else {
-                        $room->config['duration']['real'] = $room->config['duration']['scheduled'];
+                        $tempConfig['duration']['real'] = $room->config['duration']['scheduled'];
                     }
 
+                    $room->config = $tempConfig;
                     $room->reporting_user_id = null;
                     $room->boundary_polygon = null;
                     $room->status = 'GAME_OVER';
@@ -570,7 +580,10 @@ class CheckGameCourse extends Command
 
                 if (count($allPlayers) != $allPlayersNumber) {
 
-                    $room->config['duration']['real'] = strtotime($now) - strtotime($room->game_started_at);
+                    $tempConfig = $room->config;
+                    $tempConfig['duration']['real'] = strtotime($now) - strtotime($room->game_started_at);
+                    $room->config = $tempConfig;
+
                     $room->status = 'GAME_PAUSED';
                     $room->save();
 

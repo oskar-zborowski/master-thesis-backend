@@ -24,8 +24,10 @@ class Other
             $newRoom->code = Encrypter::generateToken(6, Room::class, 'code', true);
         }
 
-        $newRoom->config = $room->config;
-        $newRoom->config['duration']['real'] = 0;
+        $tempConfig = $room->config;
+        $tempConfig['duration']['real'] = 0;
+        $newRoom->config = $tempConfig;
+
         $newRoom->boundary_polygon = $room->boundary_polygon;
         $newRoom->boundary_points = $room->boundary_points;
         $newRoom->save();

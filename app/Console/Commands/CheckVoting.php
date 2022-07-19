@@ -10,7 +10,6 @@ use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log as FacadesLog;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class CheckVoting extends Command
@@ -225,7 +224,6 @@ class CheckVoting extends Command
 
                         $this->setPlayersRoles($room);
                         $this->setPlayersConfig($room);
-                        FacadesLog::alert('Jestem xddd');
 
                         $room->status = 'GAME_IN_PROGRESS';
                         $room->game_started_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['escape_duration'] . ' seconds', strtotime(now())));
@@ -250,7 +248,10 @@ class CheckVoting extends Command
 
                     } else if ($room->voting_type == 'PAUSE') {
 
-                        $room->config['duration']['real'] = strtotime(now()) - strtotime($room->game_started_at);
+                        $tempConfig = $room->config;
+                        $tempConfig['duration']['real'] = strtotime(now()) - strtotime($room->game_started_at);
+                        $room->config = $tempConfig;
+
                         $room->status = 'GAME_PAUSED';
 
                         shell_exec("php {$_SERVER['DOCUMENT_ROOT']}/../artisan room:check $room->id >/dev/null 2>/dev/null &");
@@ -282,12 +283,15 @@ class CheckVoting extends Command
 
                         $now = now();
 
+                        $tempConfig = $room->config;
+
                         if ($now <= $room->game_ended_at) {
-                            $room->config['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                            $tempConfig['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
                         } else {
-                            $room->config['duration']['real'] = $room->config['duration']['scheduled'];
+                            $tempConfig['duration']['real'] = $room->config['duration']['scheduled'];
                         }
 
+                        $room->config = $tempConfig;
                         $room->status = 'GAME_OVER';
                         $room->game_result = 'DRAW';
                         $room->game_ended_at = $now;
@@ -299,12 +303,15 @@ class CheckVoting extends Command
 
                         $now = now();
 
+                        $tempConfig = $room->config;
+
                         if ($now <= $room->game_ended_at) {
-                            $room->config['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                            $tempConfig['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
                         } else {
-                            $room->config['duration']['real'] = $room->config['duration']['scheduled'];
+                            $tempConfig['duration']['real'] = $room->config['duration']['scheduled'];
                         }
 
+                        $room->config = $tempConfig;
                         $room->status = 'GAME_OVER';
 
                         /** @var Player $reportingUser */
@@ -479,18 +486,21 @@ class CheckVoting extends Command
                 $fakePositionRand = (int) ($room->config['actor']['thief']['fake_position']['number'] * rand((int) (200 * $room->config['actor']['thief']['fake_position']['probability']) - 100, 100) / 100);
                 $fakePositionRand = $fakePositionRand >= 0 ? $fakePositionRand : 0;
 
-                $player->config = JsonConfig::getDefaultThiefConfig();
-                FacadesLog::alert($player->config['black_ticket']['number']);
-                $player->config = $blackTicketRand;
-                // $player->config['fake_position']['number'] = $fakePositionRand;
+                $tempConfig = JsonConfig::getDefaultThiefConfig();
+                $tempConfig['black_ticket']['number'] = $blackTicketRand;
+                $tempConfig['fake_position']['number'] = $fakePositionRand;
+
+                $player->config = $tempConfig;
 
             } else {
 
                 $whiteTicketRand = (int) ($room->config['actor']['pegasus']['white_ticket']['number'] * rand((int) (200 * $room->config['actor']['pegasus']['white_ticket']['probability']) - 100, 100) / 100);
                 $whiteTicketRand = $whiteTicketRand >= 0 ? $whiteTicketRand : 0;
 
-                $player->config = JsonConfig::getDefaultPegasusConfig();
-                $player->config['white_ticket']['number'] = $whiteTicketRand;
+                $tempConfig = JsonConfig::getDefaultPegasusConfig();
+                $tempConfig['white_ticket']['number'] = $whiteTicketRand;
+
+                $player->config = $tempConfig;
             }
 
             $player->save();
