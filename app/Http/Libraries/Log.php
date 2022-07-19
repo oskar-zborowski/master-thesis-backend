@@ -947,7 +947,6 @@ class Log
                 try {
                     $reverse = $nominatim->newReverse()->latlon($latitude, $longitude);
                     $result = $nominatim->find($reverse)['address'];
-                    FacadesLog::alert($result);
                 } catch (NominatimException | GuzzleException $e) {
 
                     $errorType = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();

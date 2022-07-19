@@ -527,8 +527,6 @@ class CheckVoting extends Command
 
         $location = Log::getLocation($gpsLocation, $ipAddress->ip_address, $userId);
 
-        FacadesLog::alert($ipAddress->ip_address);
-
         $room->gps_location = $gpsLocation;
 
         if (isset($location['house_number'])) {
