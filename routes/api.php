@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/v1/ip-address', function (Request $request) {
-    JsonResponse::sendSuccess($request, ['ip_address' => exec("ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'")]);
+    JsonResponse::sendSuccess($request, ['ip_address' => exec('curl http://ipecho.net/plain; echo')]);
 })->name('ipAddress-get');
 
 Route::post('/v1/users', [UserController::class, 'createUser'])->name('user-createUser');
