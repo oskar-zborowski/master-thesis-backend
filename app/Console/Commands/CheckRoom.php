@@ -87,7 +87,55 @@ class CheckRoom extends Command
             }
 
             if (count($players) == 0) {
-                $room->delete();
+
+                $room = $room->fresh();
+
+                if ($room->status == 'WAITING_IN_ROOM') {
+                    $room->delete();
+                } else if ($room->status == 'GAME_PAUSED') {
+
+                    $tempConfig = $room->config;
+
+                    if ($now <= $room->game_ended_at) {
+                        $tempConfig['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                    } else {
+                        $tempConfig['duration']['real'] = $room->config['duration']['scheduled'];
+                    }
+
+                    $room->config = $tempConfig;
+                    $room->reporting_user_id = null;
+                    $room->boundary_polygon = null;
+                    $room->status = 'GAME_OVER';
+                    $room->game_result = 'UNFINISHED';
+                    $room->voting_type = null;
+                    $room->game_ended_at = $now;
+                    $room->next_disclosure_at = null;
+                    $room->voting_ended_at = null;
+                    $room->save();
+
+                    /** @var Player[] $players */
+                    $players = $room->players()->get();
+
+                    foreach ($players as $player) {
+                        $player->global_position = null;
+                        $player->hidden_position = null;
+                        $player->fake_position = null;
+                        $player->is_catching = false;
+                        $player->is_caughting = false;
+                        $player->is_crossing_boundary = false;
+                        $player->voting_answer = null;
+                        $player->status = 'LEFT';
+                        $player->failed_voting_type = null;
+                        $player->black_ticket_finished_at = null;
+                        $player->fake_position_finished_at = null;
+                        $player->disconnecting_finished_at = null;
+                        $player->crossing_boundary_finished_at = null;
+                        $player->speed_exceeded_at = null;
+                        $player->next_voting_starts_at = null;
+                        $player->save();
+                    }
+                }
+
                 $emptyRoom = true;
             }
 
