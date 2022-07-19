@@ -42,7 +42,7 @@ class CheckGameCourse extends Command
 
             sleep(env('GAME_COURSE_CHECK_REFRESH'));
 
-            Log::alert('Jestem w game course');
+            Log::alert('Jestem w game course2');
 
             /** @var Room $room */
             $room = Room::where('id', $roomId)->first();

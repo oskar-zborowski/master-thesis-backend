@@ -236,7 +236,7 @@ class CheckVoting extends Command
 
                         $gameStarted = true;
 
-                        shell_exec("php ../../../artisan game-course:check $room->id >/dev/null 2>/dev/null &");
+                        shell_exec("php /var/www/html/master-thesis-beckend/artisan game-course:check $room->id >/dev/null 2>/dev/null &");
 
                     } else if ($room->voting_type == 'ENDING_COUNTDOWN') {
 
