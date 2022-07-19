@@ -929,8 +929,6 @@ class Log
 
                 sleep(env('NOMINATIM_CONST_PAUSE'));
 
-                FacadesLog::alert('jestem2');
-
                 /** @var Config $config */
                 $config = Config::where('id', 1)->first();
                 $isNominatimBusy = $config->is_nominatim_busy || $config->nominatim_last_used_at && Validation::timeComparison($config->nominatim_last_used_at, env('NOMINATIM_CONST_PAUSE'), '<', 'seconds');
@@ -941,6 +939,8 @@ class Log
             $config->save();
 
             $nominatimErrorCounter = 0;
+
+            FacadesLog::alert('jestem3');
 
             do {
 
