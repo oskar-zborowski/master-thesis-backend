@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\GitHubController;
 use App\Http\Controllers\Api\PlayerController;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Responses\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,6 +18,10 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+Route::get('/v1/ip-address', function (Request $request) {
+    JsonResponse::sendSuccess($request, ['ip_address' => $_SERVER['SERVER_ADDR']]);
+})->name('ipAddress-get');
 
 Route::post('/v1/users', [UserController::class, 'createUser'])->name('user-createUser');
 
