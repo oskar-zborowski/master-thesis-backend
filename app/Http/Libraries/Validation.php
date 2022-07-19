@@ -216,6 +216,7 @@ class Validation
     public static function getRouteNamesWhitelist() {
         return [
             'user-createUser',
+            'ipAddress-get',
             'github-pull',
             'crawler-get',
             'crawler-post',

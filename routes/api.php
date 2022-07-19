@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/v1/ip-address', function (Request $request) {
-    JsonResponse::sendSuccess($request, ['ip_address' => $_SERVER['SERVER_ADDR']]);
+    JsonResponse::sendSuccess($request, ['ip_address' => gethostbyname(gethostname())]);
 })->name('ipAddress-get');
 
 Route::post('/v1/users', [UserController::class, 'createUser'])->name('user-createUser');
