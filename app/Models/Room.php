@@ -124,7 +124,6 @@ class Room extends BaseModel
                 'created_at' => $this->created_at,
             ],
             'Player' => $allPlayers,
-            'UTC' => config('app.timezone'),
         ];
     }
 }

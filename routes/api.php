@@ -20,7 +20,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/v1/ip-address', function (Request $request) {
-    JsonResponse::sendSuccess($request, ['ip_address' => exec('curl http://ipecho.net/plain; echo')]);
+
+    $content = file_get_contents('http://worldtimeapi.org/api/ip');
+
+    JsonResponse::sendSuccess($request, [
+        'ip_address' => $content['client_ip'],
+        'timezone' => $content['timezone'],
+        'utc' => $content['utc_offset'],
+    ]);
+
 })->name('ipAddress-get');
 
 Route::post('/v1/users', [UserController::class, 'createUser'])->name('user-createUser');
