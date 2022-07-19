@@ -80,7 +80,7 @@ class UserController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan gps-log:save";
+        $command = 'php ' . env('APP_ROOT') . 'artisan room:check';
         $command .= " \"$gpsLocation\"";
 
         if (env('APP_ENV') == 'local') {

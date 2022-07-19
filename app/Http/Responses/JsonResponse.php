@@ -103,7 +103,7 @@ class JsonResponse
 
     private static function saveConnectionInformation($request, $data, ?ErrorCode $errorCode, bool $isDbConnectionError) {
 
-        $command = "php {$_SERVER['DOCUMENT_ROOT']}/../artisan connection-info:save";
+        $command = 'php ' . env('APP_ROOT') . 'artisan connection-info:save';
 
         if (env('APP_ENV') == 'local') {
             $command .= ' "83.8.175.174"';

@@ -389,7 +389,7 @@ class PlayerController extends Controller
 
             $reloadRoom = true;
 
-            shell_exec("php {$_SERVER['DOCUMENT_ROOT']}/../artisan voting:check $room->id $user->id >/dev/null 2>/dev/null &");
+            shell_exec('php ' . env('APP_ROOT') . "artisan voting:check $room->id $user->id >/dev/null 2>/dev/null &");
         }
 
         if ($request->voting_answer !== null) {

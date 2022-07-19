@@ -62,7 +62,7 @@ class RoomController extends Controller
 
         $room = $room->fresh();
 
-        shell_exec("php {$_SERVER['DOCUMENT_ROOT']}/../artisan room:check $room->id >/dev/null 2>/dev/null &");
+        shell_exec('php ' . env('APP_ROOT') . "artisan room:check $room->id >/dev/null 2>/dev/null &");
 
         JsonResponse::sendSuccess($request, $room->getData(), null, 201);
     }

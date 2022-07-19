@@ -588,7 +588,7 @@ class CheckGameCourse extends Command
                     $room->status = 'GAME_PAUSED';
                     $room->save();
 
-                    shell_exec("php {$_SERVER['DOCUMENT_ROOT']}/../artisan room:check $room->id >/dev/null 2>/dev/null &");
+                    shell_exec('php ' . env('APP_ROOT') . "artisan room:check $room->id >/dev/null 2>/dev/null &");
 
                     break;
                 }
