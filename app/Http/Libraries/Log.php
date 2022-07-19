@@ -925,11 +925,11 @@ class Log
             $url = 'https://nominatim.openstreetmap.org';
             $nominatim = new Nominatim($url);
 
-            FacadesLog::alert('jestem');
-
             do {
 
                 sleep(env('NOMINATIM_CONST_PAUSE'));
+
+                FacadesLog::alert('jestem2');
 
                 /** @var Config $config */
                 $config = Config::where('id', 1)->first();
