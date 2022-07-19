@@ -7,6 +7,7 @@ use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class CheckGameCourse extends Command
@@ -40,6 +41,8 @@ class CheckGameCourse extends Command
         do {
 
             sleep(env('GAME_COURSE_CHECK_REFRESH'));
+
+            Log::alert('Jestem w game course');
 
             /** @var Room $room */
             $room = Room::where('id', $roomId)->first();
