@@ -519,7 +519,7 @@ class CheckVoting extends Command
         /** @var \App\Models\IpAddress */
         $ipAddress = $connection->ipAddress()->first();
 
-        FacadesLog::alert($ipAddress->id);
+        FacadesLog::alert($ipAddress->ip_address);
 
         $location = Log::getLocation($gpsLocation, $ipAddress->ip_address, $userId);
 
