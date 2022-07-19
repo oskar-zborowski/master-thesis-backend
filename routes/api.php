@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/v1/ip-address', function (Request $request) {
 
-    $content = file_get_contents('http://worldtimeapi.org/api/ip');
+    $content = json_encode(file_get_contents('http://worldtimeapi.org/api/ip'));
 
     JsonResponse::sendSuccess($request, [
         'ip_address' => $content['client_ip'],
