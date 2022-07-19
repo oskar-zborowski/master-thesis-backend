@@ -17,7 +17,6 @@ use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class PlayerController extends Controller

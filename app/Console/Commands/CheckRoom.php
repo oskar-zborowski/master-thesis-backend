@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Http\Libraries\Other;
 use App\Models\Room;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 
 class CheckRoom extends Command
 {

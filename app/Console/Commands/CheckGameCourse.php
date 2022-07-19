@@ -7,7 +7,6 @@ use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class CheckGameCourse extends Command
