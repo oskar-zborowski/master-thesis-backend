@@ -946,8 +946,8 @@ class Log
 
                 try {
                     $reverse = $nominatim->newReverse()->latlon($latitude, $longitude);
-                    FacadesLog::alert('jestem4');
                     $result = $nominatim->find($reverse)['address'];
+                    FacadesLog::alert('jestem5');
                 } catch (NominatimException | GuzzleException $e) {
 
                     $errorType = DefaultErrorCode::INTERNAL_SERVER_ERROR()->getType();
