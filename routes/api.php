@@ -1,9 +1,11 @@
 <?php
 
+use App\Exceptions\ApiException;
 use App\Http\Controllers\Api\GitHubController;
 use App\Http\Controllers\Api\PlayerController;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Responses\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,11 +23,22 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/v1/ip-address', function (Request $request) {
 
-    $content = json_decode(file_get_contents('http://worldtimeapi.org/api/ip'));
+    $worldTimeApi = json_decode(file_get_contents('http://worldtimeapi.org/api/ip'));
 
-    JsonResponse::sendSuccess($request, [
-        'ip_address' => $content->client_ip,
-    ]);
+    if ($worldTimeApi !== null && $worldTimeApi->client_ip !== null) {
+
+        JsonResponse::sendSuccess($request, [
+            'ip_address' => $worldTimeApi->client_ip,
+        ]);
+
+    } else {
+        throw new ApiException(
+            DefaultErrorCode::INTERNAL_SERVER_ERROR(false, true),
+            __('validation.custom.external-api-error', ['api' => 'worldTimeApi']),
+            __FUNCTION__,
+            false
+        );
+    }
 
 })->name('ipAddress-get');
 
