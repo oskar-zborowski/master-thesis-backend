@@ -73,7 +73,7 @@ class Player extends BaseModel
         return $this->belongsTo(User::class);
     }
 
-    public function getData(Player $player) {
+    public function getData(Player $player, string $utcTime) {
 
         $this->mergeCasts([
             'global_position' => Point::class,
@@ -89,8 +89,8 @@ class Player extends BaseModel
         if ($player->role != 'THIEF' && $this->role != 'THIEF' || $player->role == 'THIEF' && $this->role == 'THIEF') {
             $config = $this->config;
             $globalPosition = $this->hidden_position ? "{$this->hidden_position->longitude} {$this->hidden_position->latitude}" : null;
-            $blackTicketFinishedAt = $this->black_ticket_finished_at;
-            $fakePositionFinishedAt = $this->fake_position_finished_at;
+            $blackTicketFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->black_ticket_finished_at)));
+            $fakePositionFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->fake_position_finished_at)));
         } else {
             $config = null;
             $globalPosition = $this->global_position ? "{$this->global_position->longitude} {$this->global_position->latitude}" : null;
@@ -107,14 +107,19 @@ class Player extends BaseModel
                 $this->save();
             }
 
-            $expectedTimeAt = $this->expected_time_at;
-            $nextVotingStartsAt = $this->next_voting_starts_at;
+            $expectedTimeAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->expected_time_at)));
+            $nextVotingStartsAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->next_voting_starts_at)));
 
         } else {
             $failedVotingType = null;
             $expectedTimeAt = null;
             $nextVotingStartsAt = null;
         }
+
+        $caughtAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->caught_at)));
+        $disconnectingFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->disconnecting_finished_at)));
+        $crossingBoundaryFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->crossing_boundary_finished_at)));
+        $createdAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->created_at)));
 
         return [
             'id' => $this->id,
@@ -138,12 +143,12 @@ class Player extends BaseModel
             'expected_time_at' => $expectedTimeAt,
             'black_ticket_finished_at' => $blackTicketFinishedAt,
             'fake_position_finished_at' => $fakePositionFinishedAt,
-            'caught_at' => $this->caught_at,
-            'disconnecting_finished_at' => $this->disconnecting_finished_at,
-            'crossing_boundary_finished_at' => $this->crossing_boundary_finished_at,
+            'caught_at' => $caughtAt,
+            'disconnecting_finished_at' => $disconnectingFinishedAt,
+            'crossing_boundary_finished_at' => $crossingBoundaryFinishedAt,
             'is_speed_exceeded' => $this->speed_exceeded_at ? true : false,
             'next_voting_starts_at' => $nextVotingStartsAt,
-            'created_at' => $this->created_at,
+            'created_at' => $createdAt,
         ];
     }
 }

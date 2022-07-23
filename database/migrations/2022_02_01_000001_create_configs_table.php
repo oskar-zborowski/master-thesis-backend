@@ -13,6 +13,7 @@ return new class extends Migration
         Schema::create('configs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('log_counter')->default(0);
+            $table->char('utc_time', 6)->default('+02:00');
             $table->boolean('is_nominatim_busy')->default(false);
             $table->boolean('is_ip_api_busy')->default(false);
             $table->boolean('is_mail_busy')->default(false);

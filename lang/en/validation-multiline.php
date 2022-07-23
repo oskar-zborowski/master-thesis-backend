@@ -148,6 +148,7 @@ return [
         'catchers-number-exceeded' => 'The required number of players when catching must not exceed the total number of policemen.',
         'complete-boundary' => 'Complete the boundary.',
         'endpoint-name-not-found' => 'Endpoint name not found.',
+        'external-api-error' => 'External api error (:api).',
         'fake-position-active' => 'Fake position is still active.',
         'game-already-started' => 'The game has already started.',
         'game-being-prepared' => 'The game is being prepared.',

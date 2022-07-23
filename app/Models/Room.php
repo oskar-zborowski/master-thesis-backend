@@ -84,6 +84,31 @@ class Room extends BaseModel
 
     public function getData() {
 
+        /** @var Config $config */
+        $config = Config::where('id', 1)->first();
+
+        if ($config->utc_time[0] == '+' || $config->utc_time[0] == '-') {
+            $utcTime = substr($config->utc_time, 1, 2);
+        } else {
+            $utcTime = substr($config->utc_time, 0, 2);
+        }
+
+        if ($utcTime[0] == '0') {
+            $utcTime = $utcTime[1];
+        }
+
+        if ($config->utc_time[0] == '-') {
+            $utcTime = '-' . $utcTime . ' hours';
+        } else {
+            $utcTime = '+' . $utcTime . ' hours';
+        }
+
+        $gameStartedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->game_started_at)));
+        $gameEndedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->game_ended_at)));
+        $nextDisclosureAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->next_disclosure_at)));
+        $votingEndedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->voting_ended_at)));
+        $createdAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->created_at)));
+
         /** @var User $user */
         $user = Auth::user();
 
@@ -102,7 +127,7 @@ class Room extends BaseModel
         $allPlayers = null;
 
         foreach ($players as $player) {
-            $allPlayers[] = $player->getData($currentPlayer);
+            $allPlayers[] = $player->getData($currentPlayer, $utcTime);
         }
 
         return [
@@ -117,11 +142,11 @@ class Room extends BaseModel
                 'status' => $this->status,
                 'game_result' => $this->game_result,
                 'voting_type' => $this->voting_type,
-                'game_started_at' => $this->game_started_at,
-                'game_ended_at' => $this->game_ended_at,
-                'next_disclosure_at' => $this->next_disclosure_at,
-                'voting_ended_at' => $this->voting_ended_at,
-                'created_at' => $this->created_at,
+                'game_started_at' => $gameStartedAt,
+                'game_ended_at' => $gameEndedAt,
+                'next_disclosure_at' => $nextDisclosureAt,
+                'voting_ended_at' => $votingEndedAt,
+                'created_at' => $createdAt,
             ],
             'Player' => $allPlayers,
         ];

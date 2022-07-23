@@ -7,6 +7,7 @@ class Config extends BaseModel
     protected $hidden = [
         'id',
         'log_counter',
+        'utc_time',
         'is_nominatim_busy',
         'is_ip_api_busy',
         'is_mail_busy',

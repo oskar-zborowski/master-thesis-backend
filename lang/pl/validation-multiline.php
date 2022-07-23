@@ -148,6 +148,7 @@ return [
         'catchers-number-exceeded' => 'Wymagana liczba graczy podczas łapania nie może być większa niż całkowita liczba policjantów.',
         'complete-boundary' => 'Uzupełnij granicę.',
         'endpoint-name-not-found' => 'Nie znaleziono nazwy endpointu.',
+        'external-api-error' => 'Błąd zewnętrznego api (:api).',
         'fake-position-active' => "Fake'owa pozycja jest jeszcze aktywna.",
         'game-already-started' => 'Gra już się rozpoczęła.',
         'game-being-prepared' => 'Gra w trakcie przygotowywania.',
