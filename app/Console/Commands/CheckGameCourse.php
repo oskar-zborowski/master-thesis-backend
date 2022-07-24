@@ -106,9 +106,11 @@ class CheckGameCourse extends Command
                 }
 
                 if ($room->next_disclosure_at !== null && $now >= $room->next_disclosure_at) {
-                    $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['disclosure_interval'] . ' seconds', strtotime($now)));
-                    $room->save();
-                    $revealThieves = true;
+                    if ($room->config['actor']['thief']['disclosure_interval'] != -1) {
+                        $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['disclosure_interval'] . ' seconds', strtotime($now)));
+                        $room->save();
+                        $revealThieves = true;
+                    }
                 }
 
                 $thievesNotCaught = 0;
