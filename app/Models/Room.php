@@ -103,10 +103,30 @@ class Room extends BaseModel
             $utcTime = '+' . $utcTime . ' hours';
         }
 
-        $gameStartedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->game_started_at)));
-        $gameEndedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->game_ended_at)));
-        $nextDisclosureAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->next_disclosure_at)));
-        $votingEndedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->voting_ended_at)));
+        if ($this->game_started_at !== null) {
+            $gameStartedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->game_started_at)));
+        } else {
+            $gameStartedAt = null;
+        }
+
+        if ($this->game_ended_at !== null) {
+            $gameEndedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->game_ended_at)));
+        } else {
+            $gameEndedAt = null;
+        }
+
+        if ($this->next_disclosure_at !== null) {
+            $nextDisclosureAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->next_disclosure_at)));
+        } else {
+            $nextDisclosureAt = null;
+        }
+
+        if ($this->voting_ended_at !== null) {
+            $votingEndedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->voting_ended_at)));
+        } else {
+            $votingEndedAt = null;
+        }
+
         $createdAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->created_at)));
 
         /** @var User $user */

@@ -87,10 +87,22 @@ class Player extends BaseModel
         }
 
         if ($player->role != 'THIEF' && $this->role != 'THIEF' || $player->role == 'THIEF' && $this->role == 'THIEF') {
+
             $config = $this->config;
             $globalPosition = $this->hidden_position ? "{$this->hidden_position->longitude} {$this->hidden_position->latitude}" : null;
-            $blackTicketFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->black_ticket_finished_at)));
-            $fakePositionFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->fake_position_finished_at)));
+
+            if ($this->black_ticket_finished_at !== null) {
+                $blackTicketFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->black_ticket_finished_at)));
+            } else {
+                $blackTicketFinishedAt = null;
+            }
+
+            if ($this->fake_position_finished_at !== null) {
+                $fakePositionFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->fake_position_finished_at)));
+            } else {
+                $fakePositionFinishedAt = null;
+            }
+
         } else {
             $config = null;
             $globalPosition = $this->global_position ? "{$this->global_position->longitude} {$this->global_position->latitude}" : null;
@@ -108,7 +120,12 @@ class Player extends BaseModel
             }
 
             $expectedTimeAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->expected_time_at)));
-            $nextVotingStartsAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->next_voting_starts_at)));
+
+            if ($this->next_voting_starts_at !== null) {
+                $nextVotingStartsAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->next_voting_starts_at)));
+            } else {
+                $nextVotingStartsAt = null;
+            }
 
         } else {
             $failedVotingType = null;
@@ -116,9 +133,24 @@ class Player extends BaseModel
             $nextVotingStartsAt = null;
         }
 
-        $caughtAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->caught_at)));
-        $disconnectingFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->disconnecting_finished_at)));
-        $crossingBoundaryFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->crossing_boundary_finished_at)));
+        if ($this->caught_at !== null) {
+            $caughtAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->caught_at)));
+        } else {
+            $caughtAt = null;
+        }
+
+        if ($this->disconnecting_finished_at !== null) {
+            $disconnectingFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->disconnecting_finished_at)));
+        } else {
+            $disconnectingFinishedAt = null;
+        }
+
+        if ($this->crossing_boundary_finished_at !== null) {
+            $crossingBoundaryFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->crossing_boundary_finished_at)));
+        } else {
+            $crossingBoundaryFinishedAt = null;
+        }
+
         $createdAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->created_at)));
 
         return [
