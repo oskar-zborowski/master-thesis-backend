@@ -79,14 +79,14 @@ class Player extends BaseModel
             'global_position' => Point::class,
             'hidden_position' => Point::class,
         ]);
-
-        if ($player->role != 'THIEF' || $this->role == 'THIEF') {
+        
+        if ($player->role != 'THIEF' || $this->role == 'THIEF' || $player->status == 'SUPERVISING') {
             $role = $this->role;
         } else {
             $role = null;
         }
 
-        if ($player->role != 'THIEF' && $this->role != 'THIEF' || $player->role == 'THIEF' && $this->role == 'THIEF') {
+        if ($player->role != 'THIEF' && $this->role != 'THIEF' || $player->role == 'THIEF' && $this->role == 'THIEF' || $player->status == 'SUPERVISING') {
 
             $config = $this->config;
             $globalPosition = $this->hidden_position ? "{$this->hidden_position->longitude} {$this->hidden_position->latitude}" : null;

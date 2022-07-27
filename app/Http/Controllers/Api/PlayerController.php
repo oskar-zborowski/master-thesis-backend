@@ -38,6 +38,83 @@ class PlayerController extends Controller
             );
         }
 
+        if (strlen($request->code) != 6) {
+
+            if (strlen($request->code) != 9 || substr($request->code, -3) != env('JOINING_ROOM_SPECIAL_SIGN')) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.size.string', ['size' => 6]),
+                    __FUNCTION__
+                );
+            }
+
+            $code = substr($request->code, 0, 6);
+
+            $encryptedCode = Encrypter::encrypt($code, 6, false);
+            $aesDecrypt = Encrypter::prepareAesDecrypt('code', $encryptedCode);
+
+            /** @var Room $room */
+            $room = Room::whereRaw($aesDecrypt)->orderBy('id', 'desc')->first();
+
+            if (!$room) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.custom.incorrect-code'),
+                    __FUNCTION__
+                );
+            }
+
+            /** @var Player $player */
+            $player = $room->players()->where('user_id', $user->id)->first();
+
+            if ($player) {
+
+                if ($player->status == 'BANNED') {
+                    throw new ApiException(
+                        DefaultErrorCode::PERMISSION_DENIED(),
+                        __('validation.custom.you-have-been-banned'),
+                        __FUNCTION__
+                    );
+                } else if ($room->status == 'GAME_OVER') {
+                    throw new ApiException(
+                        DefaultErrorCode::PERMISSION_DENIED(),
+                        __('validation.custom.game-is-over'),
+                        __FUNCTION__
+                    );
+                }
+
+                if ($room->status == 'WAITING_IN_ROOM') {
+                    $player->role = null;
+                }
+
+                $player->status = 'SUPERVISING';
+                $player->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . env('ROOM_REFRESH') . ' seconds', strtotime(now())));
+                $player->disconnecting_finished_at = null;
+                $player->save();
+
+            } else if ($room->status == 'GAME_OVER') {
+
+                throw new ApiException(
+                    DefaultErrorCode::PERMISSION_DENIED(),
+                    __('validation.custom.game-is-over'),
+                    __FUNCTION__
+                );
+
+            } else {
+                $player = new Player;
+                $player->room_id = $room->id;
+                $player->user_id = $user->id;
+                $player->avatar = $user->default_avatar;
+                $player->status = 'SUPERVISING';
+                $player->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . env('ROOM_REFRESH') . ' seconds', strtotime(now())));
+                $player->save();
+            }
+
+            $room = $room->fresh();
+
+            JsonResponse::sendSuccess($request, $room->getData(), null, 201);
+        }
+
         $encryptedCode = Encrypter::encrypt($request->code, 6, false);
         $aesDecrypt = Encrypter::prepareAesDecrypt('code', $encryptedCode);
 
@@ -242,6 +319,59 @@ class PlayerController extends Controller
                 $this->nextConnection($player, $room);
                 $reloadRoom = true;
             }
+
+        } else if ($player->status == 'SUPERVISING') {
+
+            if ($request->status !== null) {
+
+                $player->global_position = null;
+                $player->hidden_position = null;
+                $player->fake_position = null;
+                $player->is_catching = false;
+                $player->is_caughting = false;
+                $player->is_crossing_boundary = false;
+                $player->voting_answer = null;
+                $player->status = $request->status;
+                $player->failed_voting_type = null;
+                $player->black_ticket_finished_at = null;
+                $player->fake_position_finished_at = null;
+                $player->disconnecting_finished_at = null;
+                $player->crossing_boundary_finished_at = null;
+                $player->speed_exceeded_at = null;
+                $player->next_voting_starts_at = null;
+                $player->save();
+
+                if ($player->user_id == $room->host_id) {
+                    Other::setNewHost($room);
+                }
+            }
+
+            $minPause = null;
+
+            /** @var Player $isAnyoneCaught */
+            $isAnyoneCaught = $room->players()->where('is_caughting', true)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->first();
+
+            if ($room->voting_type && ($minPause === null || env('VOTING_REFRESH') < $minPause)) {
+                $minPause = env('VOTING_REFRESH');
+            }
+
+            if ($isAnyoneCaught && ($minPause === null || env('CATCHING_REFRESH') < $minPause)) {
+                $minPause = env('CATCHING_REFRESH');
+            }
+
+            if ($room->status == 'GAME_IN_PROGRESS' && ($minPause === null || env('GAME_REFRESH') < $minPause)) {
+                $minPause = env('GAME_REFRESH');
+            } else if ($room->status != 'GAME_IN_PROGRESS' && ($minPause === null || env('ROOM_REFRESH') < $minPause)) {
+                $minPause = env('ROOM_REFRESH');
+            }
+
+            $player->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . $minPause . ' seconds', strtotime(now())));
+            $player->disconnecting_finished_at = null;
+            $player->save();
+
+            $room = $room->fresh();
+
+            JsonResponse::sendSuccess($request, $room->getData());
 
         } else {
             $this->savePing($player);

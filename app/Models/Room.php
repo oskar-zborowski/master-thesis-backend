@@ -142,12 +142,14 @@ class Room extends BaseModel
         $reportingUser = $this->reportingUser()->first();
 
         /** @var Player[] $players */
-        $players = $this->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+        $players = $this->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED', 'SUPERVISING'])->get();
 
         $allPlayers = null;
 
         foreach ($players as $player) {
-            $allPlayers[] = $player->getData($currentPlayer, $utcTime);
+            if (in_array($player->status, ['CONNECTED', 'DISCONNECTED']) || $player->user_id == $user->id) {
+                $allPlayers[] = $player->getData($currentPlayer, $utcTime);
+            }
         }
 
         return [

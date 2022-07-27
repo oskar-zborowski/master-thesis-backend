@@ -84,7 +84,7 @@ class Validation
 
     public static function player_createPlayer() {
         return [
-            'code' => 'required|string|size:6',
+            'code' => 'required|string',
         ];
     }
 
@@ -199,6 +199,7 @@ class Validation
             'DISCONNECTED',
             'BANNED',
             'LEFT',
+            'SUPERVISING',
         ];
     }
 
