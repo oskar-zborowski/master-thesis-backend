@@ -98,9 +98,9 @@ class Room extends BaseModel
         }
 
         if ($config->utc_time[0] == '-') {
-            $utcTime = '-' . $utcTime . ' hours';
-        } else {
             $utcTime = '+' . $utcTime . ' hours';
+        } else {
+            $utcTime = '-' . $utcTime . ' hours';
         }
 
         if ($this->game_started_at !== null) {
