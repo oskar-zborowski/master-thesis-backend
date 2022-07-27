@@ -27,7 +27,10 @@ class SaveGpsLog extends Command
         $ipAddress = $this->argument('ipAddress');
         $userId = $this->argument('userId');
 
-        $location = Log::getLocation($gpsLocation, $ipAddress, $userId);
+        $gpsLocationPrepared = explode(' ', $gpsLocation);
+        $gpsLocationPrepared = "{$gpsLocationPrepared[1]} {$gpsLocationPrepared[0]}";
+
+        $location = Log::getLocation($gpsLocationPrepared, $ipAddress, $userId);
 
         $gpsLog = new GpsLog;
         $gpsLog->user_id = $userId;

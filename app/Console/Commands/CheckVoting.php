@@ -520,6 +520,9 @@ class CheckVoting extends Command
 
         $location = Log::getLocation($gpsLocation, $ipAddress->ip_address, $userId);
 
+        $gpsLocation = explode(' ', $gpsLocation);
+        $gpsLocation = "{$gpsLocation[1]} {$gpsLocation[0]}";
+
         $room->gps_location = $gpsLocation;
 
         if (isset($location['house_number'])) {
