@@ -44,6 +44,13 @@ class CheckGameCourse extends Command
             /** @var Room $room */
             $room = Room::where('id', $roomId)->first();
 
+            /** @var \App\Models\Player $host */
+            $host = $room->players()->where('user_id', $room->host_id)->first();
+
+            if ($host->status != 'CONNECTED') {
+                Other::setNewHost($room);
+            }
+
             /** @var Player[] $players */
             $players = $room->players()->get();
 

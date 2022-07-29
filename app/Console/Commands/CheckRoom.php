@@ -32,6 +32,13 @@ class CheckRoom extends Command
             /** @var Room $room */
             $room = Room::where('id', $roomId)->first();
 
+            /** @var \App\Models\Player $host */
+            $host = $room->players()->where('user_id', $room->host_id)->first();
+
+            if ($host->status != 'CONNECTED') {
+                Other::setNewHost($room);
+            }
+
             /** @var \App\Models\Player[] $players */
             $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
 
@@ -75,6 +82,10 @@ class CheckRoom extends Command
                     $player->save();
 
                     $playerUpdated = true;
+
+                    if ($player->user_id == $room->host_id) {
+                        Other::setNewHost($room);
+                    }
                 }
             }
 

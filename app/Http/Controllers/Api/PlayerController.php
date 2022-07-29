@@ -244,6 +244,13 @@ class PlayerController extends Controller
             $user->save();
         }
 
+        /** @var \App\Models\Player $host */
+        $host = $room->players()->where('user_id', $room->host_id)->first();
+
+        if ($host->status != 'CONNECTED') {
+            Other::setNewHost($room);
+        }
+
         $room = $room->fresh();
 
         JsonResponse::sendSuccess($request, $room->getData(), null, 201);
