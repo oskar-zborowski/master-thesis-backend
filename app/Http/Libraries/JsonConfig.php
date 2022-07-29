@@ -87,6 +87,7 @@ class JsonConfig
         $currentFattyManNumber = 0;
         $currentEagleNumber = 0;
         $currentThiefNumber = 0;
+        $currentPolicemanNumber = 0;
 
         $totalAgentNumber = 0;
         $totalPegasusNumber = 0;
@@ -110,6 +111,8 @@ class JsonConfig
                 $currentEagleNumber++;
             } else if ($player->role == 'THIEF') {
                 $currentThiefNumber++;
+            } else if ($player->role == 'POLICEMAN') {
+                $currentPolicemanNumber++;
             }
         }
 
@@ -199,6 +202,14 @@ class JsonConfig
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(),
                 __('validation.custom.thief-number-exceeded'),
+                __FUNCTION__
+            );
+        }
+
+        if ($policemenNumber < $currentPolicemanNumber) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.policemen-number-exceeded'),
                 __FUNCTION__
             );
         }
