@@ -82,7 +82,36 @@ class JsonConfig
 
         $gameConfig = $room->config;
 
+        $currentAgentNumber = 0;
+        $currentPegasusNumber = 0;
+        $currentFattyManNumber = 0;
+        $currentEagleNumber = 0;
+        $currentThiefNumber = 0;
+
+        $totalAgentNumber = 0;
+        $totalPegasusNumber = 0;
+        $totalFattyManNumber = 0;
+        $totalEagleNumber = 0;
+        $totalThiefNumber = 0;
+
         $playersNumberFromCatchingFaction = 0;
+
+        /** @var Player[] $players */
+        $players = $room->players()->where('status', 'CONNECTED')->get();
+
+        foreach ($players as $player) {
+            if ($player->role == 'AGENT') {
+                $currentAgentNumber++;
+            } else if ($player->role == 'PEGASUS') {
+                $currentPegasusNumber++;
+            } else if ($player->role == 'FATTY_MAN') {
+                $currentFattyManNumber++;
+            } else if ($player->role == 'EAGLE') {
+                $currentEagleNumber++;
+            } else if ($player->role == 'THIEF') {
+                $currentThiefNumber++;
+            }
+        }
 
         if ($request->actor_policeman_number !== null) {
             $policemenNumber = $request->actor_policeman_number;
@@ -97,27 +126,81 @@ class JsonConfig
         }
 
         if ($request->actor_agent_number !== null) {
+            $totalAgentNumber = $request->actor_agent_number;
             $playersNumberFromCatchingFaction += $request->actor_agent_number;
         } else {
+            $totalAgentNumber = $gameConfig['actor']['agent']['number'];
             $playersNumberFromCatchingFaction += $gameConfig['actor']['agent']['number'];
         }
 
         if ($request->actor_pegasus_number !== null) {
+            $totalPegasusNumber = $request->actor_pegasus_number;
             $playersNumberFromCatchingFaction += $request->actor_pegasus_number;
         } else {
+            $totalPegasusNumber = $gameConfig['actor']['pegasus']['number'];
             $playersNumberFromCatchingFaction += $gameConfig['actor']['pegasus']['number'];
         }
 
         if ($request->actor_fatty_man_number !== null) {
+            $totalFattyManNumber = $request->actor_fatty_man_number;
             $playersNumberFromCatchingFaction += $request->actor_fatty_man_number;
         } else {
+            $totalFattyManNumber = $gameConfig['actor']['fatty_man']['number'];
             $playersNumberFromCatchingFaction += $gameConfig['actor']['fatty_man']['number'];
         }
 
         if ($request->actor_eagle_number !== null) {
+            $totalEagleNumber = $request->actor_eagle_number;
             $playersNumberFromCatchingFaction += $request->actor_eagle_number;
         } else {
+            $totalEagleNumber = $gameConfig['actor']['eagle']['number'];
             $playersNumberFromCatchingFaction += $gameConfig['actor']['eagle']['number'];
+        }
+
+        if ($request->actor_thief_number !== null) {
+            $totalThiefNumber = $request->actor_thief_number;
+        } else {
+            $totalThiefNumber = $gameConfig['actor']['thief']['number'];
+        }
+
+        if ($totalAgentNumber < $currentAgentNumber) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.agent-number-exceeded'),
+                __FUNCTION__
+            );
+        }
+
+        if ($totalPegasusNumber < $currentPegasusNumber) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.pegasus-number-exceeded'),
+                __FUNCTION__
+            );
+        }
+
+        if ($totalFattyManNumber < $currentFattyManNumber) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.fatty-man-number-exceeded'),
+                __FUNCTION__
+            );
+        }
+
+        if ($totalEagleNumber < $currentEagleNumber) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.eagle-number-exceeded'),
+                __FUNCTION__
+            );
+        }
+
+        if ($totalThiefNumber < $currentThiefNumber) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.thief-number-exceeded'),
+                __FUNCTION__
+            );
         }
 
         if ($policemenNumber < $playersNumberFromCatchingFaction) {

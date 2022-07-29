@@ -49,6 +49,10 @@ class CheckRoom extends Command
 
                 if ($player->disconnecting_finished_at === null && $now > date('Y-m-d H:i:s', strtotime('+' . env('DISCONNECTING_TIMEOUT') . ' seconds', strtotime($player->expected_time_at)))) {
 
+                    if ($room->status == 'WAITING_IN_ROOM') {
+                        $player->role = null;
+                    }
+
                     $player->status = 'DISCONNECTED';
 
                     if ($room->config['other']['disconnecting_countdown'] != -1) {
@@ -63,6 +67,10 @@ class CheckRoom extends Command
                 }
 
                 if ($player->disconnecting_finished_at && $now > $player->disconnecting_finished_at) {
+
+                    if ($room->status == 'WAITING_IN_ROOM') {
+                        $player->role = null;
+                    }
 
                     $player->global_position = null;
                     $player->hidden_position = null;
