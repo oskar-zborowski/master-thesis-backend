@@ -419,20 +419,50 @@ class CheckVoting extends Command
 
     private function setPlayersRoles(Room $room) {
 
-        $agentNumber = (int) ($room->config['actor']['agent']['number'] * rand((int) (200 * $room->config['actor']['agent']['probability']) - 100, 100) / 100);
-        $agentNumber = $agentNumber >= 0 ? $agentNumber : 0;
+        if ($room->config['actor']['agent']['probability'] == 1) {
+            $agentNumber = $room->config['actor']['agent']['number'];
+        } else if ($room->config['actor']['agent']['probability'] == 0) {
+            $agentNumber = 0;
+        } else {
+            $agentNumber = (int) ($room->config['actor']['agent']['number'] * rand((int) (200 * $room->config['actor']['agent']['probability']) - 100, 100) / 100);
+            $agentNumber = $agentNumber >= 0 ? $agentNumber : 0;
+        }
 
-        $pegasusNumber = (int) ($room->config['actor']['pegasus']['number'] * rand((int) (200 * $room->config['actor']['pegasus']['probability']) - 100, 100) / 100);
-        $pegasusNumber = $pegasusNumber >= 0 ? $pegasusNumber : 0;
+        if ($room->config['actor']['pegasus']['probability'] == 1) {
+            $pegasusNumber = $room->config['actor']['pegasus']['number'];
+        } else if ($room->config['actor']['pegasus']['probability'] == 0) {
+            $pegasusNumber = 0;
+        } else {
+            $pegasusNumber = (int) ($room->config['actor']['pegasus']['number'] * rand((int) (200 * $room->config['actor']['pegasus']['probability']) - 100, 100) / 100);
+            $pegasusNumber = $pegasusNumber >= 0 ? $pegasusNumber : 0;
+        }
 
-        $fattyManNumber = (int) ($room->config['actor']['fatty_man']['number'] * rand((int) (200 * $room->config['actor']['fatty_man']['probability']) - 100, 100) / 100);
-        $fattyManNumber = $fattyManNumber >= 0 ? $fattyManNumber : 0;
+        if ($room->config['actor']['fatty_man']['probability'] == 1) {
+            $fattyManNumber = $room->config['actor']['fatty_man']['number'];
+        } else if ($room->config['actor']['fatty_man']['probability'] == 0) {
+            $fattyManNumber = 0;
+        } else {
+            $fattyManNumber = (int) ($room->config['actor']['fatty_man']['number'] * rand((int) (200 * $room->config['actor']['fatty_man']['probability']) - 100, 100) / 100);
+            $fattyManNumber = $fattyManNumber >= 0 ? $fattyManNumber : 0;
+        }
 
-        $eagleNumber = (int) ($room->config['actor']['eagle']['number'] * rand((int) (200 * $room->config['actor']['eagle']['probability']) - 100, 100) / 100);
-        $eagleNumber = $eagleNumber >= 0 ? $eagleNumber : 0;
+        if ($room->config['actor']['eagle']['probability'] == 1) {
+            $eagleNumber = $room->config['actor']['eagle']['number'];
+        } else if ($room->config['actor']['eagle']['probability'] == 0) {
+            $eagleNumber = 0;
+        } else {
+            $eagleNumber = (int) ($room->config['actor']['eagle']['number'] * rand((int) (200 * $room->config['actor']['eagle']['probability']) - 100, 100) / 100);
+            $eagleNumber = $eagleNumber >= 0 ? $eagleNumber : 0;
+        }
 
-        $thiefNumber = (int) ($room->config['actor']['thief']['number'] * rand((int) (200 * $room->config['actor']['thief']['probability']) - 100, 100) / 100);
-        $thiefNumber = $thiefNumber >= 1 ? $thiefNumber : 1;
+        if ($room->config['actor']['thief']['probability'] == 1) {
+            $thiefNumber = $room->config['actor']['thief']['number'];
+        } else if ($room->config['actor']['thief']['probability'] == 0) {
+            $thiefNumber = 1;
+        } else {
+            $thiefNumber = (int) ($room->config['actor']['thief']['number'] * rand((int) (200 * $room->config['actor']['thief']['probability']) - 100, 100) / 100);
+            $thiefNumber = $thiefNumber >= 1 ? $thiefNumber : 1;
+        }
 
         $policemenNumber = $room->config['actor']['policeman']['number'] + $room->config['actor']['thief']['number'] - ($agentNumber + $pegasusNumber + $fattyManNumber + $eagleNumber + $thiefNumber);
 
@@ -502,11 +532,23 @@ class CheckVoting extends Command
 
             if ($player->role == 'THIEF') {
 
-                $blackTicketRand = (int) ($room->config['actor']['thief']['black_ticket']['number'] * rand((int) (200 * $room->config['actor']['thief']['black_ticket']['probability']) - 100, 100) / 100);
-                $blackTicketRand = $blackTicketRand >= 0 ? $blackTicketRand : 0;
+                if ($room->config['actor']['thief']['black_ticket']['probability'] == 1) {
+                    $blackTicketRand = $room->config['actor']['thief']['black_ticket']['number'];
+                } else if ($room->config['actor']['thief']['black_ticket']['probability'] == 0) {
+                    $blackTicketRand = 0;
+                } else {
+                    $blackTicketRand = (int) ($room->config['actor']['thief']['black_ticket']['number'] * rand((int) (200 * $room->config['actor']['thief']['black_ticket']['probability']) - 100, 100) / 100);
+                    $blackTicketRand = $blackTicketRand >= 0 ? $blackTicketRand : 0;
+                }
 
-                $fakePositionRand = (int) ($room->config['actor']['thief']['fake_position']['number'] * rand((int) (200 * $room->config['actor']['thief']['fake_position']['probability']) - 100, 100) / 100);
-                $fakePositionRand = $fakePositionRand >= 0 ? $fakePositionRand : 0;
+                if ($room->config['actor']['thief']['fake_position']['probability'] == 1) {
+                    $fakePositionRand = $room->config['actor']['thief']['fake_position']['number'];
+                } else if ($room->config['actor']['thief']['fake_position']['probability'] == 0) {
+                    $fakePositionRand = 0;
+                } else {
+                    $fakePositionRand = (int) ($room->config['actor']['thief']['fake_position']['number'] * rand((int) (200 * $room->config['actor']['thief']['fake_position']['probability']) - 100, 100) / 100);
+                    $fakePositionRand = $fakePositionRand >= 0 ? $fakePositionRand : 0;
+                }
 
                 $tempConfig = JsonConfig::getDefaultThiefConfig();
                 $tempConfig['black_ticket']['number'] = $blackTicketRand;
@@ -516,8 +558,14 @@ class CheckVoting extends Command
 
             } else {
 
-                $whiteTicketRand = (int) ($room->config['actor']['pegasus']['white_ticket']['number'] * rand((int) (200 * $room->config['actor']['pegasus']['white_ticket']['probability']) - 100, 100) / 100);
-                $whiteTicketRand = $whiteTicketRand >= 0 ? $whiteTicketRand : 0;
+                if ($room->config['actor']['pegasus']['white_ticket']['probability'] == 1) {
+                    $whiteTicketRand = $room->config['actor']['pegasus']['white_ticket']['number'];
+                } else if ($room->config['actor']['pegasus']['white_ticket']['probability'] == 0) {
+                    $whiteTicketRand = 0;
+                } else {
+                    $whiteTicketRand = (int) ($room->config['actor']['pegasus']['white_ticket']['number'] * rand((int) (200 * $room->config['actor']['pegasus']['white_ticket']['probability']) - 100, 100) / 100);
+                    $whiteTicketRand = $whiteTicketRand >= 0 ? $whiteTicketRand : 0;
+                }
 
                 $tempConfig = JsonConfig::getDefaultPegasusConfig();
                 $tempConfig['white_ticket']['number'] = $whiteTicketRand;
