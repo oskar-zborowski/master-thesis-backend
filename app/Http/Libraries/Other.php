@@ -60,7 +60,10 @@ class Other
     public static function setNewHost(Room $room) {
 
         /** @var Player[] $newHosts */
-        $newHosts = $room->players()->where('status', 'CONNECTED')->get();
+        $newHosts = $room->players()->where([
+            'status' => 'CONNECTED',
+            'is_bot' => false,
+        ])->get();
 
         if (count($newHosts) > 0) {
 

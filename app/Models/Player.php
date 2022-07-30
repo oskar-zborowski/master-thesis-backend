@@ -79,7 +79,64 @@ class Player extends BaseModel
             'global_position' => Point::class,
             'hidden_position' => Point::class,
         ]);
-        
+
+        $botNames = [
+            'Bot Alan',
+            'Bot Chris',
+            'Bot Connor',
+            'Bot Elliot',
+            'Bot Frank',
+            'Bot Fred',
+            'Bot Gary',
+            'Bot Graham',
+            'Bot Ivan',
+            'Bot Jerry',
+            'Bot John',
+            'Bot Kevin',
+            'Bot Larry',
+            'Bot Mark',
+            'Bot Matt',
+            'Bot Mike',
+            'Bot Oliver',
+            'Bot Paul',
+            'Bot Pheonix',
+            'Bot Rick',
+            'Bot Rock',
+            'Bot Ryan',
+            'Bot Scott',
+            'Bot Shark',
+            'Bot Stone',
+            'Bot Ted',
+            'Bot Tom',
+            'Bot Will',
+            'Bot Wolf',
+            'Bot Yogi',
+        ];
+
+        /** @var User $user */
+        $user = $this->user()->first();
+
+        if ($user) {
+
+            $userId = $user->id;
+            $userName = $user->name;
+
+        } else {
+
+            $userId = null;
+
+            if ($this->avatar !== null) {
+
+                $botAvatarNumber = explode('_', $this->avatar);
+                $botAvatarNumber = (int) $botAvatarNumber[1];
+
+                $userName = $botNames[$botAvatarNumber-1];
+
+            } else {
+                $userName = 'Bot ...';
+            }
+        }
+
         if ($player->role != 'THIEF' || $this->role == 'THIEF' || $player->status == 'SUPERVISING') {
             $role = $this->role;
         } else {
@@ -156,8 +213,8 @@ class Player extends BaseModel
         return [
             'id' => $this->id,
             'User' => [
-                'id' => $this->user()->first()->id,
-                'name' => $this->user()->first()->name,
+                'id' => $userId,
+                'name' => $userName,
             ],
             'avatar' => $this->avatar,
             'role' => $role,
