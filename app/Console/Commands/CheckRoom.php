@@ -40,10 +40,9 @@ class CheckRoom extends Command
             }
 
             /** @var \App\Models\Player[] $players */
-            $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+            $players = $room->players()->where('is_bot', false)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
 
             $now = now();
-            $playerUpdated = false;
 
             foreach ($players as $player) {
 
@@ -89,18 +88,14 @@ class CheckRoom extends Command
                     $player->next_voting_starts_at = null;
                     $player->save();
 
-                    $playerUpdated = true;
-
                     if ($player->user_id == $room->host_id) {
                         Other::setNewHost($room);
                     }
                 }
             }
 
-            if ($playerUpdated) {
-                /** @var \App\Models\Player[] $players */
-                $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
-            }
+            /** @var \App\Models\Player[] $players */
+            $players = $room->players()->where('is_bot', false)->whereIn('status', ['CONNECTED', 'DISCONNECTED', 'SUPERVISING'])->get();
 
             if (count($players) == 0) {
 

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Http\Libraries\JsonConfig;
 use App\Http\Libraries\Log;
 use App\Http\Libraries\Other;
+use App\Http\Libraries\Validation;
 use App\Models\Connection;
 use App\Models\Player;
 use App\Models\Room;
@@ -214,12 +215,31 @@ class CheckVoting extends Command
 
                     if ($room->voting_type == 'START') {
 
+                        $allPlayers = 0;
+
                         foreach ($players as $player) {
+
                             if ($player->status == 'DISCONNECTED' && $player->voting_answer === null) {
+
                                 $player->role = null;
                                 $player->status = 'LEFT';
                                 $player->save();
+
+                            } else {
+                                $allPlayers++;
                             }
+                        }
+
+                        $botNumber = $room->config['actor']['policeman']['number'] + $room->config['actor']['thief']['number'] - $allPlayers;
+
+                        for ($i=0; $i<$botNumber; $i++) {
+                            $player = new Player;
+                            $player->room_id = $room->id;
+                            $player->user_id = null;
+                            $player->avatar = $this->findAvailableAvatar($room);
+                            $player->is_bot = true;
+                            $player->expected_time_at = date('Y-m-d H:i:s', strtotime('+' . env('GAME_REFRESH') . ' seconds', strtotime(now())));
+                            $player->save();
                         }
 
                         $this->setPlayersRoles($room);
@@ -236,6 +256,7 @@ class CheckVoting extends Command
                         $gameStarted = true;
 
                         shell_exec('php ' . env('APP_ROOT') . "artisan game-course:check $room->id >/dev/null 2>/dev/null &");
+                        shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai:start $room->id >/dev/null 2>/dev/null &");
 
                     } else if ($room->voting_type == 'ENDING_COUNTDOWN') {
 
@@ -278,6 +299,7 @@ class CheckVoting extends Command
                         }
 
                         shell_exec('php ' . env('APP_ROOT') . "artisan game-course:check $room->id >/dev/null 2>/dev/null &");
+                        shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai:start $room->id >/dev/null 2>/dev/null &");
 
                     } else if ($room->voting_type == 'END_GAME') {
 
@@ -505,6 +527,27 @@ class CheckVoting extends Command
 
             $player->save();
         }
+    }
+
+    private function findAvailableAvatar(Room $room) {
+
+        $i = 0;
+        $avatars = Validation::getAvatars();
+        shuffle($avatars);
+
+        do {
+
+            $avatar = $avatars[$i++];
+
+            /** @var Player $isAvatarExists */
+            $isAvatarExists = $room->players()->where([
+                'avatar' => $avatar,
+                'status' => 'CONNECTED',
+            ])->first();
+
+        } while ($isAvatarExists);
+
+        return $avatar;
     }
 
     private function saveGpsLocation(Room $room, int $userId) {

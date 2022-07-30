@@ -133,7 +133,7 @@ class CheckGameCourse extends Command
                         $player->save();
                     }
 
-                    if (in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
+                    if (in_array($player->status, ['CONNECTED', 'DISCONNECTED']) && $player->is_bot == false) {
 
                         if ($player->disconnecting_finished_at === null && $now > date('Y-m-d H:i:s', strtotime('+' . env('DISCONNECTING_TIMEOUT') . ' seconds', strtotime($player->expected_time_at)))) {
 
@@ -203,6 +203,9 @@ class CheckGameCourse extends Command
                             }
                         }
 
+                        $activePlayersNumber++;
+
+                    } else if ($player->status == 'SUPERVISING') {
                         $activePlayersNumber++;
                     }
 
@@ -456,7 +459,7 @@ class CheckGameCourse extends Command
                         $player->save();
                     }
 
-                    if (in_array($player->status, ['CONNECTED', 'DISCONNECTED'])) {
+                    if (in_array($player->status, ['CONNECTED', 'DISCONNECTED']) && $player->is_bot == false) {
 
                         if ($player->disconnecting_finished_at === null && $now > date('Y-m-d H:i:s', strtotime('+' . env('DISCONNECTING_TIMEOUT') . ' seconds', strtotime($player->expected_time_at)))) {
 
@@ -527,6 +530,9 @@ class CheckGameCourse extends Command
                         }
 
                         $activePlayersNumber++;
+
+                    } else if ($player->status == 'SUPERVISING') {
+                        $activePlayersNumber++;
                     }
                 }
 
@@ -582,10 +588,7 @@ class CheckGameCourse extends Command
             if ($room->status == 'GAME_IN_PROGRESS' && $room->config['other']['is_pause_after_disconnecting']) {
 
                 /** @var Player[] $allPlayers */
-                $allPlayers = $room->players()->where([
-                    'is_bot' => false,
-                    'status' => 'CONNECTED',
-                ])->get();
+                $allPlayers = $room->players()->where('is_bot', false)->whereIn('status', ['CONNECTED', 'SUPERVISING'])->get();
 
                 if (count($allPlayers) != $allPlayersNumber) {
 
