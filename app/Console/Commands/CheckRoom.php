@@ -115,7 +115,6 @@ class CheckRoom extends Command
 
                     $room->config = $tempConfig;
                     $room->reporting_user_id = null;
-                    $room->boundary_polygon = null;
                     $room->status = 'GAME_OVER';
                     $room->game_result = 'UNFINISHED';
                     $room->voting_type = null;

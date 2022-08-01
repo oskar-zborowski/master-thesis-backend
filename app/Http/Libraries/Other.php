@@ -28,11 +28,9 @@ class Other
         $tempConfig['duration']['real'] = 0;
         $newRoom->config = $tempConfig;
 
-        $newRoom->boundary_polygon = $room->boundary_polygon;
         $newRoom->boundary_points = $room->boundary_points;
         $newRoom->save();
 
-        $room->boundary_polygon = null;
         $room->save();
 
         /** @var Player[] $players */

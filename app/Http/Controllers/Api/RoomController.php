@@ -160,7 +160,6 @@ class RoomController extends Controller
 
             Validation::checkBoundary($request->boundary_points);
 
-            $room->boundary_polygon = DB::raw("ST_GeomFromText('POLYGON(($request->boundary_points))')");
             $room->boundary_points = $request->boundary_points;
         }
 

@@ -148,6 +148,12 @@ class Player extends BaseModel
             $config = $this->config;
             $globalPosition = $this->hidden_position ? "{$this->hidden_position->longitude} {$this->hidden_position->latitude}" : null;
 
+            if ($player->role == 'THIEF') {
+                $lastDisclosure = $this->global_position ? "{$this->global_position->longitude} {$this->global_position->latitude}" : null;
+            } else {
+                $lastDisclosure = null;
+            }
+
             if ($this->black_ticket_finished_at !== null) {
                 $blackTicketFinishedAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->black_ticket_finished_at)));
             } else {
@@ -163,6 +169,7 @@ class Player extends BaseModel
         } else {
             $config = null;
             $globalPosition = $this->global_position ? "{$this->global_position->longitude} {$this->global_position->latitude}" : null;
+            $lastDisclosure = null;
             $blackTicketFinishedAt = null;
             $fakePositionFinishedAt = null;
         }
@@ -220,6 +227,7 @@ class Player extends BaseModel
             'role' => $role,
             'config' => $config,
             'global_position' => $globalPosition,
+            'lastDisclosure' => $lastDisclosure,
             'is_bot' => $this->is_bot,
             'is_catching' => $this->is_catching,
             'is_caughting' => $this->is_caughting,

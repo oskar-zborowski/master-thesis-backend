@@ -25,7 +25,6 @@ class Room extends BaseModel
         'voivodeship',
         'country',
         'config',
-        'boundary_polygon',
         'boundary_points',
         'status',
         'game_result',
