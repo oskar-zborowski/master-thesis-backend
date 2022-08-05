@@ -137,16 +137,7 @@ class ThiefAi extends Command
 
                                 $equidistantPoint = $this->findEquidistantPoint($c1, $c2, $c3);
 
-                                $equidistantPointExists = false;
-
-                                foreach ($destinations[$thief->id] as $destination) {
-                                    if ($destination['x'] != $equidistantPoint['x'] || $destination['y'] != $equidistantPoint['y'] || $destination['r'] != $equidistantPoint['r']) {
-                                        $equidistantPointExists = true;
-                                        break;
-                                    }
-                                }
-
-                                if (!$equidistantPointExists) {
+                                if (!$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
                                     $destinations[$thief->id][] = [
                                         'x' => $equidistantPoint['x'],
                                         'y' => $equidistantPoint['y'],
@@ -155,7 +146,25 @@ class ThiefAi extends Command
                                 }
 
                             } else if (count($nearestPolicemen) == 1) {
-                                // TODO
+
+                                $c1['x'] = $value['longitude'];
+                                $c1['y'] = $value['latitude'];
+                                $c1['r'] = $this->getPolicemanRadius($room->config, $value['role']);
+
+                                $circle2 = explode(' ', substr($nearestPolicemen[0]->globalPosition, 6, -1));
+                                $c2['x'] = $circle2[0];
+                                $c2['y'] = $circle2[1];
+                                $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role);
+
+                                $equidistantPoint = $this->findSectionMiddle($c1, $c2, true);
+
+                                if (!$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
+                                    $destinations[$thief->id][] = [
+                                        'x' => $equidistantPoint['x'],
+                                        'y' => $equidistantPoint['y'],
+                                        'r' => $equidistantPoint['r'],
+                                    ];
+                                }
                             }
                         }
                     }
@@ -166,32 +175,6 @@ class ThiefAi extends Command
             }
 
             $allThieves = []; // TODO
-
-            if ($policemenNumber == 2) {
-
-                $points = null;
-
-                foreach ($players as $player) {
-
-                    $player->mergeCasts([
-                        'global_position' => Point::class,
-                    ]);
-
-                    $points[] = [
-                        'x' => $player->global_position->longitude,
-                        'y' => $player->global_position->latitude,
-                    ];
-                }
-
-                $R = $this->distanceBetweenTwoPoints($points[0], $points[1]) / 2;
-                $middle = $this->sectionMiddle($points[0], $points[1]);
-
-                $destinations[] = [
-                    'x' => $middle['x'],
-                    'y' => $middle['y'],
-                    'R' => $R,
-                ];
-            }
 
             if ($playersNumber >= 1) {
 
@@ -354,6 +337,35 @@ class ThiefAi extends Command
         }
 
         return $c;
+    }
+
+    private function findSectionMiddle(array $c1, array $c2, bool $includeRadius = false) {
+
+        if ($includeRadius) {
+            $r = ($this->getDistanceBetweenTwoPoints($c1, $c2) - $c1['r'] - $c2['r']) / 2;
+            $c = $this->getShiftedPoint($c1, $c2, $c1['r'] + $r);
+            $c['r'] = $r;
+        } else {
+            $c['x'] = ($c1['x'] + $c2['x']) / 2;
+            $c['y'] = ($c1['y'] + $c2['y']) / 2;
+            $c['r'] = $this->getDistanceBetweenTwoPoints($c1, $c2) / 2;
+        }
+
+        return $c;
+    }
+
+    private function checkPointRepetition(array $destinations, array $equidistantPoint) {
+
+        $equidistantPointExists = false;
+
+        foreach ($destinations as $destination) {
+            if ($destination['x'] != $equidistantPoint['x'] || $destination['y'] != $equidistantPoint['y'] || $destination['r'] != $equidistantPoint['r']) {
+                $equidistantPointExists = true;
+                break;
+            }
+        }
+
+        return $equidistantPointExists;
     }
 
     // TODO Może się przydać do przemieszczania złodzieja po prostej,
