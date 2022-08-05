@@ -18,7 +18,7 @@ class JsonConfig
                 'policeman' => [
                     'number' => 5,
                     'visibility_radius' => -1,
-                    'are_circles_visible' => true,
+                    'are_friends_circles_visible' => true,
                     'catching' => [
                         'number' => 3,
                         'radius' => 100,
@@ -28,7 +28,8 @@ class JsonConfig
                     'number' => 1,
                     'probability' => 1,
                     'visibility_radius' => -1,
-                    'are_circles_visible' => true,
+                    'are_friends_circles_visible' => true,
+                    'are_enemies_circles_visible' => true,
                     'escape_duration' => 300,
                     'disclosure_interval' => 300,
                     'black_ticket' => [
@@ -238,8 +239,8 @@ class JsonConfig
             $gameConfig['actor']['policeman']['visibility_radius'] = $request->actor_policeman_visibility_radius;
         }
 
-        if ($request->actor_policeman_are_circles_visible !== null) {
-            $gameConfig['actor']['policeman']['are_circles_visible'] = $request->actor_policeman_are_circles_visible;
+        if ($request->actor_policeman_are_friends_circles_visible !== null) {
+            $gameConfig['actor']['policeman']['are_friends_circles_visible'] = $request->actor_policeman_are_friends_circles_visible;
         }
 
         if ($request->actor_policeman_catching_number !== null) {
@@ -262,8 +263,12 @@ class JsonConfig
             $gameConfig['actor']['thief']['visibility_radius'] = $request->actor_thief_visibility_radius;
         }
 
-        if ($request->actor_thief_are_circles_visible !== null) {
-            $gameConfig['actor']['thief']['are_circles_visible'] = $request->actor_thief_are_circles_visible;
+        if ($request->actor_thief_are_friends_circles_visible !== null) {
+            $gameConfig['actor']['thief']['are_friends_circles_visible'] = $request->actor_thief_are_friends_circles_visible;
+        }
+
+        if ($request->actor_thief_are_enemies_circles_visible !== null) {
+            $gameConfig['actor']['thief']['are_enemies_circles_visible'] = $request->actor_thief_are_enemies_circles_visible;
         }
 
         if ($request->actor_thief_escape_duration !== null) {

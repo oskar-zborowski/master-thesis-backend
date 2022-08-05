@@ -53,7 +53,7 @@ return new class extends Migration
 //         "policeman": {
 //             "number": 5,
 //             "visibility_radius": -1,
-//             "are_circles_visible": true,
+//             "are_friends_circles_visible": true,
 //             "catching": {
 //                 "number": 3,
 //                 "radius": 100,
@@ -63,7 +63,8 @@ return new class extends Migration
 //             "number": 1,
 //             "probability": 1,
 //             "visibility_radius": -1,
-//             "are_circles_visible": true,
+//             "are_friends_circles_visible": true,
+//             "are_enemies_circles_visible": true,
 //             "escape_duration": 300,
 //             "disclosure_interval": 300,
 //             "black_ticket": {

@@ -46,13 +46,14 @@ class Validation
             'is_cleaning_roles' => 'nullable|boolean',
             'actor_policeman_number' => 'nullable|integer|between:1,29',
             'actor_policeman_visibility_radius' => 'nullable|integer|between:-1,50000',
-            'actor_policeman_are_circles_visible' => 'nullable|boolean',
+            'actor_policeman_are_friends_circles_visible' => 'nullable|boolean',
             'actor_policeman_catching_number' => 'nullable|integer|between:1,29',
             'actor_policeman_catching_radius' => 'nullable|integer|between:5,5000',
             'actor_thief_number' => 'nullable|integer|between:1,29',
             'actor_thief_probability' => 'nullable|numeric|between:0,1',
             'actor_thief_visibility_radius' => 'nullable|integer|between:-1,50000',
-            'actor_thief_are_circles_visible' => 'nullable|boolean',
+            'actor_thief_are_friends_circles_visible' => 'nullable|boolean',
+            'actor_thief_are_enemies_circles_visible' => 'nullable|boolean',
             'actor_thief_escape_duration' => 'nullable|integer|between:30,3600',
             'actor_thief_disclosure_interval' => 'nullable|integer|between:-1,3600',
             'actor_thief_black_ticket_number' => 'nullable|integer|between:0,10',
@@ -402,7 +403,7 @@ class Validation
 
     /**
      * Sprawdzenie czy upłynął określony czas
-     * 
+     *
      * @param string $timeReferencePoint punkt odniesienia względem którego liczony jest czas
      * @param int $timeMarker wartość znacznika czasu przez jak długo jest ważny
      * @param string $comparator jeden z symboli <, >, == lub ich kombinacja, liczone względem bieżącego czasu
