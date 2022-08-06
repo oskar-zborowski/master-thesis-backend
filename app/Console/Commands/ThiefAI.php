@@ -306,6 +306,18 @@ class ThiefAi extends Command
 
     private function findEquidistantPoint(array $c1, array $c2, array $c3) {
 
+        $r1 = $c1['r'];
+        $r2 = $c2['r'];
+        $r3 = $c3['r'];
+
+        $c1 = $this->convertLatLngToXY($c1['y'], $c1['x']);
+        $c2 = $this->convertLatLngToXY($c2['y'], $c2['x']);
+        $c3 = $this->convertLatLngToXY($c3['y'], $c3['x']);
+
+        $c1['r'] = $r1;
+        $c2['r'] = $r2;
+        $c3['r'] = $r3;
+
         $kA = -pow($c1['r'], 2) + pow($c2['r'], 2) + pow($c1['x'], 2) - pow($c2['x'], 2) + pow($c1['y'], 2) - pow($c2['y'], 2);
         $kB = -pow($c1['r'], 2) + pow($c3['r'], 2) + pow($c1['x'], 2) - pow($c3['x'], 2) + pow($c1['y'], 2) - pow($c3['y'], 2);
 
@@ -326,9 +338,13 @@ class ThiefAi extends Command
             $sqrt = pow($g1, 2) - $g0 * $g2;
 
             if ($g2 != 0 && $sqrt >= 0) {
-                $c['r'] = (-sqrt($sqrt) - $g1) / $g2;
-                $c['x'] = $e0 + $e1 * $c['r'];
-                $c['y'] = $f0 + $f1 * $c['r'];
+
+                $r = (-sqrt($sqrt) - $g1) / $g2;
+                $c['x'] = $e0 + $e1 * $r;
+                $c['y'] = $f0 + $f1 * $r;
+
+                $c = $this->convertXYToLatLng($c['x'], $c['y']);
+                $c['r'] = $r;
             }
         }
 
@@ -341,6 +357,15 @@ class ThiefAi extends Command
 
     private function findSectionMiddle(array $c1, array $c2, bool $includeRadius = false) {
 
+        $r1 = $c1['r'];
+        $r2 = $c2['r'];
+
+        $c1 = $this->convertLatLngToXY($c1['y'], $c1['x']);
+        $c2 = $this->convertLatLngToXY($c2['y'], $c2['x']);
+
+        $c1['r'] = $r1;
+        $c2['r'] = $r2;
+
         if ($includeRadius) {
             $r = ($this->getDistanceBetweenTwoPoints($c1, $c2) - $c1['r'] - $c2['r']) / 2;
             $c = $this->getShiftedPoint($c1, $c2, $c1['r'] + $r);
@@ -350,6 +375,10 @@ class ThiefAi extends Command
             $c['y'] = ($c1['y'] + $c2['y']) / 2;
             $c['r'] = $this->getDistanceBetweenTwoPoints($c1, $c2) / 2;
         }
+
+        $r = $c['r'];
+        $c = $this->convertXYToLatLng($c['x'], $c['y']);
+        $c['r'] = $r;
 
         return $c;
     }
@@ -368,8 +397,6 @@ class ThiefAi extends Command
         return $equidistantPointExists;
     }
 
-    // TODO Może się przydać do przemieszczania złodzieja po prostej,
-    // ale i tak będzie trzeba go zabezpieczyć przed napotkanymi policjantami
     private function getShiftedPoint(array $p1, array $p2, float $distance) {
 
         $p12Distance = $this->getDistanceBetweenTwoPoints($p1, $p2);
@@ -389,10 +416,48 @@ class ThiefAi extends Command
         return sqrt(pow($p2['x'] - $p1['x'], 2) + pow($p2['y'] - $p1['y'], 2));
     }
 
-    // TODO Dorobić sprawdzenie czy punkty nie leżą w tym samym miejscu - przyda się to określania jak daleko ma
+    // TODO Dorobić sprawdzenie czy punkty nie leżą w tym samym miejscu - przyda się to do określania jak daleko ma
     // dana pozycja do granicy obwiedni oraz jak daleko ma środek mapy do najbliższej lini granicy - chociaż
     // nie wiem czy bardziej nie przydałoby się wyliczyć odległości odcinka do odcinka korzystając z funkcji mysql
     private function getDistanceFromPointToLine(array $p0, array $p1, array $p2) {
         return abs(($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']) * $p0['x'] + $p0['y'] + ($p1['y'] - $p2['y']) / ($p1['x'] - $p2['x']) * $p1['x'] - $p1['y']) / sqrt(pow(($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']), 2) + 1);
+    }
+
+    /**
+     * Konwersja EPSG:4326 na EPSG:3857
+     */
+    private static function convertLatLngToXY(float $lat, float $lng) {
+
+        $smRadius = 6378136.98;
+        $smRange = $smRadius * pi() * 2.0;
+
+        if ($lat > 86.0) {
+            $y = $smRange;
+        } else if ($lat < -86.0) {
+            $y = -$smRange;
+        } else {
+            $y = log(tan((90 + $lat) * pi() / 360.0)) * 20037508.34 / pi();
+        }
+
+        $x = $lng * 20037508.34 / 180.0;
+
+        $c['x'] = $x;
+        $c['y'] = $y;
+
+        return $c;
+    }
+
+    /**
+     * Konwersja EPSG:3857 na EPSG:4326
+     */
+    private static function convertXYToLatLng(float $x, float $y) {
+
+        $lng = $x * 180.0 / 20037508.34;
+        $lat = atan(exp($y * pi() / 20037508.34)) * 360.0 / pi() - 90.0;
+
+        $c['x'] = $lng;
+        $c['y'] = $lat;
+
+        return $c;
     }
 }
