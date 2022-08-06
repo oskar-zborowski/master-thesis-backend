@@ -426,7 +426,7 @@ class ThiefAi extends Command
     /**
      * Konwersja EPSG:4326 na EPSG:3857
      */
-    private static function convertLatLngToXY(float $lat, float $lng) {
+    private function convertLatLngToXY(float $lat, float $lng) {
 
         $smRadius = 6378136.98;
         $smRange = $smRadius * pi() * 2.0;
@@ -450,7 +450,7 @@ class ThiefAi extends Command
     /**
      * Konwersja EPSG:3857 na EPSG:4326
      */
-    private static function convertXYToLatLng(float $x, float $y) {
+    private function convertXYToLatLng(float $x, float $y) {
 
         $lng = $x * 180.0 / 20037508.34;
         $lat = atan(exp($y * pi() / 20037508.34)) * 360.0 / pi() - 90.0;
