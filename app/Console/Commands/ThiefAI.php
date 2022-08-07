@@ -39,8 +39,11 @@ class ThiefAi extends Command
                 'is_bot' => true,
             ])->get();
 
+            $isDisclosure = false;
+
             $visiblePolicemenByThieves = [];
             $destinations = [];
+            $destinationsConfirmed = [];
 
             if ($room->config['actor']['thief']['visibility_radius'] != -1) {
 
@@ -86,8 +89,6 @@ class ThiefAi extends Command
                     ];
                 }
             }
-
-            $isDisclosure = false;
 
             do {
 
@@ -142,13 +143,15 @@ class ThiefAi extends Command
                                         $coefficient = 1;
                                     }
 
-                                    if (!$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
-                                        $destinations[$thief->id][] = [
-                                            'x' => $equidistantPoint['x'],
-                                            'y' => $equidistantPoint['y'],
-                                            'r' => $equidistantPoint['r'],
-                                            'coefficient' => $coefficient,
-                                        ];
+                                    if ($equidistantPoint) {
+                                        if (!$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
+                                            $destinations[$thief->id][] = [
+                                                'x' => $equidistantPoint['x'],
+                                                'y' => $equidistantPoint['y'],
+                                                'r' => $equidistantPoint['r'],
+                                                'coefficient' => $coefficient,
+                                            ];
+                                        }
                                     }
 
                                 } else if (count($nearestPolicemen) == 1) {
@@ -222,7 +225,7 @@ class ThiefAi extends Command
 
                 } else {
 
-                    if ($visiblePolicemenByThieves['all']) {
+                    if (isset($visiblePolicemenByThieves['all'])) {
 
                         $policemenIdQuery = '(';
 
@@ -260,13 +263,15 @@ class ThiefAi extends Command
                                     $coefficient = 1;
                                 }
 
-                                if (!$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
-                                    $destinations['all'][] = [
-                                        'x' => $equidistantPoint['x'],
-                                        'y' => $equidistantPoint['y'],
-                                        'r' => $equidistantPoint['r'],
-                                        'coefficient' => $coefficient,
-                                    ];
+                                if ($equidistantPoint) {
+                                    if (!$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
+                                        $destinations['all'][] = [
+                                            'x' => $equidistantPoint['x'],
+                                            'y' => $equidistantPoint['y'],
+                                            'r' => $equidistantPoint['r'],
+                                            'coefficient' => $coefficient,
+                                        ];
+                                    }
                                 }
 
                             } else if (count($nearestPolicemen) == 1) {
@@ -340,20 +345,108 @@ class ThiefAi extends Command
 
             } while (!$isDisclosure);
 
-            $allThieves = [];
+            if ($room->config['actor']['thief']['visibility_radius'] != -1) {
 
-            if ($playersNumber == 0) {
+                foreach ($thieves as $thief) {
 
-                $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($room->boundary_points))'))) AS polygonCenter"));
-                $point = explode(' ', substr($polygonCenter[0]->polygonCenter, 6, -1));
-                $p1['x'] = $point[0];
-                $p1['y'] = $point[1];
+                    if (isset($destinations[$thief->id])) {
 
-                $destinations[] = [
-                    'x' => $p1['x'],
-                    'y' => $p1['y'],
-                    'R' => -1,
-                ];
+                        foreach ($destinations[$thief->id] as $destination) {
+
+                            $break = false;
+
+                            $c1['x'] = $destination['x'];
+                            $c1['y'] = $destination['y'];
+                            $c1['r'] = $destination['r'];
+
+                            $point = "{$c1['x']} {$c1['y']}";
+
+                            $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($room->boundary_points))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
+
+                            if ($isIntersects[0]->isIntersects) {
+
+                                foreach ($visiblePolicemenByThieves as $visiblePolicemenByThief) {
+
+                                    foreach ($visiblePolicemenByThief as $visiblePolicemanByThief) {
+
+                                        $c2['x'] = $visiblePolicemanByThief['longitude'];
+                                        $c2['y'] = $visiblePolicemanByThief['latitude'];
+
+                                        $distance = $this->getSphericalDistanceBetweenTwoPoints($c1, $c2);
+
+                                        if ($distance < $c1['r']) {
+                                            $break = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if ($break) {
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!$break && $isIntersects[0]->isIntersects) {
+                                $destinationsConfirmed[$thief->id][] = [
+                                    'x' => $destination['x'],
+                                    'y' => $destination['y'],
+                                    'r' => $destination['r'],
+                                    'coefficient' => $destination['coefficient'],
+                                ];
+                            }
+                        }
+                    }
+                }
+
+            } else {
+
+                if (isset($destinations['all'])) {
+
+                    foreach ($destinations['all'] as $destination) {
+
+                        $break = false;
+
+                        $c1['x'] = $destination['x'];
+                        $c1['y'] = $destination['y'];
+                        $c1['r'] = $destination['r'];
+
+                        $point = "{$c1['x']} {$c1['y']}";
+
+                        $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($room->boundary_points))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
+
+                        if ($isIntersects[0]->isIntersects) {
+
+                            if (isset($visiblePolicemenByThieves['all'])) {
+
+                                foreach ($visiblePolicemenByThieves['all'] as $visiblePolicemanByThief) {
+
+                                    $c2['x'] = $visiblePolicemanByThief['longitude'];
+                                    $c2['y'] = $visiblePolicemanByThief['latitude'];
+
+                                    $distance = $this->getSphericalDistanceBetweenTwoPoints($c1, $c2);
+
+                                    if ($distance < $c1['r']) {
+                                        $break = true;
+                                        break;
+                                    }
+                                }
+
+                                if ($break) {
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!$break && $isIntersects[0]->isIntersects) {
+                            $destinationsConfirmed['all'][] = [
+                                'x' => $destination['x'],
+                                'y' => $destination['y'],
+                                'r' => $destination['r'],
+                                'coefficient' => $destination['coefficient'],
+                            ];
+                        }
+                    }
+                }
             }
 
             /** @var \App\Models\Player[] $thieves */
