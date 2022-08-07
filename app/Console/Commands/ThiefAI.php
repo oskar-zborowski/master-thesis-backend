@@ -167,7 +167,65 @@ class ThiefAi extends Command
                 }
 
             } else {
-                // TODO
+
+                foreach ($visiblePolicemenByThieves['all'] as $key => $value) {
+
+                    $policemanGlobalPosition = "{$value['longitude']} {$value['latitude']}";
+
+                    if ($value['role'] == 'EAGLE') {
+                        $nearestPolicemen = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE id <> $key AND room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ((role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > {$room->config['actor']['policeman']['visibility_radius']}) OR (role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > 0)) ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) ASC LIMIT 2"));
+                    } else {
+                        $nearestPolicemen = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE id <> $key AND room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ((role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > {$room->config['actor']['policeman']['visibility_radius']}) OR (role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > 0)) ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) ASC LIMIT 2"));
+                    }
+
+                    if (count($nearestPolicemen) == 2) {
+
+                        $c1['x'] = $value['longitude'];
+                        $c1['y'] = $value['latitude'];
+                        $c1['r'] = $this->getPolicemanRadius($room->config, $value['role']);
+
+                        $circle2 = explode(' ', substr($nearestPolicemen[0]->globalPosition, 6, -1));
+                        $c2['x'] = $circle2[0];
+                        $c2['y'] = $circle2[1];
+                        $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role);
+
+                        $circle3 = explode(' ', substr($nearestPolicemen[1]->globalPosition, 6, -1));
+                        $c3['x'] = $circle3[0];
+                        $c3['y'] = $circle3[1];
+                        $c3['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[1]->role);
+
+                        $equidistantPoint = $this->findEquidistantPoint($c1, $c2, $c3);
+
+                        if (!$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
+                            $destinations['all'][] = [
+                                'x' => $equidistantPoint['x'],
+                                'y' => $equidistantPoint['y'],
+                                'r' => $equidistantPoint['r'],
+                            ];
+                        }
+
+                    } else if (count($nearestPolicemen) == 1) {
+
+                        $c1['x'] = $value['longitude'];
+                        $c1['y'] = $value['latitude'];
+                        $c1['r'] = $this->getPolicemanRadius($room->config, $value['role']);
+
+                        $circle2 = explode(' ', substr($nearestPolicemen[0]->globalPosition, 6, -1));
+                        $c2['x'] = $circle2[0];
+                        $c2['y'] = $circle2[1];
+                        $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role);
+
+                        $equidistantPoint = $this->findSegmentMiddle($c1, $c2, true);
+
+                        if (!$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
+                            $destinations['all'][] = [
+                                'x' => $equidistantPoint['x'],
+                                'y' => $equidistantPoint['y'],
+                                'r' => $equidistantPoint['r'],
+                            ];
+                        }
+                    }
+                }
             }
 
             $allThieves = [];
