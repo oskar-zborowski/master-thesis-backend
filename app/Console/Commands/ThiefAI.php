@@ -53,20 +53,17 @@ class ThiefAi extends Command
                         ]);
 
                         $thiefHiddenPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
-                        $policemen = DB::select(DB::raw("SELECT id, role, ST_AsText(global_position) AS globalPosition FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefHiddenPosition)'), global_position) <= {$room->config['actor']['thief']['visibility_radius']}"));
+                        $policemen = DB::select(DB::raw("SELECT id, role, ST_AsText(global_position) AS globalPosition FROM players WHERE room_id = $room->id AND global_position IS NOT NULL AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefHiddenPosition)'), global_position) <= {$room->config['actor']['thief']['visibility_radius']}"));
 
                         foreach ($policemen as $policeman) {
 
-                            if ($policeman->globalPosition !== null) {
+                            $policemanGlobalPosition = explode(' ', substr($policeman->globalPosition, 6, -1));
 
-                                $policemanGlobalPosition = explode(' ', substr($policeman->globalPosition, 6, -1));
-
-                                $visiblePolicemenByThieves[$thief->id][$policeman->id] = [
-                                    'role' => $policeman->role,
-                                    'longitude' => $policemanGlobalPosition[0],
-                                    'latitude' => $policemanGlobalPosition[1],
-                                ];
-                            }
+                            $visiblePolicemenByThieves[$thief->id][$policeman->id] = [
+                                'role' => $policeman->role,
+                                'longitude' => $policemanGlobalPosition[0],
+                                'latitude' => $policemanGlobalPosition[1],
+                            ];
                         }
                     }
                 }
@@ -74,70 +71,201 @@ class ThiefAi extends Command
             } else {
 
                 /** @var \App\Models\Player[] $policemen */
-                $policemen = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE'])->get();
+                $policemen = $room->players()->whereNotNull('global_position')->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE'])->get();
 
                 foreach ($policemen as $policeman) {
 
-                    if ($policeman->global_position !== null) {
+                    $policeman->mergeCasts([
+                        'global_position' => Point::class,
+                    ]);
 
-                        $policeman->mergeCasts([
-                            'global_position' => Point::class,
-                        ]);
-
-                        $visiblePolicemenByThieves['all'][$policeman->id] = [
-                            'role' => $policeman->role,
-                            'longitude' => $policeman->global_position->longitude,
-                            'latitude' => $policeman->global_position->latitude,
-                        ];
-                    }
+                    $visiblePolicemenByThieves['all'][$policeman->id] = [
+                        'role' => $policeman->role,
+                        'longitude' => $policeman->global_position->longitude,
+                        'latitude' => $policeman->global_position->latitude,
+                    ];
                 }
             }
 
-            if ($room->config['actor']['thief']['visibility_radius'] != -1) {
+            $isDisclosure = false;
 
-                foreach ($thieves as $thief) {
+            do {
 
-                    if (isset($visiblePolicemenByThieves[$thief->id])) {
+                if ($room->config['actor']['thief']['visibility_radius'] != -1) {
 
-                        $thief->mergeCasts([
-                            'hidden_position' => Point::class,
-                        ]);
+                    foreach ($thieves as $thief) {
 
-                        $thiefHiddenPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
+                        if (isset($visiblePolicemenByThieves[$thief->id])) {
 
-                        foreach ($visiblePolicemenByThieves[$thief->id] as $key => $value) {
+                            $thief->mergeCasts([
+                                'hidden_position' => Point::class,
+                            ]);
+
+                            $thiefHiddenPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
+
+                            $policemenIdQuery = '(';
+
+                            foreach ($visiblePolicemenByThieves[$thief->id] as $key => $value) {
+
+                                $policemanGlobalPosition = "{$value['longitude']} {$value['latitude']}";
+
+                                if ($value['role'] == 'EAGLE') {
+                                    $nearestPolicemen = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE id <> $key AND room_id = $room->id AND global_position IS NOT NULL AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefHiddenPosition)'), global_position) <= {$room->config['actor']['thief']['visibility_radius']} AND ((role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > {$room->config['actor']['policeman']['visibility_radius']}) OR (role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > 0)) ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) ASC LIMIT 2"));
+                                } else {
+                                    $nearestPolicemen = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE id <> $key AND room_id = $room->id AND global_position IS NOT NULL AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefHiddenPosition)'), global_position) <= {$room->config['actor']['thief']['visibility_radius']} AND ((role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > {$room->config['actor']['policeman']['visibility_radius']}) OR (role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > 0)) ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) ASC LIMIT 2"));
+                                }
+
+                                if (count($nearestPolicemen) == 2) {
+
+                                    $c1['x'] = $value['longitude'];
+                                    $c1['y'] = $value['latitude'];
+
+                                    $policemanRadius = $this->getPolicemanRadius($room->config, $value['role'], $isDisclosure);
+                                    $isDisclosure = $policemanRadius['isDisclosure'];
+                                    $c1['r'] = $policemanRadius['r'];
+
+                                    $circle2 = explode(' ', substr($nearestPolicemen[0]->globalPosition, 6, -1));
+                                    $c2['x'] = $circle2[0];
+                                    $c2['y'] = $circle2[1];
+                                    $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role, $isDisclosure)['r'];
+
+                                    $circle3 = explode(' ', substr($nearestPolicemen[1]->globalPosition, 6, -1));
+                                    $c3['x'] = $circle3[0];
+                                    $c3['y'] = $circle3[1];
+                                    $c3['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[1]->role, $isDisclosure)['r'];
+
+                                    $equidistantPoint = $this->findEquidistantPoint($c1, $c2, $c3);
+
+                                    if ($isDisclosure) {
+                                        $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                    } else {
+                                        $coefficient = 1;
+                                    }
+
+                                    if (!$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
+                                        $destinations[$thief->id][] = [
+                                            'x' => $equidistantPoint['x'],
+                                            'y' => $equidistantPoint['y'],
+                                            'r' => $equidistantPoint['r'],
+                                            'coefficient' => $coefficient,
+                                        ];
+                                    }
+
+                                } else if (count($nearestPolicemen) == 1) {
+
+                                    $c1['x'] = $value['longitude'];
+                                    $c1['y'] = $value['latitude'];
+                                    $c1['r'] = $this->getPolicemanRadius($room->config, $value['role'], $isDisclosure)['r'];
+
+                                    $circle2 = explode(' ', substr($nearestPolicemen[0]->globalPosition, 6, -1));
+                                    $c2['x'] = $circle2[0];
+                                    $c2['y'] = $circle2[1];
+                                    $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role, $isDisclosure)['r'];
+
+                                    $equidistantPoint = $this->findSegmentMiddle($c1, $c2, true);
+
+                                    if ($isDisclosure) {
+                                        $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                    } else {
+                                        $coefficient = 1;
+                                    }
+
+                                    if (!$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
+                                        $destinations[$thief->id][] = [
+                                            'x' => $equidistantPoint['x'],
+                                            'y' => $equidistantPoint['y'],
+                                            'r' => $equidistantPoint['r'],
+                                            'coefficient' => $coefficient,
+                                        ];
+                                    }
+                                }
+
+                                $policemenIdQuery .= "id = $key OR ";
+                            }
+
+                            if ($policemenIdQuery != '(') {
+
+                                $policemenIdQuery = substr($policemenIdQuery, 0, -4);
+                                $policemenIdQuery .= ')';
+
+                                $boundaryPoints = explode(',', $room->boundary_points);
+
+                                foreach ($boundaryPoints as $boundaryPoint) {
+
+                                    $nearestPoliceman = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE $policemenIdQuery ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($boundaryPoint)'), global_position) ASC LIMIT 1"));
+
+                                    $bP = explode(' ', $boundaryPoint);
+                                    $c1['x'] = $bP[0];
+                                    $c1['y'] = $bP[1];
+
+                                    $circle2 = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
+                                    $c2['x'] = $circle2[0];
+                                    $c2['y'] = $circle2[1];
+                                    $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure)['r'];
+
+                                    if ($isDisclosure) {
+                                        $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                    } else {
+                                        $coefficient = 1;
+                                    }
+
+                                    $destinations[$thief->id][] = [
+                                        'x' => $c1['x'],
+                                        'y' => $c1['y'],
+                                        'r' => $this->getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
+                                        'coefficient' => $coefficient,
+                                    ];
+                                }
+                            }
+                        }
+                    }
+
+                } else {
+
+                    if ($visiblePolicemenByThieves['all']) {
+
+                        $policemenIdQuery = '(';
+
+                        foreach ($visiblePolicemenByThieves['all'] as $key => $value) {
 
                             $policemanGlobalPosition = "{$value['longitude']} {$value['latitude']}";
 
                             if ($value['role'] == 'EAGLE') {
-                                $nearestPolicemen = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE id <> $key AND room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefHiddenPosition)'), global_position) <= {$room->config['actor']['thief']['visibility_radius']} AND ((role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > {$room->config['actor']['policeman']['visibility_radius']}) OR (role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > 0)) ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) ASC LIMIT 2"));
+                                $nearestPolicemen = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE id <> $key AND room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ((role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > {$room->config['actor']['policeman']['visibility_radius']}) OR (role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > 0)) ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) ASC LIMIT 2"));
                             } else {
-                                $nearestPolicemen = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE id <> $key AND room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefHiddenPosition)'), global_position) <= {$room->config['actor']['thief']['visibility_radius']} AND ((role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > {$room->config['actor']['policeman']['visibility_radius']}) OR (role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > 0)) ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) ASC LIMIT 2"));
+                                $nearestPolicemen = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE id <> $key AND room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ((role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > {$room->config['actor']['policeman']['visibility_radius']}) OR (role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > 0)) ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) ASC LIMIT 2"));
                             }
 
                             if (count($nearestPolicemen) == 2) {
 
                                 $c1['x'] = $value['longitude'];
                                 $c1['y'] = $value['latitude'];
-                                $c1['r'] = $this->getPolicemanRadius($room->config, $value['role']);
+                                $c1['r'] = $this->getPolicemanRadius($room->config, $value['role'], $isDisclosure)['r'];
 
                                 $circle2 = explode(' ', substr($nearestPolicemen[0]->globalPosition, 6, -1));
                                 $c2['x'] = $circle2[0];
                                 $c2['y'] = $circle2[1];
-                                $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role);
+                                $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role, $isDisclosure)['r'];
 
                                 $circle3 = explode(' ', substr($nearestPolicemen[1]->globalPosition, 6, -1));
                                 $c3['x'] = $circle3[0];
                                 $c3['y'] = $circle3[1];
-                                $c3['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[1]->role);
+                                $c3['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[1]->role, $isDisclosure)['r'];
 
                                 $equidistantPoint = $this->findEquidistantPoint($c1, $c2, $c3);
 
-                                if (!$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
-                                    $destinations[$thief->id][] = [
+                                if ($isDisclosure) {
+                                    $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                } else {
+                                    $coefficient = 1;
+                                }
+
+                                if (!$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
+                                    $destinations['all'][] = [
                                         'x' => $equidistantPoint['x'],
                                         'y' => $equidistantPoint['y'],
                                         'r' => $equidistantPoint['r'],
+                                        'coefficient' => $coefficient,
                                     ];
                                 }
 
@@ -145,117 +273,76 @@ class ThiefAi extends Command
 
                                 $c1['x'] = $value['longitude'];
                                 $c1['y'] = $value['latitude'];
-                                $c1['r'] = $this->getPolicemanRadius($room->config, $value['role']);
+                                $c1['r'] = $this->getPolicemanRadius($room->config, $value['role'], $isDisclosure)['r'];
 
                                 $circle2 = explode(' ', substr($nearestPolicemen[0]->globalPosition, 6, -1));
                                 $c2['x'] = $circle2[0];
                                 $c2['y'] = $circle2[1];
-                                $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role);
+                                $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role, $isDisclosure)['r'];
 
                                 $equidistantPoint = $this->findSegmentMiddle($c1, $c2, true);
 
-                                if (!$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
-                                    $destinations[$thief->id][] = [
+                                if ($isDisclosure) {
+                                    $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                } else {
+                                    $coefficient = 1;
+                                }
+
+                                if (!$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
+                                    $destinations['all'][] = [
                                         'x' => $equidistantPoint['x'],
                                         'y' => $equidistantPoint['y'],
                                         'r' => $equidistantPoint['r'],
+                                        'coefficient' => $coefficient,
                                     ];
                                 }
+                            }
+
+                            $policemenIdQuery .= "id = $key OR ";
+                        }
+
+                        if ($policemenIdQuery != '(') {
+
+                            $policemenIdQuery = substr($policemenIdQuery, 0, -4);
+                            $policemenIdQuery .= ')';
+
+                            $boundaryPoints = explode(',', $room->boundary_points);
+
+                            foreach ($boundaryPoints as $boundaryPoint) {
+
+                                $nearestPoliceman = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE $policemenIdQuery ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($boundaryPoint)'), global_position) ASC LIMIT 1"));
+
+                                $bP = explode(' ', $boundaryPoint);
+                                $c1['x'] = $bP[0];
+                                $c1['y'] = $bP[1];
+
+                                $circle2 = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
+                                $c2['x'] = $circle2[0];
+                                $c2['y'] = $circle2[1];
+                                $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure)['r'];
+
+                                if ($isDisclosure) {
+                                    $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                } else {
+                                    $coefficient = 1;
+                                }
+
+                                $destinations['all'][] = [
+                                    'x' => $c1['x'],
+                                    'y' => $c1['y'],
+                                    'r' => $this->getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
+                                    'coefficient' => $coefficient,
+                                ];
                             }
                         }
                     }
                 }
 
-            } else {
-
-                foreach ($visiblePolicemenByThieves['all'] as $key => $value) {
-
-                    $policemanGlobalPosition = "{$value['longitude']} {$value['latitude']}";
-
-                    if ($value['role'] == 'EAGLE') {
-                        $nearestPolicemen = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE id <> $key AND room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ((role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > {$room->config['actor']['policeman']['visibility_radius']}) OR (role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > 0)) ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) ASC LIMIT 2"));
-                    } else {
-                        $nearestPolicemen = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE id <> $key AND room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ((role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > {$room->config['actor']['policeman']['visibility_radius']}) OR (role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) > 0)) ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($policemanGlobalPosition)'), global_position) ASC LIMIT 2"));
-                    }
-
-                    if (count($nearestPolicemen) == 2) {
-
-                        $c1['x'] = $value['longitude'];
-                        $c1['y'] = $value['latitude'];
-                        $c1['r'] = $this->getPolicemanRadius($room->config, $value['role']);
-
-                        $circle2 = explode(' ', substr($nearestPolicemen[0]->globalPosition, 6, -1));
-                        $c2['x'] = $circle2[0];
-                        $c2['y'] = $circle2[1];
-                        $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role);
-
-                        $circle3 = explode(' ', substr($nearestPolicemen[1]->globalPosition, 6, -1));
-                        $c3['x'] = $circle3[0];
-                        $c3['y'] = $circle3[1];
-                        $c3['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[1]->role);
-
-                        $equidistantPoint = $this->findEquidistantPoint($c1, $c2, $c3);
-
-                        if (!$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
-                            $destinations['all'][] = [
-                                'x' => $equidistantPoint['x'],
-                                'y' => $equidistantPoint['y'],
-                                'r' => $equidistantPoint['r'],
-                            ];
-                        }
-
-                    } else if (count($nearestPolicemen) == 1) {
-
-                        $c1['x'] = $value['longitude'];
-                        $c1['y'] = $value['latitude'];
-                        $c1['r'] = $this->getPolicemanRadius($room->config, $value['role']);
-
-                        $circle2 = explode(' ', substr($nearestPolicemen[0]->globalPosition, 6, -1));
-                        $c2['x'] = $circle2[0];
-                        $c2['y'] = $circle2[1];
-                        $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role);
-
-                        $equidistantPoint = $this->findSegmentMiddle($c1, $c2, true);
-
-                        if (!$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
-                            $destinations['all'][] = [
-                                'x' => $equidistantPoint['x'],
-                                'y' => $equidistantPoint['y'],
-                                'r' => $equidistantPoint['r'],
-                            ];
-                        }
-                    }
-                }
-            }
+            } while (!$isDisclosure);
 
             $allThieves = [];
 
-            if ($playersNumber >= 1) {
-
-                $boundaryPoints = explode(',', $room->boundary_points);
-
-                foreach ($boundaryPoints as $boundaryPoint) {
-
-                    $nearestPoliceman = DB::select(DB::raw("SELECT ST_AsText(global_position) AS globalPosition FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($boundaryPoint)'), global_position) ASC LIMIT 1"));
-
-                    $point = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
-                    $p1['x'] = $point[0];
-                    $p1['y'] = $point[1];
-
-                    $boundaryPoint = explode(' ', $boundaryPoint);
-                    $p2['x'] = $boundaryPoint[0];
-                    $p2['y'] = $boundaryPoint[1];
-
-                    $R = $this->distanceBetweenTwoPoints($p1, $p2);
-
-                    $destinations[] = [
-                        'x' => $p2['x'],
-                        'y' => $p2['y'],
-                        'R' => $R,
-                    ];
-                }
-
-            } else {
+            if ($playersNumber == 0) {
 
                 $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($room->boundary_points))'))) AS polygonCenter"));
                 $point = explode(' ', substr($polygonCenter[0]->polygonCenter, 6, -1));
