@@ -174,6 +174,7 @@ return [
         'pegasus-number-exceeded' => 'The number of Pegasus cannot be reduced as the current number of players with the Pegasus role will be greater than planned.',
         'players-number-exceeded' => 'The game cannot start because the number of players has been exceeded.',
         'policemen-number-exceeded' => 'The number of players on the side of catching and having special skills must not exceed the total number of Policemen.',
+        'policeman-visibility-radius' => 'The radius of detection of Thieves by Police officers must not be smaller than the radius of catching.',
         'thief-number-exceeded' => 'The number of Thieves cannot be reduced as the current number of players with the Thief role will be greater than planned.',
         'undefined-request-fields-detected' => 'Undefined request fields detected: fields.',
         'user-is-not-in-room' => 'The specified user is not in the room.',

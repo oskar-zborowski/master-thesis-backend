@@ -174,6 +174,7 @@ return [
         'pegasus-number-exceeded' => 'Nie można zmniejszyć liczby Pegasusów, ponieważ aktualna liczba graczy z rolą Pegasusa będzie większa niż zaplanowana.',
         'players-number-exceeded' => 'Gra nie może wystartować, ponieważ przekroczono liczbę graczy.',
         'policemen-number-exceeded' => 'Liczba graczy po stronie łapiących i posiadających specjalne umiejętności, nie może być większa niż całkowita liczba Policjantów.',
+        'policeman-visibility-radius' => 'Promień wykrywania Złodziei przez Policjantów nie może być mniejszy niż promień łapania.',
         'thief-number-exceeded' => 'Nie można zmniejszyć liczby Złodzei, ponieważ aktualna liczba graczy z rolą Złodzieja będzie większa niż zaplanowana.',
         'undefined-request-fields-detected' => 'Wykryto niezdefiniowane pola żądania: :fields.',
         'user-is-not-in-room' => 'Podany użytkownik nie znajduje się w pokoju.',

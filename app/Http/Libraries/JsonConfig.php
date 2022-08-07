@@ -231,6 +231,26 @@ class JsonConfig
             );
         }
 
+        if ($request->actor_policeman_visibility_radius !== null) {
+            $policemanVisibilityRadius = $request->actor_policeman_visibility_radius;
+        } else {
+            $policemanVisibilityRadius = $gameConfig['actor']['policeman']['visibility_radius'];
+        }
+
+        if ($request->actor_policeman_catching_radius !== null) {
+            $policemanCatchingRadius = $request->actor_policeman_catching_radius;
+        } else {
+            $policemanCatchingRadius = $gameConfig['actor']['policeman']['catching']['radius'];
+        }
+
+        if ($policemanVisibilityRadius < $policemanCatchingRadius) {
+            throw new ApiException(
+                DefaultErrorCode::FAILED_VALIDATION(),
+                __('validation.custom.policeman-visibility-radius'),
+                __FUNCTION__
+            );
+        }
+
         if ($request->actor_policeman_number !== null) {
             $gameConfig['actor']['policeman']['number'] = $request->actor_policeman_number;
         }
@@ -260,6 +280,15 @@ class JsonConfig
         }
 
         if ($request->actor_thief_visibility_radius !== null) {
+
+            if ($request->actor_thief_visibility_radius != -1 && $request->actor_thief_visibility_radius < 0) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.between.numeric', ['min' => 0, 'max' => 50000]),
+                    __FUNCTION__
+                );
+            }
+
             $gameConfig['actor']['thief']['visibility_radius'] = $request->actor_thief_visibility_radius;
         }
 
@@ -276,6 +305,15 @@ class JsonConfig
         }
 
         if ($request->actor_thief_disclosure_interval !== null) {
+
+            if ($request->actor_thief_disclosure_interval != -1 && $request->actor_thief_disclosure_interval < 0) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.between.numeric', ['min' => 0, 'max' => 3600]),
+                    __FUNCTION__
+                );
+            }
+
             $gameConfig['actor']['thief']['disclosure_interval'] = $request->actor_thief_disclosure_interval;
         }
 
@@ -352,10 +390,28 @@ class JsonConfig
         }
 
         if ($request->other_max_speed !== null) {
+
+            if ($request->other_max_speed != -1 && $request->other_max_speed < 1.5) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.between.numeric', ['min' => 1.5, 'max' => 15]),
+                    __FUNCTION__
+                );
+            }
+
             $gameConfig['other']['max_speed'] = $request->other_max_speed;
         }
 
         if ($request->other_warning_number !== null) {
+
+            if ($request->other_warning_number != -1 && $request->other_warning_number < 0) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.between.numeric', ['min' => 0, 'max' => 5]),
+                    __FUNCTION__
+                );
+            }
+
             $gameConfig['other']['warning_number'] = $request->other_warning_number;
         }
 
@@ -364,10 +420,28 @@ class JsonConfig
         }
 
         if ($request->other_disconnecting_countdown !== null) {
+
+            if ($request->other_disconnecting_countdown != -1 && $request->other_disconnecting_countdown < 0) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.between.numeric', ['min' => 0, 'max' => 900]),
+                    __FUNCTION__
+                );
+            }
+
             $gameConfig['other']['disconnecting_countdown'] = $request->other_disconnecting_countdown;
         }
 
         if ($request->other_crossing_boundary_countdown !== null) {
+
+            if ($request->other_crossing_boundary_countdown != -1 && $request->other_crossing_boundary_countdown < 0) {
+                throw new ApiException(
+                    DefaultErrorCode::FAILED_VALIDATION(),
+                    __('validation.between.numeric', ['min' => 0, 'max' => 900]),
+                    __FUNCTION__
+                );
+            }
+
             $gameConfig['other']['crossing_boundary_countdown'] = $request->other_crossing_boundary_countdown;
         }
 
