@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Libraries\Geometry;
 use App\Http\Libraries\JsonConfig;
 use App\Http\Libraries\Log;
 use App\Http\Libraries\Other;
@@ -599,8 +600,17 @@ class CheckVoting extends Command
 
     private function saveGpsLocation(Room $room, int $userId) {
 
-        $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($room->boundary_points))'))) AS polygonCenter"));
+        $boundary = Geometry::convertGeometryLatLngToXY($room->boundary_points);
+        $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($boundary))'))) AS polygonCenter"));
         $gpsLocation = substr($polygonCenter[0]->polygonCenter, 6, -1);
+        $gpsLocation = explode(' ', $gpsLocation);
+
+        $point['x'] = $gpsLocation[0];
+        $point['y'] = $gpsLocation[1];
+
+        $p = Geometry::convertXYToLatLng($point);
+
+        $gpsLocation = "{$p['y']} {$p['x']}";
 
         /** @var Connection $connection */
         $connection = Connection::where('user_id', $userId)->orderBy('updated_at', 'desc')->first();

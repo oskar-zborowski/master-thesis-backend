@@ -92,8 +92,28 @@ class Geometry
 
     public static function findLinesIntersection(array $p1, array $p2, array $p3, array $p4) {
 
-        $p['x'] = ($p3['y'] - $p1['y'] + ($p4['y'] - $p3['y']) / ($p3['x'] - $p4['x']) * $p3['x'] + ($p1['y'] - $p2['y']) / ($p1['x'] - $p2['x']) * $p1['x']) / (($p1['y'] - $p2['y']) / ($p1['x'] - $p2['x']) + ($p4['y'] - $p3['y']) / ($p3['x'] - $p4['x']));
-        $p['y'] = ($p1['y'] - $p2['y']) / ($p1['x'] - $p2['x']) * $p['x'] + $p1['y'] + ($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']) * $p1['x'];
+        $divisionByZero = false;
+
+        $denominator1 = $p3['x'] - $p4['x'];
+        $denominator2 = $p1['x'] - $p2['x'];
+
+        if ($denominator1 == 0 || $denominator2 == 0) {
+            $divisionByZero = true;
+        } else {
+
+            $fraction = ($p1['y'] - $p2['y']) / $denominator2 + ($p4['y'] - $p3['y']) / $denominator1;
+
+            if ($fraction == 0) {
+                $divisionByZero = true;
+            } else {
+                $p['x'] = ($p3['y'] - $p1['y'] + ($p4['y'] - $p3['y']) / ($p3['x'] - $p4['x']) * $p3['x'] + ($p1['y'] - $p2['y']) / ($p1['x'] - $p2['x']) * $p1['x']) / (($p1['y'] - $p2['y']) / ($p1['x'] - $p2['x']) + ($p4['y'] - $p3['y']) / ($p3['x'] - $p4['x']));
+                $p['y'] = ($p1['y'] - $p2['y']) / ($p1['x'] - $p2['x']) * $p['x'] + $p1['y'] + ($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']) * $p1['x'];
+            }
+        }
+
+        if ($divisionByZero) {
+            $p = false;
+        }
 
         return $p;
     }

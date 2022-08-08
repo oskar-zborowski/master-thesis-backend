@@ -139,9 +139,9 @@ class ThiefAi extends Command
                                     $equidistantPoint = Geometry::findEquidistantPoint($c1, $c2, $c3);
 
                                     if ($isDisclosure) {
-                                        $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                        $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
                                     } else {
-                                        $coefficient = 1;
+                                        $disclosureDistanceCoefficient = 1;
                                     }
 
                                     if ($equidistantPoint) {
@@ -150,7 +150,7 @@ class ThiefAi extends Command
                                                 'x' => $equidistantPoint['x'],
                                                 'y' => $equidistantPoint['y'],
                                                 'r' => $equidistantPoint['r'],
-                                                'coefficient' => $coefficient,
+                                                'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
                                             ];
                                         }
                                     }
@@ -169,9 +169,9 @@ class ThiefAi extends Command
                                     $equidistantPoint = Geometry::findSegmentMiddle($c1, $c2, true);
 
                                     if ($isDisclosure) {
-                                        $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                        $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
                                     } else {
-                                        $coefficient = 1;
+                                        $disclosureDistanceCoefficient = 1;
                                     }
 
                                     if (!$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
@@ -179,7 +179,7 @@ class ThiefAi extends Command
                                             'x' => $equidistantPoint['x'],
                                             'y' => $equidistantPoint['y'],
                                             'r' => $equidistantPoint['r'],
-                                            'coefficient' => $coefficient,
+                                            'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
                                         ];
                                     }
                                 }
@@ -208,16 +208,16 @@ class ThiefAi extends Command
                                     $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure)['r'];
 
                                     if ($isDisclosure) {
-                                        $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                        $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
                                     } else {
-                                        $coefficient = 1;
+                                        $disclosureDistanceCoefficient = 1;
                                     }
 
                                     $destinations[$thief->id][] = [
                                         'x' => $c1['x'],
                                         'y' => $c1['y'],
                                         'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
-                                        'coefficient' => $coefficient,
+                                        'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
                                     ];
                                 }
                             }
@@ -259,9 +259,9 @@ class ThiefAi extends Command
                                 $equidistantPoint = Geometry::findEquidistantPoint($c1, $c2, $c3);
 
                                 if ($isDisclosure) {
-                                    $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                    $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
                                 } else {
-                                    $coefficient = 1;
+                                    $disclosureDistanceCoefficient = 1;
                                 }
 
                                 if ($equidistantPoint) {
@@ -270,7 +270,7 @@ class ThiefAi extends Command
                                             'x' => $equidistantPoint['x'],
                                             'y' => $equidistantPoint['y'],
                                             'r' => $equidistantPoint['r'],
-                                            'coefficient' => $coefficient,
+                                            'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
                                         ];
                                     }
                                 }
@@ -289,9 +289,9 @@ class ThiefAi extends Command
                                 $equidistantPoint = Geometry::findSegmentMiddle($c1, $c2, true);
 
                                 if ($isDisclosure) {
-                                    $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                    $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
                                 } else {
-                                    $coefficient = 1;
+                                    $disclosureDistanceCoefficient = 1;
                                 }
 
                                 if (!$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
@@ -299,7 +299,7 @@ class ThiefAi extends Command
                                         'x' => $equidistantPoint['x'],
                                         'y' => $equidistantPoint['y'],
                                         'r' => $equidistantPoint['r'],
-                                        'coefficient' => $coefficient,
+                                        'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
                                     ];
                                 }
                             }
@@ -328,16 +328,16 @@ class ThiefAi extends Command
                                 $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure)['r'];
 
                                 if ($isDisclosure) {
-                                    $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                    $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
                                 } else {
-                                    $coefficient = 1;
+                                    $disclosureDistanceCoefficient = 1;
                                 }
 
                                 $destinations['all'][] = [
                                     'x' => $c1['x'],
                                     'y' => $c1['y'],
                                     'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
-                                    'coefficient' => $coefficient,
+                                    'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
                                 ];
                             }
                         }
@@ -392,11 +392,69 @@ class ThiefAi extends Command
                             }
 
                             if (!$break && $isIntersects[0]->isIntersects) {
+
+                                $boundary = Geometry::convertGeometryLatLngToXY($room->boundary_points);
+                                $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($boundary))'))) AS polygonCenter"));
+                                $polygonCenter = substr($polygonCenter[0]->polygonCenter, 6, -1);
+
+                                $point = explode(' ', $polygonCenter);
+
+                                $p1['x'] = $point[0];
+                                $p1['y'] = $point[1];
+
+                                $p2['x'] = $destination['x'];
+                                $p2['y'] = $destination['y'];
+
+                                $p2 = Geometry::convertLatLngToXY($p2);
+
+                                $lastPoint = null;
+                                $minDistance = null;
+                                $minDistancePoint = null;
+
+                                $boundaryPoints = explode(',', $boundary);
+
+                                foreach ($boundaryPoints as $boundaryPoint) {
+
+                                    $boundaryPoint = explode(' ', $boundaryPoint);
+
+                                    $p3['x'] = $boundaryPoint[0];
+                                    $p3['y'] = $boundaryPoint[1];
+
+                                    if ($lastPoint !== null) {
+
+                                        $linesIntersection = Geometry::findLinesIntersection($p1, $p2, $p3, $lastPoint);
+
+                                        if ($linesIntersection) {
+
+                                            $linesIntersection = Geometry::convertXYToLatLng($linesIntersection);
+
+                                            $pDestination['x'] = $destination['x'];
+                                            $pDestination['y'] = $destination['y'];
+
+                                            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($pDestination, $linesIntersection);
+
+                                            if ($minDistance === null || $distance < $minDistance) {
+                                                $minDistance = $distance;
+                                                $minDistancePoint = $linesIntersection;
+                                            }
+                                        }
+                                    }
+
+                                    $lastPoint['x'] = $boundaryPoint[0];
+                                    $lastPoint['y'] = $boundaryPoint[1];
+                                }
+
+                                $centerLatLon = Geometry::convertXYToLatLng($p1);
+                                $centerToBoundaryDistance = Geometry::getSphericalDistanceBetweenTwoPoints($centerLatLon, $minDistancePoint);
+
+                                $distanceToCenterCoefficient = $minDistance / $centerToBoundaryDistance * 0.625 + 0.375;
+
                                 $destinationsConfirmed[$thief->id][] = [
                                     'x' => $destination['x'],
                                     'y' => $destination['y'],
                                     'r' => $destination['r'],
-                                    'coefficient' => $destination['coefficient'],
+                                    'disclosureDistanceCoefficient' => $destination['disclosureDistanceCoefficient'],
+                                    'distanceToCenterCoefficient' => $distanceToCenterCoefficient,
                                 ];
                             }
                         }
@@ -447,67 +505,72 @@ class ThiefAi extends Command
                         }
 
                         if (!$break && $isIntersects[0]->isIntersects) {
+
+                            $boundary = Geometry::convertGeometryLatLngToXY($room->boundary_points);
+                            $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($boundary))'))) AS polygonCenter"));
+                            $polygonCenter = substr($polygonCenter[0]->polygonCenter, 6, -1);
+
+                            $point = explode(' ', $polygonCenter);
+
+                            $p1['x'] = $point[0];
+                            $p1['y'] = $point[1];
+
+                            $p2['x'] = $destination['x'];
+                            $p2['y'] = $destination['y'];
+
+                            $p2 = Geometry::convertLatLngToXY($p2);
+
+                            $lastPoint = null;
+                            $minDistance = null;
+                            $minDistancePoint = null;
+
+                            $boundaryPoints = explode(',', $boundary);
+
+                            foreach ($boundaryPoints as $boundaryPoint) {
+
+                                $boundaryPoint = explode(' ', $boundaryPoint);
+
+                                $p3['x'] = $boundaryPoint[0];
+                                $p3['y'] = $boundaryPoint[1];
+
+                                if ($lastPoint !== null) {
+
+                                    $linesIntersection = Geometry::findLinesIntersection($p1, $p2, $p3, $lastPoint);
+
+                                    if ($linesIntersection) {
+
+                                        $linesIntersection = Geometry::convertXYToLatLng($linesIntersection);
+
+                                        $pDestination['x'] = $destination['x'];
+                                        $pDestination['y'] = $destination['y'];
+
+                                        $distance = Geometry::getSphericalDistanceBetweenTwoPoints($pDestination, $linesIntersection);
+
+                                        if ($minDistance === null || $distance < $minDistance) {
+                                            $minDistance = $distance;
+                                            $minDistancePoint = $linesIntersection;
+                                        }
+                                    }
+                                }
+
+                                $lastPoint['x'] = $boundaryPoint[0];
+                                $lastPoint['y'] = $boundaryPoint[1];
+                            }
+
+                            $centerLatLon = Geometry::convertXYToLatLng($p1);
+                            $centerToBoundaryDistance = Geometry::getSphericalDistanceBetweenTwoPoints($centerLatLon, $minDistancePoint);
+
+                            $distanceToCenterCoefficient = $minDistance / $centerToBoundaryDistance * 0.625 + 0.375;
+
                             $destinationsConfirmed['all'][] = [
                                 'x' => $destination['x'],
                                 'y' => $destination['y'],
                                 'r' => $destination['r'],
-                                'coefficient' => $destination['coefficient'],
+                                'disclosureDistanceCoefficient' => $destination['disclosureDistanceCoefficient'],
+                                'distanceToCenterCoefficient' => $distanceToCenterCoefficient,
                             ];
                         }
                     }
-                }
-            }
-
-            /** @var \App\Models\Player[] $thieves */
-            $thieves = $room->players()->where([
-                'role' => 'THIEF',
-                'is_bot' => true,
-            ])->get();
-
-            foreach ($thieves as $thief) {
-
-                foreach ($destinations as $destination) {
-
-                    $policemenRatio = -1;
-
-                    if ($thief->hidden_position) {
-
-                        $p1['x'] = $destination['x'];
-                        $p1['y'] = $destination['y'];
-
-                        $thief->mergeCasts([
-                            'hidden_position' => Point::class,
-                        ]);
-
-                        $thiefPosition = explode(' ', $thief->hidden_position);
-
-                        $p2['x'] = $thiefPosition[0];
-                        $p2['y'] = $thiefPosition[1];
-
-                        foreach ($players as $player) {
-
-                            if ($player->global_position) {
-
-                                $player->mergeCasts([
-                                    'global_position' => Point::class,
-                                ]);
-
-                                $playerPosition = explode(' ', $player->global_position);
-
-                                $p0['x'] = $playerPosition[0];
-                                $p0['y'] = $playerPosition[1];
-
-                                $this->pointDistanceFromLine($p0, $p1, $p2);
-                            }
-                        }
-                    }
-
-                    $allThieves[$thief->id][] = [
-                        'x' => $destination['x'],
-                        'y' => $destination['y'],
-                        'R' => $destination['R'],
-                        'policemenRatio' => $policemenRatio,
-                    ];
                 }
             }
 
