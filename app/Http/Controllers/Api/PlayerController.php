@@ -6,6 +6,7 @@ use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Libraries\Encrypter;
+use App\Http\Libraries\Geometry;
 use App\Http\Libraries\Other;
 use App\Http\Libraries\Validation;
 use App\Http\Requests\CreatePlayerRequest;
@@ -336,7 +337,6 @@ class PlayerController extends Controller
                 $player->fake_position = null;
                 $player->is_catching = false;
                 $player->is_caughting = false;
-                $player->is_crossing_boundary = false;
                 $player->voting_answer = null;
                 $player->status = $request->status;
                 $player->failed_voting_type = null;
@@ -425,12 +425,20 @@ class PlayerController extends Controller
 
             Validation::checkGpsLocation($request->gps_location);
 
-            $isTouches = DB::select(DB::raw("SELECT ST_TOUCHES(ST_GeomFromText('POLYGON(($room->boundary_points))'), ST_GeomFromText('POINT($request->gps_location)')) AS isTouches"));
-            $isContains = DB::select(DB::raw("SELECT ST_CONTAINS(ST_GeomFromText('POLYGON(($room->boundary_points))'), ST_GeomFromText('POINT($request->gps_location)')) AS isContains"));
+            $boundary = Geometry::convertGeometryLatLngToXY($room->boundary_points);
 
-            if (!$isTouches[0]->isTouches && !$isContains[0]->isContains) {
+            $point = explode(' ', $request->gps_location);
 
-                $player->is_crossing_boundary = true;
+            $p1['x'] = $point[0];
+            $p1['y'] = $point[1];
+
+            $point = Geometry::convertLatLngToXY($p1);
+
+            $p = "{$point['x']} {$point['y']}";
+
+            $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($p)')) AS isIntersects"));
+
+            if (!$isIntersects[0]->isIntersects) {
 
                 if ($room->config['other']['warning_number'] != -1) {
                     $player->warning_number = $player->warning_number + 1;
@@ -443,8 +451,7 @@ class PlayerController extends Controller
                 $player->save();
                 $reloadRoom = true;
 
-            } else if ($player->is_crossing_boundary) {
-                $player->is_crossing_boundary = false;
+            } else if ($player->crossing_boundary_finished_at) {
                 $player->crossing_boundary_finished_at = null;
                 $player->save();
                 $reloadRoom = true;
@@ -488,7 +495,6 @@ class PlayerController extends Controller
             $player->fake_position = null;
             $player->is_catching = false;
             $player->is_caughting = false;
-            $player->is_crossing_boundary = false;
             $player->voting_answer = null;
             $player->status = $request->status;
             $player->failed_voting_type = null;
@@ -592,8 +598,8 @@ class PlayerController extends Controller
 
                             $fakePosition = "{$thief->fake_position->longitude} {$thief->fake_position->latitude}";
 
-                            $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($fakePosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
-                            $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($fakePosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+                            $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($fakePosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                            $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($fakePosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
 
                             if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                 $thief->global_position = $thief->fake_position;
@@ -609,8 +615,8 @@ class PlayerController extends Controller
 
                             $hiddenPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
 
-                            $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
-                            $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+                            $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                            $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
 
                             if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                 $thief->global_position = $thief->hidden_position;
@@ -697,10 +703,20 @@ class PlayerController extends Controller
 
             Validation::checkGpsLocation($request->use_fake_position);
 
-            $isTouches = DB::select(DB::raw("SELECT ST_TOUCHES(ST_GeomFromText('POLYGON(($room->boundary_points))'), ST_GeomFromText('POINT($request->gps_location)')) AS isTouches"));
-            $isContains = DB::select(DB::raw("SELECT ST_CONTAINS(ST_GeomFromText('POLYGON(($room->boundary_points))'), ST_GeomFromText('POINT($request->gps_location)')) AS isContains"));
+            $boundary = Geometry::convertGeometryLatLngToXY($room->boundary_points);
 
-            if (!$isTouches[0]->isTouches && !$isContains[0]->isContains) {
+            $point = explode(' ', $request->use_fake_position);
+
+            $p1['x'] = $point[0];
+            $p1['y'] = $point[1];
+
+            $point = Geometry::convertLatLngToXY($p1);
+
+            $p = "{$point['x']} {$point['y']}";
+
+            $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($p)')) AS isIntersects"));
+
+            if (!$isIntersects[0]->isIntersects) {
                 throw new ApiException(
                     DefaultErrorCode::FAILED_VALIDATION(),
                     __('validation.custom.location-beyond-boundary'),
@@ -760,7 +776,6 @@ class PlayerController extends Controller
         $player->fake_position = null;
         $player->is_catching = false;
         $player->is_caughting = false;
-        $player->is_crossing_boundary = false;
         $player->voting_answer = null;
         $player->status = $request->status;
         $player->failed_voting_type = null;

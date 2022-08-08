@@ -257,9 +257,14 @@ class Validation
 
             $coordinates = explode(' ', $boundaryPoint);
 
+            $p1['x'] = $coordinates[0];
+            $p1['y'] = $coordinates[1];
+
+            $p = Geometry::convertLatLngToXY($p1);
+
             $polygon[] = [
-                $coordinates[0],
-                $coordinates[1],
+                $p['x'],
+                $p['y'],
             ];
         }
 
@@ -271,7 +276,9 @@ class Validation
             );
         }
 
-        $isValid = DB::select(DB::raw("SELECT ST_IsValid(ST_GeomFromText('POLYGON(($boundary))')) AS isValid"));
+        $convertedBoundary = Geometry::convertGeometryLatLngToXY($boundary);
+
+        $isValid = DB::select(DB::raw("SELECT ST_IsValid(ST_GeomFromText('POLYGON(($convertedBoundary))')) AS isValid"));
 
         if (!$isValid[0]->isValid) {
             throw new ApiException(

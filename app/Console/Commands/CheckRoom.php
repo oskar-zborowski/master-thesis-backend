@@ -76,7 +76,6 @@ class CheckRoom extends Command
                     $player->fake_position = null;
                     $player->is_catching = false;
                     $player->is_caughting = false;
-                    $player->is_crossing_boundary = false;
                     $player->voting_answer = null;
                     $player->status = 'LEFT';
                     $player->failed_voting_type = null;
@@ -107,8 +106,8 @@ class CheckRoom extends Command
 
                     $tempConfig = $room->config;
 
-                    if ($now <= $room->game_ended_at) {
-                        $tempConfig['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                    if ($now < $room->game_ended_at) {
+                        $tempConfig['duration']['real'] = $room->config['duration']['scheduled'] + strtotime($now) - strtotime($room->game_ended_at);
                     } else {
                         $tempConfig['duration']['real'] = $room->config['duration']['scheduled'];
                     }
@@ -132,7 +131,6 @@ class CheckRoom extends Command
                         $player->fake_position = null;
                         $player->is_catching = false;
                         $player->is_caughting = false;
-                        $player->is_crossing_boundary = false;
                         $player->voting_answer = null;
                         $player->status = 'LEFT';
                         $player->failed_voting_type = null;

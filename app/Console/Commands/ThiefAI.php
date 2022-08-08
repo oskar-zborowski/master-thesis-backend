@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Libraries\Geometry;
 use App\Models\Room;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -135,7 +136,7 @@ class ThiefAi extends Command
                                     $c3['y'] = $circle3[1];
                                     $c3['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[1]->role, $isDisclosure)['r'];
 
-                                    $equidistantPoint = $this->findEquidistantPoint($c1, $c2, $c3);
+                                    $equidistantPoint = Geometry::findEquidistantPoint($c1, $c2, $c3);
 
                                     if ($isDisclosure) {
                                         $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
@@ -165,7 +166,7 @@ class ThiefAi extends Command
                                     $c2['y'] = $circle2[1];
                                     $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role, $isDisclosure)['r'];
 
-                                    $equidistantPoint = $this->findSegmentMiddle($c1, $c2, true);
+                                    $equidistantPoint = Geometry::findSegmentMiddle($c1, $c2, true);
 
                                     if ($isDisclosure) {
                                         $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
@@ -215,7 +216,7 @@ class ThiefAi extends Command
                                     $destinations[$thief->id][] = [
                                         'x' => $c1['x'],
                                         'y' => $c1['y'],
-                                        'r' => $this->getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
+                                        'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
                                         'coefficient' => $coefficient,
                                     ];
                                 }
@@ -255,7 +256,7 @@ class ThiefAi extends Command
                                 $c3['y'] = $circle3[1];
                                 $c3['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[1]->role, $isDisclosure)['r'];
 
-                                $equidistantPoint = $this->findEquidistantPoint($c1, $c2, $c3);
+                                $equidistantPoint = Geometry::findEquidistantPoint($c1, $c2, $c3);
 
                                 if ($isDisclosure) {
                                     $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
@@ -285,7 +286,7 @@ class ThiefAi extends Command
                                 $c2['y'] = $circle2[1];
                                 $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPolicemen[0]->role, $isDisclosure)['r'];
 
-                                $equidistantPoint = $this->findSegmentMiddle($c1, $c2, true);
+                                $equidistantPoint = Geometry::findSegmentMiddle($c1, $c2, true);
 
                                 if ($isDisclosure) {
                                     $coefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
@@ -335,7 +336,7 @@ class ThiefAi extends Command
                                 $destinations['all'][] = [
                                     'x' => $c1['x'],
                                     'y' => $c1['y'],
-                                    'r' => $this->getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
+                                    'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
                                     'coefficient' => $coefficient,
                                 ];
                             }
@@ -359,9 +360,13 @@ class ThiefAi extends Command
                             $c1['y'] = $destination['y'];
                             $c1['r'] = $destination['r'];
 
-                            $point = "{$c1['x']} {$c1['y']}";
+                            $boundary = Geometry::convertGeometryLatLngToXY($room->boundary_points);
 
-                            $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($room->boundary_points))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
+                            $point = Geometry::convertLatLngToXY($c1);
+
+                            $p = "{$point['x']} {$point['y']}";
+
+                            $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($p)')) AS isIntersects"));
 
                             if ($isIntersects[0]->isIntersects) {
 
@@ -372,7 +377,7 @@ class ThiefAi extends Command
                                         $c2['x'] = $visiblePolicemanByThief['longitude'];
                                         $c2['y'] = $visiblePolicemanByThief['latitude'];
 
-                                        $distance = $this->getSphericalDistanceBetweenTwoPoints($c1, $c2);
+                                        $distance = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2);
 
                                         if ($distance < $c1['r']) {
                                             $break = true;
@@ -410,9 +415,13 @@ class ThiefAi extends Command
                         $c1['y'] = $destination['y'];
                         $c1['r'] = $destination['r'];
 
-                        $point = "{$c1['x']} {$c1['y']}";
+                        $boundary = Geometry::convertGeometryLatLngToXY($room->boundary_points);
 
-                        $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($room->boundary_points))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
+                        $point = Geometry::convertLatLngToXY($c1);
+
+                        $p = "{$point['x']} {$point['y']}";
+
+                        $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($p)')) AS isIntersects"));
 
                         if ($isIntersects[0]->isIntersects) {
 
@@ -423,7 +432,7 @@ class ThiefAi extends Command
                                     $c2['x'] = $visiblePolicemanByThief['longitude'];
                                     $c2['y'] = $visiblePolicemanByThief['latitude'];
 
-                                    $distance = $this->getSphericalDistanceBetweenTwoPoints($c1, $c2);
+                                    $distance = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2);
 
                                     if ($distance < $c1['r']) {
                                         $break = true;
@@ -538,73 +547,6 @@ class ThiefAi extends Command
         ];
     }
 
-    private function findEquidistantPoint(array $c1, array $c2, array $c3) {
-
-        $c1M = $c1;
-
-        $c1 = $this->convertLatLngToXY($c1);
-        $c2 = $this->convertLatLngToXY($c2);
-        $c3 = $this->convertLatLngToXY($c3);
-
-        $kA = -pow($c1['r'], 2) + pow($c2['r'], 2) + pow($c1['x'], 2) - pow($c2['x'], 2) + pow($c1['y'], 2) - pow($c2['y'], 2);
-        $kB = -pow($c1['r'], 2) + pow($c3['r'], 2) + pow($c1['x'], 2) - pow($c3['x'], 2) + pow($c1['y'], 2) - pow($c3['y'], 2);
-
-        $d = $c1['x'] * ($c2['y'] - $c3['y']) + $c2['x'] * ($c3['y'] - $c1['y']) + $c3['x'] * ($c1['y'] - $c2['y']);
-
-        if ($d != 0) {
-
-            $e0 = ($kA * ($c1['y'] - $c3['y']) + $kB * ($c2['y'] - $c1['y'])) / (2 * $d);
-            $e1 = -($c1['r'] * ($c2['y'] - $c3['y']) + $c2['r'] * ($c3['y'] - $c1['y']) + $c3['r'] * ($c1['y'] - $c2['y'])) / $d;
-
-            $f0 = -($kA * ($c1['x'] - $c3['x']) + $kB * ($c2['x'] - $c1['x'])) / (2 * $d);
-            $f1 = ($c1['r'] * ($c2['x'] - $c3['x']) + $c2['r'] * ($c3['x'] - $c1['x']) + $c3['r'] * ($c1['x'] - $c2['x'])) / $d;
-
-            $g0 = pow($e0, 2) - 2 * $e0 * $c1['x'] + pow($f0, 2) - 2 * $f0 * $c1['y'] - pow($c1['r'], 2) + pow($c1['x'], 2) + pow($c1['y'], 2);
-            $g1 = $e0 * $e1 - $e1 * $c1['x'] + $f0 * $f1 - $f1 * $c1['y'] - $c1['r'];
-            $g2 = pow($e1, 2) + pow($f1, 2) - 1;
-
-            $sqrt = pow($g1, 2) - $g0 * $g2;
-
-            if ($g2 != 0 && $sqrt >= 0) {
-
-                $r = (-sqrt($sqrt) - $g1) / $g2;
-                $c['x'] = $e0 + $e1 * $r;
-                $c['y'] = $f0 + $f1 * $r;
-
-                $c = $this->convertXYToLatLng($c);
-                $c['r'] = $this->getSphericalDistanceBetweenTwoPoints($c, $c1M) - $c1M['r'];
-            }
-        }
-
-        if (!isset($c)) {
-            $c = false;
-        }
-
-        return $c;
-    }
-
-    private function findSegmentMiddle(array $c1, array $c2, bool $includeRadius = false) {
-
-        $c1M = $c1;
-
-        $c1 = $this->convertLatLngToXY($c1);
-        $c2 = $this->convertLatLngToXY($c2);
-
-        if ($includeRadius) {
-            $r = ($this->getCartesianDistanceBetweenTwoPoints($c1, $c2) - $c1['r'] - $c2['r']) / 2;
-            $c = $this->getShiftedPoint($c1, $c2, $c1['r'] + $r);
-            $c = $this->convertXYToLatLng($c);
-            $c['r'] = $this->getSphericalDistanceBetweenTwoPoints($c, $c1M) - $c1M['r'];
-        } else {
-            $c['x'] = ($c1['x'] + $c2['x']) / 2;
-            $c['y'] = ($c1['y'] + $c2['y']) / 2;
-            $c = $this->convertXYToLatLng($c);
-            $c['r'] = $this->getSphericalDistanceBetweenTwoPoints($c, $c1M);
-        }
-
-        return $c;
-    }
-
     private function checkPointRepetition(array $destinations, array $equidistantPoint) {
 
         $equidistantPointExists = false;
@@ -617,103 +559,5 @@ class ThiefAi extends Command
         }
 
         return $equidistantPointExists;
-    }
-
-    private function getShiftedPoint(array $p1, array $p2, float $distance) {
-
-        $p12Distance = $this->getCartesianDistanceBetweenTwoPoints($p1, $p2);
-
-        if ($p12Distance > 0) {
-            $p12ShiftedPoint['x'] = $p1['x'] - ($distance * ($p1['x'] - $p2['x'])) / $p12Distance;
-            $p12ShiftedPoint['y'] = $p1['y'] - ($distance * ($p1['y'] - $p2['y'])) / $p12Distance;
-        } else {
-            $p12ShiftedPoint['x'] = $p1['x'];
-            $p12ShiftedPoint['y'] = $p1['y'];
-        }
-
-        return $p12ShiftedPoint;
-    }
-
-    private function getCartesianDistanceBetweenTwoPoints(array $p1, array $p2) {
-        return sqrt(pow($p2['x'] - $p1['x'], 2) + pow($p2['y'] - $p1['y'], 2));
-    }
-
-    private function getSphericalDistanceBetweenTwoPoints(array $p1, array $p2) {
-
-        $lat1 = deg2rad($p1['y']);
-        $lng1 = deg2rad($p1['x']);
-
-        $lat2 = deg2rad($p2['y']);
-        $lng2 = deg2rad($p2['x']);
-
-        $dLng = $lng2 - $lng1;
-
-        $sLat1 = sin($lat1);
-        $cLat1 = cos($lat1);
-
-        $sLat2 = sin($lat2);
-        $cLat2 = cos($lat2);
-
-        $sdLng = sin($dLng);
-        $cdLng = cos($dLng);
-
-        $numerator = sqrt(pow($cLat2 * $sdLng, 2) + pow($cLat1 * $sLat2 - $sLat1 * $cLat2 * $cdLng, 2));
-        $denominator = $sLat1 * $sLat2 + $cLat1 * $cLat2 * $cdLng;
-
-        return atan2($numerator, $denominator) * 6371.009;
-    }
-
-    // TODO Dorobić sprawdzenie czy punkty nie leżą w tym samym miejscu - przyda się to do określania jak daleko ma
-    // dana pozycja do granicy obwiedni oraz jak daleko ma środek mapy do najbliższej lini granicy - chociaż
-    // nie wiem czy bardziej nie przydałoby się wyliczyć odległości odcinka do odcinka korzystając z funkcji mysql
-    private function getCartesianDistanceFromPointToLine(array $p0, array $p1, array $p2) {
-        return abs(($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']) * $p0['x'] + $p0['y'] + ($p1['y'] - $p2['y']) / ($p1['x'] - $p2['x']) * $p1['x'] - $p1['y']) / sqrt(pow(($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']), 2) + 1);
-    }
-
-    /**
-     * Konwersja EPSG:4326 na EPSG:3857
-     */
-    private function convertLatLngToXY(array $p1) {
-
-        $smRadius = 6378136.98;
-        $smRange = $smRadius * pi() * 2;
-
-        if ($p1['y'] > 86) {
-            $p['y'] = $smRange;
-        } else if ($p1['y'] < -86) {
-            $p['y'] = -$smRange;
-        } else {
-
-            if ($p1['y'] == -90) {
-                $p1['y'] = -89.99999;
-            } else if ($p1['y'] == 90) {
-                $p1['y'] = 89.99999;
-            }
-
-            $p['y'] = log(tan((90 + $p1['y']) * pi() / 360)) * 20037508.34 / pi();
-        }
-
-        $p['x'] = $p1['x'] * 20037508.34 / 180;
-
-        if (isset($p1['r'])) {
-            $p['r'] = $p1['r'];
-        }
-
-        return $p;
-    }
-
-    /**
-     * Konwersja EPSG:3857 na EPSG:4326
-     */
-    private function convertXYToLatLng(array $p1) {
-
-        $p['x'] = $p1['x'] * 180 / 20037508.34;
-        $p['y'] = atan(exp($p1['y'] * pi() / 20037508.34)) * 360 / pi() - 90;
-
-        if (isset($p1['r'])) {
-            $p['r'] = $p1['r'];
-        }
-
-        return $p;
     }
 }

@@ -24,7 +24,6 @@ return new class extends Migration
             $table->boolean('is_bot')->default(false);
             $table->boolean('is_catching')->default(false); // Flaga określająca czy gracz łapie złodzieja
             $table->boolean('is_caughting')->default(false); // Flaga określająca czy złodziej jest łapany
-            $table->boolean('is_crossing_boundary')->default(false);
             $table->boolean('voting_answer')->nullable();
             $table->enum('status', Validation::getPlayerStatuses())->default('CONNECTED');
             $table->enum('failed_voting_type', Validation::getVotingTypes())->nullable(); // Flaga informująca każdego użytkownika jednokrotnie, że głosowanie się nie powiodło

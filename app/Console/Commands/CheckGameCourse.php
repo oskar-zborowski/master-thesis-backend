@@ -94,7 +94,6 @@ class CheckGameCourse extends Command
 
                         $player->is_catching = false;
                         $player->is_caughting = false;
-                        $player->is_crossing_boundary = false;
                         $player->voting_answer = null;
                         $player->failed_voting_type = null;
                         $player->black_ticket_finished_at = null;
@@ -161,7 +160,6 @@ class CheckGameCourse extends Command
                             $player->fake_position = null;
                             $player->is_catching = false;
                             $player->is_caughting = false;
-                            $player->is_crossing_boundary = false;
                             $player->voting_answer = null;
                             $player->status = 'LEFT';
                             $player->failed_voting_type = null;
@@ -185,7 +183,6 @@ class CheckGameCourse extends Command
                             $player->fake_position = null;
                             $player->is_catching = false;
                             $player->is_caughting = false;
-                            $player->is_crossing_boundary = false;
                             $player->voting_answer = null;
                             $player->status = 'LEFT';
                             $player->failed_voting_type = null;
@@ -235,8 +232,8 @@ class CheckGameCourse extends Command
 
                                         $fakePosition = "{$thief->fake_position->longitude} {$thief->fake_position->latitude}";
 
-                                        $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($fakePosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
-                                        $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($fakePosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+                                        $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($fakePosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                                        $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($fakePosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
 
                                         if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                             $thief->global_position = $thief->fake_position;
@@ -260,8 +257,8 @@ class CheckGameCourse extends Command
 
                                         $hiddenPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
 
-                                        $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
-                                        $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+                                        $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                                        $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
 
                                         if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                             $thief->global_position = $thief->hidden_position;
@@ -301,9 +298,9 @@ class CheckGameCourse extends Command
                             }
                         }
 
-                        $thiefCaughtByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role <> 'THIEF' AND role <> 'EAGLE' AND role <> 'FATTY_MAN' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
-                        $thiefCaughtByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['catching']['radius']}"));
-                        $thiefCaughtByFattyMan = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND role = 'FATTY_MAN' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
+                        $thiefCaughtByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND role <> 'FATTY_MAN' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
+                        $thiefCaughtByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['catching']['radius']}"));
+                        $thiefCaughtByFattyMan = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'FATTY_MAN' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
 
                         if (count($thiefCaughtByPoliceman) + count($thiefCaughtByEagle) + 2 * count($thiefCaughtByFattyMan) >= $room->config['actor']['policeman']['catching']['number']) {
                             $thief->is_caughting = false;
@@ -359,8 +356,8 @@ class CheckGameCourse extends Command
 
                     $tempConfig = $room->config;
 
-                    if ($now <= $room->game_ended_at) {
-                        $tempConfig['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                    if ($now < $room->game_ended_at) {
+                        $tempConfig['duration']['real'] = $room->config['duration']['scheduled'] + strtotime($now) - strtotime($room->game_ended_at);
                     } else {
                         $tempConfig['duration']['real'] = $room->config['duration']['scheduled'];
                     }
@@ -388,7 +385,6 @@ class CheckGameCourse extends Command
 
                         $player->is_catching = false;
                         $player->is_caughting = false;
-                        $player->is_crossing_boundary = false;
                         $player->voting_answer = null;
                         $player->failed_voting_type = null;
                         $player->black_ticket_finished_at = null;
@@ -410,8 +406,8 @@ class CheckGameCourse extends Command
 
                     $tempConfig = $room->config;
 
-                    if ($now <= $room->game_ended_at) {
-                        $tempConfig['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                    if ($now < $room->game_ended_at) {
+                        $tempConfig['duration']['real'] = $room->config['duration']['scheduled'] + strtotime($now) - strtotime($room->game_ended_at);
                     } else {
                         $tempConfig['duration']['real'] = $room->config['duration']['scheduled'];
                     }
@@ -435,7 +431,6 @@ class CheckGameCourse extends Command
                         $player->fake_position = null;
                         $player->is_catching = false;
                         $player->is_caughting = false;
-                        $player->is_crossing_boundary = false;
                         $player->voting_answer = null;
                         $player->status = 'LEFT';
                         $player->failed_voting_type = null;
@@ -490,7 +485,6 @@ class CheckGameCourse extends Command
                             $player->fake_position = null;
                             $player->is_catching = false;
                             $player->is_caughting = false;
-                            $player->is_crossing_boundary = false;
                             $player->voting_answer = null;
                             $player->status = 'LEFT';
                             $player->failed_voting_type = null;
@@ -514,7 +508,6 @@ class CheckGameCourse extends Command
                             $player->fake_position = null;
                             $player->is_catching = false;
                             $player->is_caughting = false;
-                            $player->is_crossing_boundary = false;
                             $player->voting_answer = null;
                             $player->status = 'LEFT';
                             $player->failed_voting_type = null;
@@ -543,8 +536,8 @@ class CheckGameCourse extends Command
 
                     $tempConfig = $room->config;
 
-                    if ($now <= $room->game_ended_at) {
-                        $tempConfig['duration']['real'] = strtotime($room->config['duration']['scheduled']) + strtotime($now) - strtotime($room->game_ended_at);
+                    if ($now < $room->game_ended_at) {
+                        $tempConfig['duration']['real'] = $room->config['duration']['scheduled'] + strtotime($now) - strtotime($room->game_ended_at);
                     } else {
                         $tempConfig['duration']['real'] = $room->config['duration']['scheduled'];
                     }
@@ -568,7 +561,6 @@ class CheckGameCourse extends Command
                         $player->fake_position = null;
                         $player->is_catching = false;
                         $player->is_caughting = false;
-                        $player->is_crossing_boundary = false;
                         $player->voting_answer = null;
                         $player->status = 'LEFT';
                         $player->failed_voting_type = null;

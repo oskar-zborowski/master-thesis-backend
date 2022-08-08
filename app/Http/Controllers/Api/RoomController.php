@@ -6,6 +6,7 @@ use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\ErrorCodes\DefaultErrorCode;
 use App\Http\Libraries\Encrypter;
+use App\Http\Libraries\Geometry;
 use App\Http\Libraries\JsonConfig;
 use App\Http\Libraries\Validation;
 use App\Http\Requests\UpdateRoomRequest;
@@ -160,7 +161,17 @@ class RoomController extends Controller
 
             Validation::checkBoundary($request->boundary_points);
 
-            $room->boundary_points = $request->boundary_points;
+            $convertedBoundary = Geometry::convertGeometryLatLngToXY($request->boundary_points);
+            $simplifiedBoundary = Geometry::simplifyBoundary($convertedBoundary);
+
+            if ($simplifiedBoundary) {
+                $convertedBoundary = Geometry::convertGeometryXYToLatLng($simplifiedBoundary);
+                $boundary = $convertedBoundary;
+            } else {
+                $boundary = $request->boundary_points;
+            }
+
+            $room->boundary_points = $boundary;
         }
 
         $room->save();
