@@ -458,6 +458,22 @@ class ThiefAi extends Command
                                 ];
                             }
                         }
+
+                        if (isset($destinationsConfirmed[$thief->id])) {
+
+                            $maxDistance = null;
+
+                            foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed) {
+                                if ($maxDistance === null || $destinationConfirmed['r'] > $maxDistance) {
+                                    $maxDistance = $destinationConfirmed['r'];
+                                }
+                            }
+
+                            foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed) {
+                                $maxDistanceCoefficient = $destinationConfirmed['r'] / $maxDistance;
+                                $destinationConfirmed['maxDistanceCoefficient'] = $maxDistanceCoefficient;
+                            }
+                        }
                     }
                 }
 
@@ -569,6 +585,22 @@ class ThiefAi extends Command
                                 'disclosureDistanceCoefficient' => $destination['disclosureDistanceCoefficient'],
                                 'distanceToCenterCoefficient' => $distanceToCenterCoefficient,
                             ];
+                        }
+                    }
+
+                    if (isset($destinationsConfirmed['all'])) {
+
+                        $maxDistance = null;
+
+                        foreach ($destinationsConfirmed['all'] as $destinationConfirmed) {
+                            if ($maxDistance === null || $destinationConfirmed['r'] > $maxDistance) {
+                                $maxDistance = $destinationConfirmed['r'];
+                            }
+                        }
+
+                        foreach ($destinationsConfirmed['all'] as &$destinationConfirmed) {
+                            $maxDistanceCoefficient = $destinationConfirmed['r'] / $maxDistance;
+                            $destinationConfirmed['maxDistanceCoefficient'] = $maxDistanceCoefficient;
                         }
                     }
                 }
