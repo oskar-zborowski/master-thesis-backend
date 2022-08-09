@@ -41,6 +41,7 @@ class ThiefAi extends Command
             ])->get();
 
             $isDisclosure = false;
+            $iteration = 0;
 
             $visiblePolicemenByThieves = [];
             $destinations = [];
@@ -92,6 +93,10 @@ class ThiefAi extends Command
             }
 
             do {
+
+                if ($iteration == 1) {
+                    $isDisclosure = true;
+                }
 
                 if ($room->config['actor']['thief']['visibility_radius'] != -1) {
 
@@ -159,7 +164,10 @@ class ThiefAi extends Command
 
                                     $c1['x'] = $value['longitude'];
                                     $c1['y'] = $value['latitude'];
-                                    $c1['r'] = $this->getPolicemanRadius($room->config, $value['role'], $isDisclosure)['r'];
+
+                                    $policemanRadius = $this->getPolicemanRadius($room->config, $value['role'], $isDisclosure);
+                                    $isDisclosure = $policemanRadius['isDisclosure'];
+                                    $c1['r'] = $policemanRadius['r'];
 
                                     $circle2 = explode(' ', substr($nearestPolicemen[0]->globalPosition, 6, -1));
                                     $c2['x'] = $circle2[0];
@@ -205,7 +213,10 @@ class ThiefAi extends Command
                                     $circle2 = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
                                     $c2['x'] = $circle2[0];
                                     $c2['y'] = $circle2[1];
-                                    $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure)['r'];
+
+                                    $policemanRadius = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure);
+                                    $isDisclosure = $policemanRadius['isDisclosure'];
+                                    $c2['r'] = $policemanRadius['r'];
 
                                     if ($isDisclosure) {
                                         $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
@@ -244,7 +255,10 @@ class ThiefAi extends Command
 
                                 $c1['x'] = $value['longitude'];
                                 $c1['y'] = $value['latitude'];
-                                $c1['r'] = $this->getPolicemanRadius($room->config, $value['role'], $isDisclosure)['r'];
+
+                                $policemanRadius = $this->getPolicemanRadius($room->config, $value['role'], $isDisclosure);
+                                $isDisclosure = $policemanRadius['isDisclosure'];
+                                $c1['r'] = $policemanRadius['r'];
 
                                 $circle2 = explode(' ', substr($nearestPolicemen[0]->globalPosition, 6, -1));
                                 $c2['x'] = $circle2[0];
@@ -279,7 +293,10 @@ class ThiefAi extends Command
 
                                 $c1['x'] = $value['longitude'];
                                 $c1['y'] = $value['latitude'];
-                                $c1['r'] = $this->getPolicemanRadius($room->config, $value['role'], $isDisclosure)['r'];
+
+                                $policemanRadius = $this->getPolicemanRadius($room->config, $value['role'], $isDisclosure);
+                                $isDisclosure = $policemanRadius['isDisclosure'];
+                                $c1['r'] = $policemanRadius['r'];
 
                                 $circle2 = explode(' ', substr($nearestPolicemen[0]->globalPosition, 6, -1));
                                 $c2['x'] = $circle2[0];
@@ -325,7 +342,10 @@ class ThiefAi extends Command
                                 $circle2 = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
                                 $c2['x'] = $circle2[0];
                                 $c2['y'] = $circle2[1];
-                                $c2['r'] = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure)['r'];
+
+                                $policemanRadius = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure);
+                                $isDisclosure = $policemanRadius['isDisclosure'];
+                                $c2['r'] = $policemanRadius['r'];
 
                                 if ($isDisclosure) {
                                     $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
@@ -343,6 +363,8 @@ class ThiefAi extends Command
                         }
                     }
                 }
+
+                $iteration++;
 
             } while (!$isDisclosure);
 
