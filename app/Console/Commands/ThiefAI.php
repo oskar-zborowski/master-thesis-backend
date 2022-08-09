@@ -228,12 +228,14 @@ class ThiefAi extends Command
                                             $disclosureDistanceCoefficient = 1;
                                         }
 
-                                        $destinations[$thief->id][] = [
-                                            'x' => $c1['x'],
-                                            'y' => $c1['y'],
-                                            'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
-                                            'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
-                                        ];
+                                        if (!$this->checkPointRepetition($destinations[$thief->id], $c1)) {
+                                            $destinations[$thief->id][] = [
+                                                'x' => $c1['x'],
+                                                'y' => $c1['y'],
+                                                'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
+                                                'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
+                                            ];
+                                        }
                                     }
 
                                     $secondIterator++;
@@ -364,12 +366,14 @@ class ThiefAi extends Command
                                         $disclosureDistanceCoefficient = 1;
                                     }
 
-                                    $destinations['all'][] = [
-                                        'x' => $c1['x'],
-                                        'y' => $c1['y'],
-                                        'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
-                                        'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
-                                    ];
+                                    if (!$this->checkPointRepetition($destinations['all'], $c1)) {
+                                        $destinations['all'][] = [
+                                            'x' => $c1['x'],
+                                            'y' => $c1['y'],
+                                            'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
+                                            'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
+                                        ];
+                                    }
                                 }
 
                                 $secondIterator++;
