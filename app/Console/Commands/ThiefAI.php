@@ -202,34 +202,41 @@ class ThiefAi extends Command
 
                                 $boundaryPoints = explode(',', $room->boundary_points);
 
+                                $secondIterator = 0;
+
                                 foreach ($boundaryPoints as $boundaryPoint) {
 
-                                    $nearestPoliceman = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE $policemenIdQuery ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($boundaryPoint)'), global_position) ASC LIMIT 1"));
+                                    if ($secondIterator > 0) {
 
-                                    $bP = explode(' ', $boundaryPoint);
-                                    $c1['x'] = $bP[0];
-                                    $c1['y'] = $bP[1];
+                                        $nearestPoliceman = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE $policemenIdQuery ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($boundaryPoint)'), global_position) ASC LIMIT 1"));
 
-                                    $circle2 = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
-                                    $c2['x'] = $circle2[0];
-                                    $c2['y'] = $circle2[1];
+                                        $bP = explode(' ', $boundaryPoint);
+                                        $c1['x'] = $bP[0];
+                                        $c1['y'] = $bP[1];
 
-                                    $policemanRadius = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure);
-                                    $isDisclosure = $policemanRadius['isDisclosure'];
-                                    $c2['r'] = $policemanRadius['r'];
+                                        $circle2 = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
+                                        $c2['x'] = $circle2[0];
+                                        $c2['y'] = $circle2[1];
 
-                                    if ($isDisclosure) {
-                                        $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
-                                    } else {
-                                        $disclosureDistanceCoefficient = 1;
+                                        $policemanRadius = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure);
+                                        $isDisclosure = $policemanRadius['isDisclosure'];
+                                        $c2['r'] = $policemanRadius['r'];
+
+                                        if ($isDisclosure) {
+                                            $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                        } else {
+                                            $disclosureDistanceCoefficient = 1;
+                                        }
+
+                                        $destinations[$thief->id][] = [
+                                            'x' => $c1['x'],
+                                            'y' => $c1['y'],
+                                            'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
+                                            'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
+                                        ];
                                     }
 
-                                    $destinations[$thief->id][] = [
-                                        'x' => $c1['x'],
-                                        'y' => $c1['y'],
-                                        'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
-                                        'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
-                                    ];
+                                    $secondIterator++;
                                 }
                             }
                         }
@@ -331,34 +338,41 @@ class ThiefAi extends Command
 
                             $boundaryPoints = explode(',', $room->boundary_points);
 
+                            $secondIterator = 0;
+
                             foreach ($boundaryPoints as $boundaryPoint) {
 
-                                $nearestPoliceman = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE $policemenIdQuery ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($boundaryPoint)'), global_position) ASC LIMIT 1"));
+                                if ($secondIterator > 0) {
 
-                                $bP = explode(' ', $boundaryPoint);
-                                $c1['x'] = $bP[0];
-                                $c1['y'] = $bP[1];
+                                    $nearestPoliceman = DB::select(DB::raw("SELECT role, ST_AsText(global_position) AS globalPosition FROM players WHERE $policemenIdQuery ORDER BY ST_Distance_Sphere(ST_GeomFromText('POINT($boundaryPoint)'), global_position) ASC LIMIT 1"));
 
-                                $circle2 = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
-                                $c2['x'] = $circle2[0];
-                                $c2['y'] = $circle2[1];
+                                    $bP = explode(' ', $boundaryPoint);
+                                    $c1['x'] = $bP[0];
+                                    $c1['y'] = $bP[1];
 
-                                $policemanRadius = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure);
-                                $isDisclosure = $policemanRadius['isDisclosure'];
-                                $c2['r'] = $policemanRadius['r'];
+                                    $circle2 = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
+                                    $c2['x'] = $circle2[0];
+                                    $c2['y'] = $circle2[1];
 
-                                if ($isDisclosure) {
-                                    $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
-                                } else {
-                                    $disclosureDistanceCoefficient = 1;
+                                    $policemanRadius = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure);
+                                    $isDisclosure = $policemanRadius['isDisclosure'];
+                                    $c2['r'] = $policemanRadius['r'];
+
+                                    if ($isDisclosure) {
+                                        $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                    } else {
+                                        $disclosureDistanceCoefficient = 1;
+                                    }
+
+                                    $destinations['all'][] = [
+                                        'x' => $c1['x'],
+                                        'y' => $c1['y'],
+                                        'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
+                                        'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
+                                    ];
                                 }
 
-                                $destinations['all'][] = [
-                                    'x' => $c1['x'],
-                                    'y' => $c1['y'],
-                                    'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
-                                    'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
-                                ];
+                                $secondIterator++;
                             }
                         }
                     }
@@ -669,7 +683,7 @@ class ThiefAi extends Command
         $equidistantPointExists = false;
 
         foreach ($destinations as $destination) {
-            if ($destination['x'] != $equidistantPoint['x'] || $destination['y'] != $equidistantPoint['y'] || $destination['r'] != $equidistantPoint['r']) {
+            if ($destination['x'] != $equidistantPoint['x'] || $destination['y'] != $equidistantPoint['y']) {
                 $equidistantPointExists = true;
                 break;
             }
