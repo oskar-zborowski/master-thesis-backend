@@ -215,18 +215,27 @@ class ThiefAi extends Command
                                         $c1['x'] = $bP[0];
                                         $c1['y'] = $bP[1];
 
-                                        $circle2 = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
-                                        $c2['x'] = $circle2[0];
-                                        $c2['y'] = $circle2[1];
+                                        if (isset($nearestPoliceman[0])) {
 
-                                        $policemanRadius = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure);
-                                        $isDisclosure = $policemanRadius['isDisclosure'];
-                                        $c2['r'] = $policemanRadius['r'];
+                                            $circle2 = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
+                                            $c2['x'] = $circle2[0];
+                                            $c2['y'] = $circle2[1];
 
-                                        $circle3 = explode(' ', substr($nearestEagle[0]->globalPosition, 6, -1));
-                                        $c3['x'] = $circle3[0];
-                                        $c3['y'] = $circle3[1];
-                                        $c3['r'] = $this->getPolicemanRadius($room->config, $nearestEagle[0]->role, $isDisclosure)['r'];
+                                            $policemanRadius = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure);
+                                            $isDisclosure = $policemanRadius['isDisclosure'];
+                                            $c2['r'] = $policemanRadius['r'];
+                                        }
+
+                                        if (isset($nearestEagle[0])) {
+
+                                            $circle3 = explode(' ', substr($nearestEagle[0]->globalPosition, 6, -1));
+                                            $c3['x'] = $circle3[0];
+                                            $c3['y'] = $circle3[1];
+
+                                            $policemanRadius = $this->getPolicemanRadius($room->config, $nearestEagle[0]->role, $isDisclosure);
+                                            $isDisclosure = $policemanRadius['isDisclosure'];
+                                            $c3['r'] = $policemanRadius['r'];
+                                        }
 
                                         if ($isDisclosure) {
                                             $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
@@ -234,16 +243,24 @@ class ThiefAi extends Command
                                             $disclosureDistanceCoefficient = 1;
                                         }
 
-                                        $c2r = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'];
-                                        $c3r = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c3) - $c3['r'];
+                                        if (isset($c2) && isset($c3)) {
 
-                                        if ($c2r < $c3r) {
-                                            $c1['r'] = $c2r;
-                                        } else {
-                                            $c1['r'] = $c3r;
+                                            $c2r = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'];
+                                            $c3r = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c3) - $c3['r'];
+
+                                            if ($c2r < $c3r) {
+                                                $c1['r'] = $c2r;
+                                            } else {
+                                                $c1['r'] = $c3r;
+                                            }
+
+                                        } else if (isset($c2)) {
+                                            $c1['r'] = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'];
+                                        } else if (isset($c3)) {
+                                            $c1['r'] = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c3) - $c3['r'];
                                         }
 
-                                        if ((!isset($destinations[$thief->id]) || !$this->checkPointRepetition($destinations[$thief->id], $c1)) && $c1['r'] >= 0) {
+                                        if ((!isset($destinations[$thief->id]) || !$this->checkPointRepetition($destinations[$thief->id], $c1)) && isset($c1['r']) && $c1['r'] >= 0) {
                                             $destinations[$thief->id][] = [
                                                 'x' => $c1['x'],
                                                 'y' => $c1['y'],
@@ -368,18 +385,27 @@ class ThiefAi extends Command
                                     $c1['x'] = $bP[0];
                                     $c1['y'] = $bP[1];
 
-                                    $circle2 = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
-                                    $c2['x'] = $circle2[0];
-                                    $c2['y'] = $circle2[1];
+                                    if (isset($nearestPoliceman[0])) {
 
-                                    $policemanRadius = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure);
-                                    $isDisclosure = $policemanRadius['isDisclosure'];
-                                    $c2['r'] = $policemanRadius['r'];
+                                        $circle2 = explode(' ', substr($nearestPoliceman[0]->globalPosition, 6, -1));
+                                        $c2['x'] = $circle2[0];
+                                        $c2['y'] = $circle2[1];
 
-                                    $circle3 = explode(' ', substr($nearestEagle[0]->globalPosition, 6, -1));
-                                    $c3['x'] = $circle3[0];
-                                    $c3['y'] = $circle3[1];
-                                    $c3['r'] = $this->getPolicemanRadius($room->config, $nearestEagle[0]->role, $isDisclosure)['r'];
+                                        $policemanRadius = $this->getPolicemanRadius($room->config, $nearestPoliceman[0]->role, $isDisclosure);
+                                        $isDisclosure = $policemanRadius['isDisclosure'];
+                                        $c2['r'] = $policemanRadius['r'];
+                                    }
+
+                                    if (isset($nearestEagle[0])) {
+
+                                        $circle3 = explode(' ', substr($nearestEagle[0]->globalPosition, 6, -1));
+                                        $c3['x'] = $circle3[0];
+                                        $c3['y'] = $circle3[1];
+
+                                        $policemanRadius = $this->getPolicemanRadius($room->config, $nearestEagle[0]->role, $isDisclosure);
+                                        $isDisclosure = $policemanRadius['isDisclosure'];
+                                        $c3['r'] = $policemanRadius['r'];
+                                    }
 
                                     if ($isDisclosure) {
                                         $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
@@ -387,16 +413,24 @@ class ThiefAi extends Command
                                         $disclosureDistanceCoefficient = 1;
                                     }
 
-                                    $c2r = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'];
-                                    $c3r = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c3) - $c3['r'];
+                                    if (isset($c2) && isset($c3)) {
 
-                                    if ($c2r < $c3r) {
-                                        $c1['r'] = $c2r;
-                                    } else {
-                                        $c1['r'] = $c3r;
+                                        $c2r = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'];
+                                        $c3r = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c3) - $c3['r'];
+
+                                        if ($c2r < $c3r) {
+                                            $c1['r'] = $c2r;
+                                        } else {
+                                            $c1['r'] = $c3r;
+                                        }
+
+                                    } else if (isset($c2)) {
+                                        $c1['r'] = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'];
+                                    } else if (isset($c3)) {
+                                        $c1['r'] = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c3) - $c3['r'];
                                     }
 
-                                    if ((!isset($destinations['all']) || !$this->checkPointRepetition($destinations['all'], $c1)) && $c1['r'] >= 0) {
+                                    if ((!isset($destinations['all']) || !$this->checkPointRepetition($destinations['all'], $c1)) && isset($c1['r']) && $c1['r'] >= 0) {
                                         $destinations['all'][] = [
                                             'x' => $c1['x'],
                                             'y' => $c1['y'],
