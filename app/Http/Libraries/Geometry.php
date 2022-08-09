@@ -159,7 +159,7 @@ class Geometry
         $numerator = sqrt(pow($cLat2 * $sdLng, 2) + pow($cLat1 * $sLat2 - $sLat1 * $cLat2 * $cdLng, 2));
         $denominator = $sLat1 * $sLat2 + $cLat1 * $cLat2 * $cdLng;
 
-        return atan2($numerator, $denominator) * 6371.009;
+        return atan2($numerator, $denominator) * 6371009;
     }
 
     // TODO Dorobić sprawdzenie czy punkty nie leżą w tym samym miejscu - przyda się to do określania jak daleko ma
