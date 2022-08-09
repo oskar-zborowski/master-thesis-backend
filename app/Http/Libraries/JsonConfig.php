@@ -243,7 +243,7 @@ class JsonConfig
             $policemanCatchingRadius = $gameConfig['actor']['policeman']['catching']['radius'];
         }
 
-        if ($policemanVisibilityRadius < $policemanCatchingRadius) {
+        if ($policemanVisibilityRadius != -1 && $policemanVisibilityRadius < $policemanCatchingRadius) {
             throw new ApiException(
                 DefaultErrorCode::FAILED_VALIDATION(),
                 __('validation.custom.policeman-visibility-radius'),
