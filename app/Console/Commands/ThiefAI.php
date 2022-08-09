@@ -150,7 +150,7 @@ class ThiefAi extends Command
                                     }
 
                                     if ($equidistantPoint) {
-                                        if (!isset($destinations[$thief->id]) || !$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
+                                        if ((!isset($destinations[$thief->id]) || !$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) && $equidistantPoint['r'] >= 0) {
                                             $destinations[$thief->id][] = [
                                                 'x' => $equidistantPoint['x'],
                                                 'y' => $equidistantPoint['y'],
@@ -182,7 +182,7 @@ class ThiefAi extends Command
                                         $disclosureDistanceCoefficient = 1;
                                     }
 
-                                    if (!isset($destinations[$thief->id]) || !$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
+                                    if ((!isset($destinations[$thief->id]) || !$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) && $equidistantPoint['r'] >= 0) {
                                         $destinations[$thief->id][] = [
                                             'x' => $equidistantPoint['x'],
                                             'y' => $equidistantPoint['y'],
@@ -228,11 +228,13 @@ class ThiefAi extends Command
                                             $disclosureDistanceCoefficient = 1;
                                         }
 
-                                        if (!isset($destinations[$thief->id]) || !$this->checkPointRepetition($destinations[$thief->id], $c1)) {
+                                        $c1['r'] = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'];
+
+                                        if ((!isset($destinations[$thief->id]) || !$this->checkPointRepetition($destinations[$thief->id], $c1)) && $c1['r'] >= 0) {
                                             $destinations[$thief->id][] = [
                                                 'x' => $c1['x'],
                                                 'y' => $c1['y'],
-                                                'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
+                                                'r' => $c1['r'],
                                                 'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
                                             ];
                                         }
@@ -288,7 +290,7 @@ class ThiefAi extends Command
                                 }
 
                                 if ($equidistantPoint) {
-                                    if (!isset($destinations['all']) || !$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
+                                    if ((!isset($destinations['all']) || !$this->checkPointRepetition($destinations['all'], $equidistantPoint)) && $equidistantPoint['r'] >= 0) {
                                         $destinations['all'][] = [
                                             'x' => $equidistantPoint['x'],
                                             'y' => $equidistantPoint['y'],
@@ -320,7 +322,7 @@ class ThiefAi extends Command
                                     $disclosureDistanceCoefficient = 1;
                                 }
 
-                                if (!isset($destinations['all']) || !$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
+                                if ((!isset($destinations['all']) || !$this->checkPointRepetition($destinations['all'], $equidistantPoint)) && $equidistantPoint['r'] >= 0) {
                                     $destinations['all'][] = [
                                         'x' => $equidistantPoint['x'],
                                         'y' => $equidistantPoint['y'],
@@ -366,11 +368,13 @@ class ThiefAi extends Command
                                         $disclosureDistanceCoefficient = 1;
                                     }
 
-                                    if (!isset($destinations['all']) || !$this->checkPointRepetition($destinations['all'], $c1)) {
+                                    $c1['r'] = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'];
+
+                                    if ((!isset($destinations['all']) || !$this->checkPointRepetition($destinations['all'], $c1)) && $c1['r'] >= 0) {
                                         $destinations['all'][] = [
                                             'x' => $c1['x'],
                                             'y' => $c1['y'],
-                                            'r' => Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $c2['r'],
+                                            'r' => $c1['r'],
                                             'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
                                         ];
                                     }
