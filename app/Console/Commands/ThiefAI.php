@@ -174,7 +174,7 @@ class ThiefAi extends Command
                                         $disclosureDistanceCoefficient = 1;
                                     }
 
-                                    if (!$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
+                                    if (!isset($destinations[$thief->id]) || !$this->checkPointRepetition($destinations[$thief->id], $equidistantPoint)) {
                                         $destinations[$thief->id][] = [
                                             'x' => $equidistantPoint['x'],
                                             'y' => $equidistantPoint['y'],
@@ -265,7 +265,7 @@ class ThiefAi extends Command
                                 }
 
                                 if ($equidistantPoint) {
-                                    if (!$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
+                                    if (!isset($destinations['all']) || !$this->checkPointRepetition($destinations['all'], $equidistantPoint)) {
                                         $destinations['all'][] = [
                                             'x' => $equidistantPoint['x'],
                                             'y' => $equidistantPoint['y'],
