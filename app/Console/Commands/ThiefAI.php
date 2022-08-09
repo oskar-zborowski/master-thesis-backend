@@ -440,6 +440,15 @@ class ThiefAi extends Command
 
                             if ($isIntersects[0]->isIntersects) {
 
+                                $eagleMayExist = false;
+
+                                if ($room->config['actor']['eagle']['number'] > 0 && $room->config['actor']['eagle']['probability'] > 0) {
+                                    $eagleMayExist = true;
+                                }
+
+                                $minVisibilityDistance = null;
+                                $minDisclosureDistance = null;
+
                                 foreach ($visiblePolicemenByThieves as $visiblePolicemenByThief) {
 
                                     foreach ($visiblePolicemenByThief as $visiblePolicemanByThief) {
@@ -447,17 +456,32 @@ class ThiefAi extends Command
                                         $c2['x'] = $visiblePolicemanByThief['longitude'];
                                         $c2['y'] = $visiblePolicemanByThief['latitude'];
 
-                                        $distance = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2);
+                                        if ($eagleMayExist && ($visiblePolicemanByThief['role'] == 'EAGLE' || !$room->config['actor']['thief']['are_enemies_circles_visible'])) {
+                                            $visibilityDistance = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $room->config['actor']['policeman']['visibility_radius'] * 2;
+                                            $disclosureDistance = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $room->config['actor']['policeman']['catching']['radius'] * 2;
+                                        } else {
+                                            $visibilityDistance = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $room->config['actor']['policeman']['visibility_radius'];
+                                            $disclosureDistance = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $room->config['actor']['policeman']['catching']['radius'];
+                                        }
 
-                                        if ($distance < $c1['r']) {
-                                            $break = true;
-                                            break;
+                                        if ($minVisibilityDistance === null || $visibilityDistance < $minVisibilityDistance) {
+                                            $minVisibilityDistance = $visibilityDistance;
+                                        }
+
+                                        if ($minDisclosureDistance === null || $disclosureDistance < $minDisclosureDistance) {
+                                            $minDisclosureDistance = $disclosureDistance;
                                         }
                                     }
+                                }
 
-                                    if ($break) {
-                                        break;
-                                    }
+                                if ($minDisclosureDistance < 0) {
+                                    $break = true;
+                                } else if ($minVisibilityDistance < 0) {
+                                    $destinationDistance = $minDisclosureDistance;
+                                    $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                } else {
+                                    $destinationDistance = $minVisibilityDistance;
+                                    $disclosureDistanceCoefficient = 1;
                                 }
                             }
 
@@ -522,8 +546,8 @@ class ThiefAi extends Command
                                 $destinationsConfirmed[$thief->id][] = [
                                     'x' => $destination['x'],
                                     'y' => $destination['y'],
-                                    'r' => $destination['r'],
-                                    'disclosureDistanceCoefficient' => $destination['disclosureDistanceCoefficient'],
+                                    'r' => $destinationDistance,
+                                    'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
                                     'distanceToCenterCoefficient' => $distanceToCenterCoefficient,
                                 ];
                             }
@@ -571,21 +595,45 @@ class ThiefAi extends Command
 
                             if (isset($visiblePolicemenByThieves['all'])) {
 
+                                $eagleMayExist = false;
+
+                                if ($room->config['actor']['eagle']['number'] > 0 && $room->config['actor']['eagle']['probability'] > 0) {
+                                    $eagleMayExist = true;
+                                }
+
+                                $minVisibilityDistance = null;
+                                $minDisclosureDistance = null;
+
                                 foreach ($visiblePolicemenByThieves['all'] as $visiblePolicemanByThief) {
 
                                     $c2['x'] = $visiblePolicemanByThief['longitude'];
                                     $c2['y'] = $visiblePolicemanByThief['latitude'];
 
-                                    $distance = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2);
+                                    if ($eagleMayExist && ($visiblePolicemanByThief['role'] == 'EAGLE' || !$room->config['actor']['thief']['are_enemies_circles_visible'])) {
+                                        $visibilityDistance = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $room->config['actor']['policeman']['visibility_radius'] * 2;
+                                        $disclosureDistance = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $room->config['actor']['policeman']['catching']['radius'] * 2;
+                                    } else {
+                                        $visibilityDistance = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $room->config['actor']['policeman']['visibility_radius'];
+                                        $disclosureDistance = Geometry::getSphericalDistanceBetweenTwoPoints($c1, $c2) - $room->config['actor']['policeman']['catching']['radius'];
+                                    }
 
-                                    if ($distance < $c1['r']) {
-                                        $break = true;
-                                        break;
+                                    if ($minVisibilityDistance === null || $visibilityDistance < $minVisibilityDistance) {
+                                        $minVisibilityDistance = $visibilityDistance;
+                                    }
+
+                                    if ($minDisclosureDistance === null || $disclosureDistance < $minDisclosureDistance) {
+                                        $minDisclosureDistance = $disclosureDistance;
                                     }
                                 }
 
-                                if ($break) {
-                                    break;
+                                if ($minDisclosureDistance < 0) {
+                                    $break = true;
+                                } else if ($minVisibilityDistance < 0) {
+                                    $destinationDistance = $minDisclosureDistance;
+                                    $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
+                                } else {
+                                    $destinationDistance = $minVisibilityDistance;
+                                    $disclosureDistanceCoefficient = 1;
                                 }
                             }
                         }
@@ -651,8 +699,8 @@ class ThiefAi extends Command
                             $destinationsConfirmed['all'][] = [
                                 'x' => $destination['x'],
                                 'y' => $destination['y'],
-                                'r' => $destination['r'],
-                                'disclosureDistanceCoefficient' => $destination['disclosureDistanceCoefficient'],
+                                'r' => $destinationDistance,
+                                'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
                                 'distanceToCenterCoefficient' => $distanceToCenterCoefficient,
                             ];
                         }
