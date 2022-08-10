@@ -812,9 +812,9 @@ class ThiefAi extends Command
 
             if (isset($destinationsConfirmed['all'])) {
 
-                foreach ($thieves as $thief) {
+                $tempDestiantionsConfirmed = null;
 
-                    $tempDestiantionsConfirmed = null;
+                foreach ($thieves as $thief) {
 
                     foreach ($destinationsConfirmed['all'] as $destinationConfirmed) {
 
