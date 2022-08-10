@@ -889,9 +889,9 @@ class ThiefAi extends Command
 
                     if (isset($destinationsConfirmed[$thief->id])) {
 
-                        foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed) {
+                        foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed6) {
 
-                            $destXY = Geometry::convertLatLngToXY($destinationConfirmed);
+                            $destXY = Geometry::convertLatLngToXY($destinationConfirmed6);
 
                             $policemanDistanceCoefficient = null;
 
@@ -1021,9 +1021,9 @@ class ThiefAi extends Command
                             }
 
                             if ($policemanDistanceCoefficient === null) {
-                                $destinationConfirmed['policemanDistanceCoefficient'] = -1;
+                                $destinationConfirmed6['policemanDistanceCoefficient'] = -1;
                             } else {
-                                $destinationConfirmed['policemanDistanceCoefficient'] = $policemanDistanceCoefficient;
+                                $destinationConfirmed6['policemanDistanceCoefficient'] = $policemanDistanceCoefficient;
                             }
                         }
                     }
