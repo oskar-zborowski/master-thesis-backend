@@ -1021,9 +1021,25 @@ class ThiefAi extends Command
                             }
 
                             if ($policemanDistanceCoefficient === null) {
-                                $destinationConfirmed6['policemanDistanceCoefficient'] = -1;
+                                $destinationConfirmed6['policemanDistance'] = -1;
                             } else {
-                                $destinationConfirmed6['policemanDistanceCoefficient'] = $policemanDistanceCoefficient;
+                                $destinationConfirmed6['policemanDistance'] = $policemanDistanceCoefficient;
+                            }
+                        }
+
+                        $maxPolicemanDistance = null;
+
+                        foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed7) {
+                            if ($maxPolicemanDistance === null || $maxPolicemanDistance < $destinationConfirmed7['policemanDistance']) {
+                                $maxPolicemanDistance = $destinationConfirmed7['policemanDistance'];
+                            }
+                        }
+
+                        foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed8) {
+                            if ($maxPolicemanDistance > 0) {
+                                $destinationConfirmed8['policemanDistanceCoefficient'] = 1 - ($destinationConfirmed8['policemanDistance'] / $maxPolicemanDistance);
+                            } else {
+                                $destinationConfirmed8['policemanDistanceCoefficient'] = 1;
                             }
                         }
                     }

@@ -200,6 +200,8 @@ class Geometry
 
     public static function checkIfPointBelongsToSegment(array $p0, array $p1, array $p2) {
 
+        $multiplayer = 1.0001;
+
         $p = self::findIntersectionPointAndLine($p0, $p1, $p2);
 
         if ($p1['x'] > $p2['x']) {
@@ -220,7 +222,7 @@ class Geometry
 
         if ($p) {
 
-            if ($p0['x'] >= $minX && $p0['x'] <= $maxX && $p0['y'] >= $minY && $p0['y'] <= $maxY) {
+            if ($p0['x'] * $multiplayer >= $minX && $p0['x'] <= $maxX * $multiplayer && $p0['y'] * $multiplayer >= $minY && $p0['y'] <= $maxY * $multiplayer) {
                 $result = true;
             } else {
                 $result = false;
