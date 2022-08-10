@@ -868,6 +868,162 @@ class ThiefAi extends Command
                 }
             }
 
+            foreach ($thieves as $thief) {
+
+                if ($thief->hidden_position !== null) {
+
+                    $thief->mergeCasts([
+                        'hidden_position' => Point::class,
+                    ]);
+
+                    $thiefPos['x'] = $thief->hidden_position->longitude;
+                    $thiefPos['y'] = $thief->hidden_position->latitude;
+
+                    $thiefPosXY = Geometry::convertLatLngToXY($thiefPos);
+
+                    if (isset($destinationsConfirmed[$thief->id])) {
+
+                        foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed) {
+
+                            $destXY = Geometry::convertLatLngToXY($destinationConfirmed);
+
+                            $policemanDistanceCoefficient = null;
+
+                            if ($room->config['actor']['thief']['visibility_radius'] != -1) {
+
+                                $maxTempDistance = null;
+
+                                foreach ($visiblePolicemenByThieves as $visiblePolicemenByThief) {
+
+                                    foreach ($visiblePolicemenByThief as $visiblePolicemanByThief) {
+
+                                        $c1['x'] = $visiblePolicemanByThief['longitude'];
+                                        $c1['y'] = $visiblePolicemanByThief['latitude'];
+
+                                        $c1XY = Geometry::convertLatLngToXY($c1);
+
+                                        if (Geometry::checkIfPointBelongsToSegment($c1XY, $thiefPosXY, $destXY)) {
+
+                                            $pointAndLineIntersection = Geometry::findIntersectionPointAndLine($c1XY, $thiefPosXY, $destXY);
+                                            $pointAndLineIntersectionLatLon = Geometry::convertXYToLatLng($pointAndLineIntersection);
+                                            $tempDistance = Geometry::getSphericalDistanceBetweenTwoPoints($pointAndLineIntersectionLatLon, $c1);
+
+                                            if ($maxTempDistance === null || $tempDistance > $maxTempDistance) {
+                                                $maxTempDistance = $tempDistance;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                foreach ($visiblePolicemenByThieves as $visiblePolicemenByThief) {
+
+                                    foreach ($visiblePolicemenByThief as $visiblePolicemanByThief) {
+
+                                        $policemanBigRadius = $this->getPolicemanRadius($room->config, $visiblePolicemanByThief['role'], false)['r'];
+                                        $policemanSmallRadius = $this->getPolicemanRadius($room->config, $visiblePolicemanByThief['role'], true)['r'];
+
+                                        $c1['x'] = $visiblePolicemanByThief['longitude'];
+                                        $c1['y'] = $visiblePolicemanByThief['latitude'];
+
+                                        $c1XY = Geometry::convertLatLngToXY($c1);
+
+                                        if (Geometry::checkIfPointBelongsToSegment($c1XY, $thiefPosXY, $destXY)) {
+
+                                            $pointAndLineIntersection = Geometry::findIntersectionPointAndLine($c1XY, $thiefPosXY, $destXY);
+                                            $pointAndLineIntersectionLatLon = Geometry::convertXYToLatLng($pointAndLineIntersection);
+                                            $tempDistance = Geometry::getSphericalDistanceBetweenTwoPoints($pointAndLineIntersectionLatLon, $c1);
+
+                                            $tempDistanceInverted = $maxTempDistance - $tempDistance;
+                                            $tempDistanceSmall = $tempDistance - $policemanSmallRadius;
+                                            $tempDistanceBig = $tempDistance - $policemanBigRadius;
+
+                                            if ($tempDistanceSmall <= 0) {
+                                                $tempDistanceCoefficient = $tempDistanceInverted;
+                                            } else if ($tempDistanceBig <= 0) {
+                                                $tempDistanceCoefficient = $tempDistanceInverted * env('BOT_THIEF_POLICEMAN_DISTANCE_COEFFICIENT');
+                                            } else {
+                                                $tempDistanceCoefficient = $tempDistanceInverted * env('BOT_THIEF_POLICEMAN_DISTANCE_COEFFICIENT') * env('BOT_THIEF_AWAY_DISTANCE_COEFFICIENT');
+                                            }
+
+                                            if ($policemanDistanceCoefficient === null) {
+                                                $policemanDistanceCoefficient = $tempDistanceCoefficient;
+                                            } else {
+                                                $policemanDistanceCoefficient += $tempDistanceCoefficient;
+                                            }
+                                        }
+                                    }
+                                }
+
+                            } else {
+
+                                $maxTempDistance = null;
+
+                                foreach ($visiblePolicemenByThieves['all'] as $visiblePolicemanByThief) {
+
+                                    $c1['x'] = $visiblePolicemanByThief['longitude'];
+                                    $c1['y'] = $visiblePolicemanByThief['latitude'];
+
+                                    $c1XY = Geometry::convertLatLngToXY($c1);
+
+                                    if (Geometry::checkIfPointBelongsToSegment($c1XY, $thiefPosXY, $destXY)) {
+
+                                        $pointAndLineIntersection = Geometry::findIntersectionPointAndLine($c1XY, $thiefPosXY, $destXY);
+                                        $pointAndLineIntersectionLatLon = Geometry::convertXYToLatLng($pointAndLineIntersection);
+                                        $tempDistance = Geometry::getSphericalDistanceBetweenTwoPoints($pointAndLineIntersectionLatLon, $c1);
+
+                                        if ($maxTempDistance === null || $tempDistance > $maxTempDistance) {
+                                            $maxTempDistance = $tempDistance;
+                                        }
+                                    }
+                                }
+
+                                foreach ($visiblePolicemenByThieves['all'] as $visiblePolicemanByThief) {
+
+                                    $policemanBigRadius = $this->getPolicemanRadius($room->config, $visiblePolicemanByThief['role'], false)['r'];
+                                    $policemanSmallRadius = $this->getPolicemanRadius($room->config, $visiblePolicemanByThief['role'], true)['r'];
+
+                                    $c1['x'] = $visiblePolicemanByThief['longitude'];
+                                    $c1['y'] = $visiblePolicemanByThief['latitude'];
+
+                                    $c1XY = Geometry::convertLatLngToXY($c1);
+
+                                    if (Geometry::checkIfPointBelongsToSegment($c1XY, $thiefPosXY, $destXY)) {
+
+                                        $pointAndLineIntersection = Geometry::findIntersectionPointAndLine($c1XY, $thiefPosXY, $destXY);
+                                        $pointAndLineIntersectionLatLon = Geometry::convertXYToLatLng($pointAndLineIntersection);
+                                        $tempDistance = Geometry::getSphericalDistanceBetweenTwoPoints($pointAndLineIntersectionLatLon, $c1);
+
+                                        $tempDistanceInverted = $maxTempDistance - $tempDistance;
+                                        $tempDistanceSmall = $tempDistance - $policemanSmallRadius;
+                                        $tempDistanceBig = $tempDistance - $policemanBigRadius;
+
+                                        if ($tempDistanceSmall <= 0) {
+                                            $tempDistanceCoefficient = $tempDistanceInverted;
+                                        } else if ($tempDistanceBig <= 0) {
+                                            $tempDistanceCoefficient = $tempDistanceInverted * env('BOT_THIEF_POLICEMAN_DISTANCE_COEFFICIENT');
+                                        } else {
+                                            $tempDistanceCoefficient = $tempDistanceInverted * env('BOT_THIEF_POLICEMAN_DISTANCE_COEFFICIENT') * env('BOT_THIEF_AWAY_DISTANCE_COEFFICIENT');
+                                        }
+
+                                        if ($policemanDistanceCoefficient === null) {
+                                            $policemanDistanceCoefficient = $tempDistanceCoefficient;
+                                        } else {
+                                            $policemanDistanceCoefficient += $tempDistanceCoefficient;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if ($policemanDistanceCoefficient === null) {
+                                $destinationConfirmed['policemanDistanceCoefficient'] = -1;
+                            } else {
+                                $destinationConfirmed['policemanDistanceCoefficient'] = $policemanDistanceCoefficient;
+                            }
+                        }
+                    }
+                }
+            }
+
         } while (false);
     }
 

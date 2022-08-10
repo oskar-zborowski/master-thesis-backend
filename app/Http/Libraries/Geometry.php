@@ -162,11 +162,75 @@ class Geometry
         return atan2($numerator, $denominator) * 6371009;
     }
 
-    // TODO Dorobić sprawdzenie czy punkty nie leżą w tym samym miejscu - przyda się to do określania jak daleko ma
-    // dana pozycja do granicy obwiedni oraz jak daleko ma środek mapy do najbliższej lini granicy - chociaż
-    // nie wiem czy bardziej nie przydałoby się wyliczyć odległości odcinka do odcinka korzystając z funkcji mysql
     public static function getCartesianDistanceFromPointToLine(array $p0, array $p1, array $p2) {
-        return abs(($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']) * $p0['x'] + $p0['y'] + ($p1['y'] - $p2['y']) / ($p1['x'] - $p2['x']) * $p1['x'] - $p1['y']) / sqrt(pow(($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']), 2) + 1);
+
+        $denominator1 = $p1['x'] - $p2['x'];
+
+        if ($denominator1 != 0) {
+            $result = abs(($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']) * $p0['x'] + $p0['y'] + ($p1['y'] - $p2['y']) / ($p1['x'] - $p2['x']) * $p1['x'] - $p1['y']) / sqrt(pow(($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']), 2) + 1);
+        } else {
+            $result = false;
+        }
+
+        return $result;
+    }
+
+    public static function findIntersectionPointAndLine(array $p0, array $p1, array $p2) {
+
+        $denominator1 = $p1['x'] - $p2['x'];
+        $denominator2 = $p1['y'] - $p2['y'];
+
+        if ($denominator1 != 0 && $denominator2 != 0) {
+
+            $fraction = ($p2['x'] - $p1['x']) / ($p1['y'] - $p2['y']) + ($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']);
+
+            if ($fraction != 0) {
+                $p['x'] = ($p1['y'] + ($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']) * $p1['x'] - $p0['y'] + ($p2['x'] - $p1['x']) / ($p1['y'] - $p2['y']) * $p0['x']) / (($p2['x'] - $p1['x']) / ($p1['y'] - $p2['y']) + ($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']));
+                $p['y'] = ($p1['y'] - $p2['y']) / ($p1['x'] - $p2['x']) * $p['x'] + $p1['y'] + ($p2['y'] - $p1['y']) / ($p1['x'] - $p2['x']) * $p1['x'];
+            } else {
+                $p = false;
+            }
+
+        } else {
+            $p = false;
+        }
+
+        return $p;
+    }
+
+    public static function checkIfPointBelongsToSegment(array $p0, array $p1, array $p2) {
+
+        $p = self::findIntersectionPointAndLine($p0, $p1, $p2);
+
+        if ($p1['x'] > $p2['x']) {
+            $minX = $p2['x'];
+            $maxX = $p1['x'];
+        } else {
+            $minX = $p1['x'];
+            $maxX = $p2['x'];
+        }
+
+        if ($p1['y'] > $p2['y']) {
+            $minY = $p2['y'];
+            $maxY = $p1['y'];
+        } else {
+            $minY = $p1['y'];
+            $maxY = $p2['y'];
+        }
+
+        if ($p) {
+
+            if ($p0['x'] >= $minX && $p0['x'] <= $maxX && $p0['y'] >= $minY && $p0['y'] <= $maxY) {
+                $result = true;
+            } else {
+                $result = false;
+            }
+
+        } else {
+            $result = false;
+        }
+
+        return $result;
     }
 
     public static function convertGeometryLatLngToXY(string $geometry) {
