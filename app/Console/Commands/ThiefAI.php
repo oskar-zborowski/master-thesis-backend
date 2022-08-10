@@ -814,6 +814,8 @@ class ThiefAi extends Command
 
                 foreach ($thieves as $thief) {
 
+                    $tempDestiantionsConfirmed = null;
+
                     foreach ($destinationsConfirmed['all'] as $destinationConfirmed) {
 
                         if ($thief->global_position !== null) {
@@ -831,7 +833,7 @@ class ThiefAi extends Command
                             $lastDisclosureDistance = -1;
                         }
 
-                        $destinationsConfirmed[$thief->id][] = [
+                        $tempDestiantionsConfirmed[$thief->id][] = [
                             'x' => $destinationConfirmed['x'],
                             'y' => $destinationConfirmed['y'],
                             'r' => $destinationConfirmed['r'],
@@ -841,6 +843,10 @@ class ThiefAi extends Command
                             'maxDistanceCoefficient' => $destinationConfirmed['maxDistanceCoefficient'],
                         ];
                     }
+
+                    $destinationsConfirmed2 = $destinationsConfirmed;
+                    $destinationsConfirmed = null;
+                    $destinationsConfirmed = array_merge($destinationsConfirmed2, $tempDestiantionsConfirmed);
 
                     $maxLastDisclosureDistance = null;
 
