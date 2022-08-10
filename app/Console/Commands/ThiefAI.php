@@ -844,19 +844,15 @@ class ThiefAi extends Command
                         ];
                     }
 
-                    $destinationsConfirmed2 = $destinationsConfirmed;
-                    $destinationsConfirmed = null;
-                    $destinationsConfirmed = array_merge($destinationsConfirmed2, $tempDestiantionsConfirmed);
-
                     $maxLastDisclosureDistance = null;
 
-                    foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed) {
+                    foreach ($tempDestiantionsConfirmed[$thief->id] as $destinationConfirmed) {
                         if ($maxLastDisclosureDistance === null || $destinationConfirmed['lastDisclosureDistance'] > $maxLastDisclosureDistance) {
                             $maxLastDisclosureDistance = $destinationConfirmed['lastDisclosureDistance'];
                         }
                     }
 
-                    foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed) {
+                    foreach ($tempDestiantionsConfirmed[$thief->id] as &$destinationConfirmed) {
 
                         if ($destinationConfirmed['lastDisclosureDistance'] != -1) {
 
@@ -871,6 +867,10 @@ class ThiefAi extends Command
                             $destinationConfirmed['lastDisclosureDistanceCoefficient'] = 1;
                         }
                     }
+
+                    $destinationsConfirmed2 = $destinationsConfirmed;
+                    $destinationsConfirmed = null;
+                    $destinationsConfirmed = array_merge($destinationsConfirmed2, $tempDestiantionsConfirmed);
                 }
             }
 
