@@ -575,7 +575,11 @@ class ThiefAi extends Command
                                 $centerLatLon = Geometry::convertXYToLatLng($p1);
                                 $centerToBoundaryDistance = Geometry::getSphericalDistanceBetweenTwoPoints($centerLatLon, $minDistancePoint);
 
-                                $distanceToCenterCoefficient = $minDistance / $centerToBoundaryDistance * 0.625 + 0.375;
+                                if ($centerToBoundaryDistance != 0) {
+                                    $distanceToCenterCoefficient = $minDistance / $centerToBoundaryDistance * 0.625 + 0.375;
+                                } else {
+                                    $distanceToCenterCoefficient = 1;
+                                }
 
                                 $destinationsConfirmed[$thief->id][] = [
                                     'x' => $destination['x'],
@@ -590,16 +594,40 @@ class ThiefAi extends Command
                         if (isset($destinationsConfirmed[$thief->id])) {
 
                             $maxDistance = null;
+                            $maxLastDisclosureDistance = null;
 
                             foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed) {
+
                                 if ($maxDistance === null || $destinationConfirmed['r'] > $maxDistance) {
                                     $maxDistance = $destinationConfirmed['r'];
+                                }
+
+                                if ($maxLastDisclosureDistance === null || $destinationConfirmed['lastDisclosureDistance'] > $maxLastDisclosureDistance) {
+                                    $maxLastDisclosureDistance = $destinationConfirmed['lastDisclosureDistance'];
                                 }
                             }
 
                             foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed) {
-                                $maxDistanceCoefficient = $destinationConfirmed['r'] / $maxDistance;
-                                $destinationConfirmed['maxDistanceCoefficient'] = $maxDistanceCoefficient;
+
+                                if ($maxDistance != 0) {
+                                    $maxDistanceCoefficient = $destinationConfirmed['r'] / $maxDistance;
+                                    $destinationConfirmed['maxDistanceCoefficient'] = $maxDistanceCoefficient;
+                                } else {
+                                    $destinationConfirmed['maxDistanceCoefficient'] = 1;
+                                }
+
+                                if ($destinationConfirmed['lastDisclosureDistance'] != -1) {
+
+                                    if ($maxLastDisclosureDistance != 0) {
+                                        $lastDisclosureDistanceCoefficient = $destinationConfirmed['lastDisclosureDistance'] / $maxLastDisclosureDistance;
+                                        $destinationConfirmed['lastDisclosureDistanceCoefficient'] = $lastDisclosureDistanceCoefficient;
+                                    } else {
+                                        $destinationConfirmed['lastDisclosureDistanceCoefficient'] = 1;
+                                    }
+
+                                } else {
+                                    $destinationConfirmed['lastDisclosureDistanceCoefficient'] = 1;
+                                }
                             }
                         }
                     }
@@ -728,7 +756,11 @@ class ThiefAi extends Command
                             $centerLatLon = Geometry::convertXYToLatLng($p1);
                             $centerToBoundaryDistance = Geometry::getSphericalDistanceBetweenTwoPoints($centerLatLon, $minDistancePoint);
 
-                            $distanceToCenterCoefficient = $minDistance / $centerToBoundaryDistance * 0.625 + 0.375;
+                            if ($centerToBoundaryDistance != 0) {
+                                $distanceToCenterCoefficient = $minDistance / $centerToBoundaryDistance * 0.625 + 0.375;
+                            } else {
+                                $distanceToCenterCoefficient = 1;
+                            }
 
                             $destinationsConfirmed['all'][] = [
                                 'x' => $destination['x'],
@@ -751,8 +783,70 @@ class ThiefAi extends Command
                         }
 
                         foreach ($destinationsConfirmed['all'] as &$destinationConfirmed) {
-                            $maxDistanceCoefficient = $destinationConfirmed['r'] / $maxDistance;
-                            $destinationConfirmed['maxDistanceCoefficient'] = $maxDistanceCoefficient;
+                            if ($maxDistance != 0) {
+                                $maxDistanceCoefficient = $destinationConfirmed['r'] / $maxDistance;
+                                $destinationConfirmed['maxDistanceCoefficient'] = $maxDistanceCoefficient;
+                            } else {
+                                $destinationConfirmed['maxDistanceCoefficient'] = 1;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (isset($destinationsConfirmed['all'])) {
+
+                foreach ($thieves as $thief) {
+
+                    foreach ($destinationsConfirmed['all'] as $destinationConfirmed) {
+
+                        if ($thief->global_position !== null) {
+
+                            $thief->mergeCasts([
+                                'global_position' => Point::class,
+                            ]);
+
+                            $thiefPos['x'] = $thief->global_position->longitude;
+                            $thiefPos['y'] = $thief->global_position->latitude;
+
+                            $lastDisclosureDistance = Geometry::getSphericalDistanceBetweenTwoPoints($thiefPos, $destinationConfirmed);
+
+                        } else {
+                            $lastDisclosureDistance = -1;
+                        }
+
+                        $destinationsConfirmed[$thief->id][] = [
+                            'x' => $destinationConfirmed['x'],
+                            'y' => $destinationConfirmed['y'],
+                            'r' => $destinationConfirmed['r'],
+                            'lastDisclosureDistance' => $lastDisclosureDistance,
+                            'disclosureDistanceCoefficient' => $destinationConfirmed['disclosureDistanceCoefficient'],
+                            'distanceToCenterCoefficient' => $destinationConfirmed['distanceToCenterCoefficient'],
+                            'maxDistanceCoefficient' => $destinationConfirmed['maxDistanceCoefficient'],
+                        ];
+                    }
+
+                    $maxLastDisclosureDistance = null;
+
+                    foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed) {
+                        if ($maxLastDisclosureDistance === null || $destinationConfirmed['lastDisclosureDistance'] > $maxLastDisclosureDistance) {
+                            $maxLastDisclosureDistance = $destinationConfirmed['lastDisclosureDistance'];
+                        }
+                    }
+
+                    foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed) {
+
+                        if ($destinationConfirmed['lastDisclosureDistance'] != -1) {
+
+                            if ($maxLastDisclosureDistance != 0) {
+                                $lastDisclosureDistanceCoefficient = $destinationConfirmed['lastDisclosureDistance'] / $maxLastDisclosureDistance;
+                                $destinationConfirmed['lastDisclosureDistanceCoefficient'] = $lastDisclosureDistanceCoefficient;
+                            } else {
+                                $destinationConfirmed['lastDisclosureDistanceCoefficient'] = 1;
+                            }
+
+                        } else {
+                            $destinationConfirmed['lastDisclosureDistanceCoefficient'] = 1;
                         }
                     }
                 }
