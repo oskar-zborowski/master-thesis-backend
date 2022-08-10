@@ -816,7 +816,7 @@ class ThiefAi extends Command
 
                 foreach ($thieves as $thief) {
 
-                    foreach ($destinationsConfirmed['all'] as $destinationConfirmed) {
+                    foreach ($destinationsConfirmed['all'] as $destinationConfirmed3) {
 
                         if ($thief->global_position !== null) {
 
@@ -827,50 +827,50 @@ class ThiefAi extends Command
                             $thiefPos['x'] = $thief->global_position->longitude;
                             $thiefPos['y'] = $thief->global_position->latitude;
 
-                            $lastDisclosureDistance = Geometry::getSphericalDistanceBetweenTwoPoints($thiefPos, $destinationConfirmed);
+                            $lastDisclosureDistance = Geometry::getSphericalDistanceBetweenTwoPoints($thiefPos, $destinationConfirmed3);
 
                         } else {
                             $lastDisclosureDistance = -1;
                         }
 
                         $tempDestiantionsConfirmed[$thief->id][] = [
-                            'x' => $destinationConfirmed['x'],
-                            'y' => $destinationConfirmed['y'],
-                            'r' => $destinationConfirmed['r'],
+                            'x' => $destinationConfirmed3['x'],
+                            'y' => $destinationConfirmed3['y'],
+                            'r' => $destinationConfirmed3['r'],
                             'lastDisclosureDistance' => $lastDisclosureDistance,
-                            'disclosureDistanceCoefficient' => $destinationConfirmed['disclosureDistanceCoefficient'],
-                            'distanceToCenterCoefficient' => $destinationConfirmed['distanceToCenterCoefficient'],
-                            'maxDistanceCoefficient' => $destinationConfirmed['maxDistanceCoefficient'],
+                            'disclosureDistanceCoefficient' => $destinationConfirmed3['disclosureDistanceCoefficient'],
+                            'distanceToCenterCoefficient' => $destinationConfirmed3['distanceToCenterCoefficient'],
+                            'maxDistanceCoefficient' => $destinationConfirmed3['maxDistanceCoefficient'],
                         ];
                     }
 
                     $maxLastDisclosureDistance = null;
 
-                    foreach ($tempDestiantionsConfirmed[$thief->id] as $destinationConfirmed) {
-                        if ($maxLastDisclosureDistance === null || $destinationConfirmed['lastDisclosureDistance'] > $maxLastDisclosureDistance) {
-                            $maxLastDisclosureDistance = $destinationConfirmed['lastDisclosureDistance'];
+                    foreach ($tempDestiantionsConfirmed[$thief->id] as $destinationConfirmed4) {
+                        if ($maxLastDisclosureDistance === null || $destinationConfirmed4['lastDisclosureDistance'] > $maxLastDisclosureDistance) {
+                            $maxLastDisclosureDistance = $destinationConfirmed4['lastDisclosureDistance'];
                         }
                     }
 
-                    foreach ($tempDestiantionsConfirmed[$thief->id] as &$destinationConfirmed) {
+                    foreach ($tempDestiantionsConfirmed[$thief->id] as &$destinationConfirmed5) {
 
-                        if ($destinationConfirmed['lastDisclosureDistance'] != -1) {
+                        if ($destinationConfirmed5['lastDisclosureDistance'] != -1) {
 
                             if ($maxLastDisclosureDistance != 0) {
-                                $lastDisclosureDistanceCoefficient = $destinationConfirmed['lastDisclosureDistance'] / $maxLastDisclosureDistance;
-                                $destinationConfirmed['lastDisclosureDistanceCoefficient'] = $lastDisclosureDistanceCoefficient;
+                                $lastDisclosureDistanceCoefficient = $destinationConfirmed5['lastDisclosureDistance'] / $maxLastDisclosureDistance;
+                                $destinationConfirmed5['lastDisclosureDistanceCoefficient'] = $lastDisclosureDistanceCoefficient;
                             } else {
-                                $destinationConfirmed['lastDisclosureDistanceCoefficient'] = 1;
+                                $destinationConfirmed5['lastDisclosureDistanceCoefficient'] = 1;
                             }
 
                         } else {
-                            $destinationConfirmed['lastDisclosureDistanceCoefficient'] = 1;
+                            $destinationConfirmed5['lastDisclosureDistanceCoefficient'] = 1;
                         }
                     }
 
                     $destinationsConfirmed2 = $destinationsConfirmed;
                     $destinationsConfirmed = null;
-                    $destinationsConfirmed = array_merge($destinationsConfirmed2, $tempDestiantionsConfirmed);
+                    $destinationsConfirmed = $destinationsConfirmed2 + $tempDestiantionsConfirmed;
                 }
             }
 
