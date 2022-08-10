@@ -514,7 +514,7 @@ class ThiefAi extends Command
                                     $destinationDistance = $minDisclosureDistance;
                                     $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
                                 } else {
-                                    $destinationDistance = $minVisibilityDistance;
+                                    $destinationDistance = $minDisclosureDistance;
                                     $disclosureDistanceCoefficient = 1;
                                 }
                             }
@@ -666,7 +666,7 @@ class ThiefAi extends Command
                                     $destinationDistance = $minDisclosureDistance;
                                     $disclosureDistanceCoefficient = env('BOT_THIEF_DISCLOSURE_DISTANCE_COEFFICIENT');
                                 } else {
-                                    $destinationDistance = $minVisibilityDistance;
+                                    $destinationDistance = $minDisclosureDistance;
                                     $disclosureDistanceCoefficient = 1;
                                 }
                             }
