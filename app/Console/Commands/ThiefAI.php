@@ -874,6 +874,8 @@ class ThiefAi extends Command
                 }
             }
 
+            $thiefDecision = null;
+
             $timeLapse = (strtotime($room->game_ended_at) - strtotime(now())) / $room->config['duration']['scheduled'];
 
             if ($timeLapse > 1) {
@@ -1053,6 +1055,8 @@ class ThiefAi extends Command
                             }
                         }
 
+                        $sumFinalCoefficient = 0;
+
                         foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed9) {
 
                             $safeRoadCoefficient = 1-$timeLapse;
@@ -1063,6 +1067,73 @@ class ThiefAi extends Command
 
                             $finalCoefficient = $safeRoadCoefficient * $safeRoad + $safeDestinationCoefficient * $safeDestination;
                             $destinationConfirmed9['finalCoefficient'] = $finalCoefficient;
+
+                            $sumFinalCoefficient += round($finalCoefficient * 10000000);
+                        }
+
+                        $rand = rand(1, $sumFinalCoefficient);
+
+                        foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed10) {
+
+                            $rand -= round($destinationConfirmed10['finalCoefficient'] * 10000000);
+
+                            if ($rand <= 0) {
+
+                                $thiefDecision[$thief->id] = [
+                                    'x' => $destinationConfirmed10['x'],
+                                    'y' => $destinationConfirmed10['y'],
+                                ];
+
+                                break;
+                            }
+                        }
+
+                    } else {
+
+                        $boundary = Geometry::convertGeometryLatLngToXY($room->boundary_points);
+                        $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($boundary))'))) AS polygonCenter"));
+                        $polygonCenter = substr($polygonCenter[0]->polygonCenter, 6, -1);
+
+                        $finalPoint = explode(' ', $polygonCenter);
+
+                        $destPoint['x'] = $finalPoint[0];
+                        $destPoint['y'] = $finalPoint[1];
+
+                        $thiefDecision[$thief->id] = [
+                            'x' => $destPoint['x'],
+                            'y' => $destPoint['y'],
+                        ];
+                    }
+
+                } else {
+
+                    $sumFinalCoefficient = 0;
+
+                    foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed9) {
+
+                        $safeDestinationCoefficient = 1;
+                        $safeDestination = 0.1 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0.25 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.45 * $destinationConfirmed9['maxDistanceCoefficient'] + 0.2 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
+
+                        $finalCoefficient = $safeDestinationCoefficient * $safeDestination;
+                        $destinationConfirmed9['finalCoefficient'] = $finalCoefficient;
+
+                        $sumFinalCoefficient += round($finalCoefficient * 10000000);
+                    }
+
+                    $rand = rand(1, $sumFinalCoefficient);
+
+                    foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed10) {
+
+                        $rand -= round($destinationConfirmed10['finalCoefficient'] * 10000000);
+
+                        if ($rand <= 0) {
+
+                            $thiefDecision[$thief->id] = [
+                                'x' => $destinationConfirmed10['x'],
+                                'y' => $destinationConfirmed10['y'],
+                            ];
+
+                            break;
                         }
                     }
                 }
