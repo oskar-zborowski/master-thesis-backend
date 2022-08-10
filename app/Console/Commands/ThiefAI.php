@@ -581,10 +581,26 @@ class ThiefAi extends Command
                                     $distanceToCenterCoefficient = 1;
                                 }
 
+                                if ($thief->global_position !== null) {
+
+                                    $thief->mergeCasts([
+                                        'global_position' => Point::class,
+                                    ]);
+
+                                    $thiefPos['x'] = $thief->global_position->longitude;
+                                    $thiefPos['y'] = $thief->global_position->latitude;
+
+                                    $lastDisclosureDistance = Geometry::getSphericalDistanceBetweenTwoPoints($thiefPos, $destination);
+
+                                } else {
+                                    $lastDisclosureDistance = -1;
+                                }
+
                                 $destinationsConfirmed[$thief->id][] = [
                                     'x' => $destination['x'],
                                     'y' => $destination['y'],
                                     'r' => $destinationDistance,
+                                    'lastDisclosureDistance' => $lastDisclosureDistance,
                                     'disclosureDistanceCoefficient' => $disclosureDistanceCoefficient,
                                     'distanceToCenterCoefficient' => $distanceToCenterCoefficient,
                                 ];
