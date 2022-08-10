@@ -874,6 +874,16 @@ class ThiefAi extends Command
                 }
             }
 
+            $timeLapse = (strtotime($room->game_ended_at) - strtotime(now())) / $room->config['duration']['scheduled'];
+
+            if ($timeLapse > 1) {
+                $timeLapse = 1;
+            } else if ($timeLapse < 0) {
+                $timeLapse = 0;
+            }
+
+            $timeLapse = 1 - $timeLapse;
+
             foreach ($thieves as $thief) {
 
                 if ($thief->hidden_position !== null) {
@@ -1041,6 +1051,18 @@ class ThiefAi extends Command
                             } else {
                                 $destinationConfirmed8['policemanDistanceCoefficient'] = 1;
                             }
+                        }
+
+                        foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed9) {
+
+                            $safeRoadCoefficient = 1-$timeLapse;
+                            $safeDestinationCoefficient = $timeLapse;
+
+                            $safeRoad = $destinationConfirmed9['policemanDistanceCoefficient'];
+                            $safeDestination = 0.1 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0.25 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.45 * $destinationConfirmed9['maxDistanceCoefficient'] + 0.2 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
+
+                            $finalCoefficient = $safeRoadCoefficient * $safeRoad + $safeDestinationCoefficient * $safeDestination;
+                            $destinationConfirmed9['finalCoefficient'] = $finalCoefficient;
                         }
                     }
                 }
