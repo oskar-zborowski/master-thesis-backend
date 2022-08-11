@@ -1125,7 +1125,7 @@ class ThiefAi extends Command
 
         } while (false);
 
-echo json_encode($thiefDecision);
+echo json_encode($destinationsConfirmed);
 
     }
 
