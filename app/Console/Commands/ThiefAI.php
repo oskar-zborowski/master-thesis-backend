@@ -1133,10 +1133,37 @@ class ThiefAi extends Command
                 }
             }
 
-        } while (false);
+            foreach ($thieves as $t) {
 
-echo json_encode($thiefDecision);
+                $botShift = $room->config['other']['bot_speed'] * env('BOT_REFRESH');
 
+                $t->mergeCasts([
+                    'hidden_position' => Point::class,
+                ]);
+
+                $thiefPos2['x'] = $t->hidden_position->longitude;
+                $thiefPos2['y'] = $t->hidden_position->latitude;
+                $thiefPos2XY = Geometry::convertLatLngToXY($thiefPos2);
+
+                $position = $thiefDecision[$t->id];
+                $positionXY = Geometry::convertLatLngToXY($position);
+
+                $finalPositionXY = Geometry::getShiftedPoint($thiefPos2XY, $positionXY, $botShift);
+                $finalPositionLatLng = Geometry::convertXYToLatLng($finalPositionXY);
+
+                $finalPosition = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
+
+                $t->mergeCasts([
+                    'hidden_position' => 'string',
+                ]);
+
+                $t->hidden_position = DB::raw("ST_GeomFromText('POINT($finalPosition)')");
+                $t->save();
+
+                echo json_encode($finalPosition);
+            }
+
+        } while ($room->status == 'GAME_IN_PROGRESS');
     }
 
     private function getPolicemanRadius(array $roomConfig, string $playerRole, bool $isDisclosure = false) {
