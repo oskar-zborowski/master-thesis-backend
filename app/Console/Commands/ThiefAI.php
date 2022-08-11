@@ -1080,6 +1080,9 @@ class ThiefAi extends Command
                             }
                         }
 
+                        echo $bestCoefficient;
+                        die;
+
                         $thiefDecision[$thief->id] = [
                             'x' => $bestCoefficientId['x'],
                             'y' => $bestCoefficientId['y'],
@@ -1125,9 +1128,6 @@ class ThiefAi extends Command
                             ];
                         }
                     }
-
-                    echo $bestCoefficient;
-                    die;
 
                     $thiefDecision[$thief->id] = [
                         'x' => $bestCoefficientId['x'],
