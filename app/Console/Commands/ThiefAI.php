@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Http\Libraries\Geometry;
 use App\Models\Room;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Casts\AsStringable;
 use Illuminate\Support\Facades\DB;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
@@ -1161,7 +1162,7 @@ class ThiefAi extends Command
             foreach ($thieves as $t2) {
 
                 $t2->mergeCasts([
-                    'hidden_position' => 'string',
+                    'hidden_position' => AsStringable::class,
                 ]);
 
                 $finPos = $botFinalPositions[$t2->id];
