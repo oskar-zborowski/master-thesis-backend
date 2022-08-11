@@ -1135,6 +1135,8 @@ class ThiefAi extends Command
 
             foreach ($thieves as $t) {
 
+                $t2 = $t;
+
                 $botShift = $room->config['other']['bot_speed'] * env('BOT_REFRESH');
 
                 $t->mergeCasts([
@@ -1153,12 +1155,8 @@ class ThiefAi extends Command
 
                 $finalPosition = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
 
-                $t->mergeCasts([
-                    'hidden_position' => 'string',
-                ]);
-
-                $t->hidden_position = DB::raw("ST_GeomFromText('POINT($finalPosition)')");
-                $t->save();
+                $t2->hidden_position = DB::raw("ST_GeomFromText('POINT($finalPosition)')");
+                $t2->save();
 
                 echo json_encode($finalPosition);
             }
