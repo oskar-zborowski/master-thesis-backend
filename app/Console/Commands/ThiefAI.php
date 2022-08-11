@@ -1155,8 +1155,8 @@ class ThiefAi extends Command
 
                 $finalPosition = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
 
-                $t2->hidden_position = DB::raw("ST_GeomFromText('POINT($finalPosition)')");
-                $t2->save();
+                // $t2->hidden_position = DB::raw("ST_GeomFromText('POINT($finalPosition)')");
+                // $t2->save();
 
                 echo json_encode($finalPosition);
             }
