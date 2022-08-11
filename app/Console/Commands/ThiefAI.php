@@ -1160,6 +1160,10 @@ class ThiefAi extends Command
 
             foreach ($thieves as $t2) {
 
+                $t2->mergeCasts([
+                    'hidden_position' => 'string',
+                ]);
+
                 $finPos = $botFinalPositions[$t2->id];
 
                 $t2->hidden_position = DB::raw("ST_GeomFromText('POINT($finPos)')");
