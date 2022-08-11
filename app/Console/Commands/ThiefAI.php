@@ -1171,8 +1171,6 @@ class ThiefAi extends Command
 
                 $t2->hidden_position = DB::raw("ST_GeomFromText('POINT($finPos)')");
                 $t2->save();
-
-                echo $finPos . "\n";
             }
 
         } while ($room->status == 'GAME_IN_PROGRESS');
