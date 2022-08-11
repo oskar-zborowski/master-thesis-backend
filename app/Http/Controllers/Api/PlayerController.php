@@ -18,6 +18,7 @@ use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class PlayerController extends Controller
@@ -462,7 +463,7 @@ class PlayerController extends Controller
                 $timeDifference = strtotime($now) - strtotime($player->updated_at);
                 $maxDistance = $room->config['other']['max_speed'] * $timeDifference;
 
-                $speedExceeded = DB::select(DB::raw("SELECT id FROM players WHERE id = $player->id AND ST_Distance_Sphere(ST_GeomFromText('POINT($request->gps_location)'), hidden_position) > $maxDistance"));
+                $speedExceeded = DB::select(DB::raw("SELECT id, ST_AsText(hidden_position) as hiddenPosition, ST_Distance_Sphere(ST_GeomFromText('POINT($request->gps_location)'), hidden_position) as speedDistance FROM players WHERE id = $player->id AND ST_Distance_Sphere(ST_GeomFromText('POINT($request->gps_location)'), hidden_position) > $maxDistance"));
 
                 if (count($speedExceeded) > 0) {
 
@@ -473,6 +474,13 @@ class PlayerController extends Controller
                     $player->speed_exceeded_at = $now;
                     $player->save();
                     $reloadRoom = true;
+
+                    Log::info(json_encode([
+                        'lastPosition' => $speedExceeded[0]->hiddenPosition,
+                        'currentPosition' => $request->gps_location,
+                        'distance' => $speedExceeded[0]->speedDistance,
+                        'maxAcceptedDistance' => $maxDistance,
+                    ]));
                 }
             }
 
