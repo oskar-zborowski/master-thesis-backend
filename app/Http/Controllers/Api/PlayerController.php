@@ -280,6 +280,8 @@ class PlayerController extends Controller
             );
         }
 
+        $playerUpdatedAt = $player->updated_at;
+
         if ($player->status == 'BANNED') {
             throw new ApiException(
                 DefaultErrorCode::PERMISSION_DENIED(),
@@ -460,7 +462,7 @@ class PlayerController extends Controller
 
             if ($room->config['other']['max_speed'] != -1) {
 
-                $timeDifference = strtotime($now) - strtotime($player->updated_at);
+                $timeDifference = strtotime($now) - strtotime($playerUpdatedAt);
                 $maxDistance = $room->config['other']['max_speed'] * $timeDifference;
 
                 $speedExceeded = DB::select(DB::raw("SELECT id, ST_AsText(hidden_position) as hiddenPosition, ST_Distance_Sphere(ST_GeomFromText('POINT($request->gps_location)'), hidden_position) as speedDistance FROM players WHERE id = $player->id AND ST_Distance_Sphere(ST_GeomFromText('POINT($request->gps_location)'), hidden_position) > $maxDistance"));
