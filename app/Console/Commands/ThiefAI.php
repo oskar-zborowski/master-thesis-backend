@@ -1133,9 +1133,9 @@ class ThiefAi extends Command
                 }
             }
 
-            foreach ($thieves as $t) {
+            $botFinalPositions = [];
 
-                $t2 = $t;
+            foreach ($thieves as $t) {
 
                 $botShift = $room->config['other']['bot_speed'] * env('BOT_REFRESH');
 
@@ -1155,10 +1155,17 @@ class ThiefAi extends Command
 
                 $finalPosition = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
 
-                // $t2->hidden_position = DB::raw("ST_GeomFromText('POINT($finalPosition)')");
-                // $t2->save();
+                $botFinalPositions[$t->id] = $finalPosition;
+            }
 
-                echo json_encode($finalPosition);
+            foreach ($thieves as $t2) {
+
+                $finPos = $botFinalPositions[$t2->id];
+
+                $t2->hidden_position = DB::raw("ST_GeomFromText('POINT($finPos)')");
+                $t2->save();
+
+                echo $finPos . "\n";
             }
 
         } while ($room->status == 'GAME_IN_PROGRESS');
