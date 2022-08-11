@@ -1072,7 +1072,7 @@ class ThiefAi extends Command
 
                         foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed11) {
                             if ($bestCoefficient === null || $bestCoefficient < $destinationConfirmed11['finalCoefficient']) {
-                                $finalCoefficient = $destinationConfirmed11['finalCoefficient'];
+                                $bestCoefficient = $destinationConfirmed11['finalCoefficient'];
                                 $bestCoefficientId = [
                                     'x' => $destinationConfirmed11['x'],
                                     'y' => $destinationConfirmed11['y'],
@@ -1121,7 +1121,7 @@ class ThiefAi extends Command
 
                     foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed11) {
                         if ($bestCoefficient === null || $bestCoefficient < $destinationConfirmed11['finalCoefficient']) {
-                            $finalCoefficient = $destinationConfirmed11['finalCoefficient'];
+                            $bestCoefficient = $destinationConfirmed11['finalCoefficient'];
                             $bestCoefficientId = [
                                 'x' => $destinationConfirmed11['x'],
                                 'y' => $destinationConfirmed11['y'],
