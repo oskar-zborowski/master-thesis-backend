@@ -1159,11 +1159,13 @@ class ThiefAi extends Command
                 $botFinalPositions[$t->id] = $finalPosition;
             }
 
-            foreach ($thieves as $t2) {
+            /** @var \App\Models\Player[] $thieves */
+            $thieves2 = $room->players()->where([
+                'role' => 'THIEF',
+                'is_bot' => true,
+            ])->get();
 
-                $t2->mergeCasts([
-                    'hidden_position' => AsStringable::class,
-                ]);
+            foreach ($thieves2 as $t2) {
 
                 $finPos = $botFinalPositions[$t2->id];
 
