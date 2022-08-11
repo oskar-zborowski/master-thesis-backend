@@ -1055,7 +1055,8 @@ class ThiefAi extends Command
                             }
                         }
 
-                        $sumFinalCoefficient = 0;
+                        $bestCoefficient = null;
+                        $bestCoefficientId = null;
 
                         foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed9) {
 
@@ -1068,25 +1069,16 @@ class ThiefAi extends Command
                             $finalCoefficient = $safeRoadCoefficient * $safeRoad + $safeDestinationCoefficient * $safeDestination;
                             $destinationConfirmed9['finalCoefficient'] = $finalCoefficient;
 
-                            $sumFinalCoefficient += round($finalCoefficient * 10000000);
-                        }
-
-                        $rand = rand(1, $sumFinalCoefficient);
-
-                        foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed10) {
-
-                            $rand -= round($destinationConfirmed10['finalCoefficient'] * 10000000);
-
-                            if ($rand <= 0) {
-
-                                $thiefDecision[$thief->id] = [
-                                    'x' => $destinationConfirmed10['x'],
-                                    'y' => $destinationConfirmed10['y'],
-                                ];
-
-                                break;
+                            if ($bestCoefficient === null || $bestCoefficient < $finalCoefficient) {
+                                $finalCoefficient = $bestCoefficient;
+                                $bestCoefficientId = $destinationConfirmed9;
                             }
                         }
+
+                        $thiefDecision[$thief->id] = [
+                            'x' => $bestCoefficientId['x'],
+                            'y' => $bestCoefficientId['y'],
+                        ];
 
                     } else {
 
@@ -1107,7 +1099,8 @@ class ThiefAi extends Command
 
                 } else {
 
-                    $sumFinalCoefficient = 0;
+                    $bestCoefficient = null;
+                    $bestCoefficientId = null;
 
                     foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed9) {
 
@@ -1117,29 +1110,23 @@ class ThiefAi extends Command
                         $finalCoefficient = $safeDestinationCoefficient * $safeDestination;
                         $destinationConfirmed9['finalCoefficient'] = $finalCoefficient;
 
-                        $sumFinalCoefficient += round($finalCoefficient * 10000000);
-                    }
-
-                    $rand = rand(1, $sumFinalCoefficient);
-
-                    foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed10) {
-
-                        $rand -= round($destinationConfirmed10['finalCoefficient'] * 10000000);
-
-                        if ($rand <= 0) {
-
-                            $thiefDecision[$thief->id] = [
-                                'x' => $destinationConfirmed10['x'],
-                                'y' => $destinationConfirmed10['y'],
-                            ];
-
-                            break;
+                        if ($bestCoefficient === null || $bestCoefficient < $finalCoefficient) {
+                            $finalCoefficient = $bestCoefficient;
+                            $bestCoefficientId = $destinationConfirmed9;
                         }
                     }
+
+                    $thiefDecision[$thief->id] = [
+                        'x' => $bestCoefficientId['x'],
+                        'y' => $bestCoefficientId['y'],
+                    ];
                 }
             }
 
         } while (false);
+
+echo json_encode($thiefDecision);
+
     }
 
     private function getPolicemanRadius(array $roomConfig, string $playerRole, bool $isDisclosure = false) {
