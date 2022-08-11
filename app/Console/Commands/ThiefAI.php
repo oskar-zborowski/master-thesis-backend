@@ -1068,10 +1068,15 @@ class ThiefAi extends Command
 
                             $finalCoefficient = $safeRoadCoefficient * $safeRoad + $safeDestinationCoefficient * $safeDestination;
                             $destinationConfirmed9['finalCoefficient'] = $finalCoefficient;
+                        }
 
-                            if ($bestCoefficient === null || $bestCoefficient < $finalCoefficient) {
-                                $finalCoefficient = $bestCoefficient;
-                                $bestCoefficientId = $destinationConfirmed9;
+                        foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed11) {
+                            if ($bestCoefficient === null || $bestCoefficient < $destinationConfirmed11['finalCoefficient']) {
+                                $finalCoefficient = $destinationConfirmed11['finalCoefficient'];
+                                $bestCoefficientId = [
+                                    'x' => $destinationConfirmed11['x'],
+                                    'y' => $destinationConfirmed11['y'],
+                                ];
                             }
                         }
 
@@ -1109,10 +1114,15 @@ class ThiefAi extends Command
 
                         $finalCoefficient = $safeDestinationCoefficient * $safeDestination;
                         $destinationConfirmed9['finalCoefficient'] = $finalCoefficient;
+                    }
 
-                        if ($bestCoefficient === null || $bestCoefficient < $finalCoefficient) {
-                            $finalCoefficient = $bestCoefficient;
-                            $bestCoefficientId = $destinationConfirmed9;
+                    foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed11) {
+                        if ($bestCoefficient === null || $bestCoefficient < $destinationConfirmed11['finalCoefficient']) {
+                            $finalCoefficient = $destinationConfirmed11['finalCoefficient'];
+                            $bestCoefficientId = [
+                                'x' => $destinationConfirmed11['x'],
+                                'y' => $destinationConfirmed11['y'],
+                            ];
                         }
                     }
 
