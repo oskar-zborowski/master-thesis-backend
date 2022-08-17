@@ -257,7 +257,7 @@ class CheckVoting extends Command
                         $gameStarted = true;
 
                         shell_exec('php ' . env('APP_ROOT') . "artisan game-course:check $room->id >/dev/null 2>/dev/null &");
-                        // shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai:start $room->id >/dev/null 2>/dev/null &");
+                        shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai:start $room->id >/dev/null 2>/dev/null &");
 
                     } else if ($room->voting_type == 'ENDING_COUNTDOWN') {
 
@@ -300,7 +300,7 @@ class CheckVoting extends Command
                         }
 
                         shell_exec('php ' . env('APP_ROOT') . "artisan game-course:check $room->id >/dev/null 2>/dev/null &");
-                        // shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai:start $room->id >/dev/null 2>/dev/null &");
+                        shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai:start $room->id >/dev/null 2>/dev/null &");
 
                     } else if ($room->voting_type == 'END_GAME') {
 

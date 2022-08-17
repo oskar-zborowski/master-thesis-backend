@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Http\Libraries\Geometry;
 use App\Models\Room;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Casts\AsStringable;
 use Illuminate\Support\Facades\DB;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
@@ -40,6 +39,41 @@ class ThiefAi extends Command
                 'role' => 'THIEF',
                 'is_bot' => true,
             ])->get();
+
+            /** @var \App\Models\Player[] $thievesWithoutLocation */
+            $thievesWithoutLocation = $room->players()->whereNull('hidden_position')->where([
+                'role' => 'THIEF',
+                'is_bot' => true,
+            ])->get();
+
+            if (count($thievesWithoutLocation) > 0) {
+
+                $allLocation = [];
+                $allLocationNumber = 0;
+
+                /** @var \App\Models\Player[] $allPlayers */
+                $allPlayers = $room->players()->whereNotNull('hidden_position')->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+
+                foreach ($allPlayers as $aP) {
+
+                    $aP->mergeCasts([
+                        'hidden_position' => Point::class,
+                    ]);
+
+                    $allLocation[] = "{$aP->hidden_position->longitude} {$aP->hidden_position->latitude}";
+                }
+
+                $allLocationNumber = count($allLocation);
+
+                if ($allLocationNumber > 0) {
+                    foreach ($thievesWithoutLocation as $tWL) {
+                        $rand = rand(0, $allLocationNumber-1);
+                        $botPos = $allLocation[$rand];
+                        $tWL->hidden_position = DB::raw("ST_GeomFromText('POINT($botPos)')");;
+                        $tWL->save();
+                    }
+                }
+            }
 
             $isDisclosure = false;
             $iteration = 0;
@@ -1131,6 +1165,63 @@ class ThiefAi extends Command
                         'x' => $bestCoefficientId['x'],
                         'y' => $bestCoefficientId['y'],
                     ];
+                }
+            }
+
+            foreach ($thieves as $tx2) {
+
+                if (($tx2->fake_position_finished_at === null || now() > $tx2->fake_position_finished_at) &&
+                    ($tx2->black_ticket_finished_at === null || now() > $tx2->black_ticket_finished_at))
+                {
+                    $blackTicketToUsed = 0;
+                    $fakePositionToUsed = 0;
+
+                    if ($tx2->config['black_ticket']['number'] - $tx2->config['black_ticket']['used_number'] > 0) {
+                        $blackTicketToUsed = $tx2->config['black_ticket']['number'] - $tx2->config['black_ticket']['used_number'];
+                    }
+
+                    if ($tx2->config['fake_position']['number'] - $tx2->config['fake_position']['used_number'] > 0) {
+                        $fakePositionToUsed = $tx2->config['fake_position']['number'] - $tx2->config['fake_position']['used_number'];
+                    }
+
+                    if ($blackTicketToUsed + $fakePositionToUsed > 0) {
+
+                        $timeLapseRand = round(rand((int) (200 * $timeLapse) - 100, 100) / 100);
+                        $timeLapseRand = $timeLapseRand >= 0 ? $timeLapseRand : 0;
+
+                        if ($timeLapseRand == 1) {
+
+                            $randTicket = rand(1, $blackTicketToUsed + $fakePositionToUsed);
+
+                            if ($blackTicketToUsed - $randTicket < 0) {
+
+                                if (isset($destinationsConfirmed[$tx2->id])) {
+
+                                    $countDestin = count($destinationsConfirmed[$tx2->id]);
+                                    $randDestin = rand(0, $countDestin-1);
+
+                                    $finLoc = "{$destinationsConfirmed[$tx2->id][$randDestin]['x']} {$destinationsConfirmed[$tx2->id][$randDestin]['y']}";
+
+                                    $tempConfig = $tx2->config;
+                                    $tempConfig['fake_position']['used_number'] = $tx2->config['fake_position']['used_number'] + 1;
+                                    $tx2->config = $tempConfig;
+
+                                    $tx2->fake_position = DB::raw("ST_GeomFromText('POINT($finLoc)')");
+                                    $tx2->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['fake_position']['duration'] . ' seconds', strtotime(now())));
+                                    $tx2->save();
+                                }
+
+                            } else {
+
+                                $tempConfig = $tx2->config;
+                                $tempConfig['black_ticket']['used_number'] = $tx2->config['black_ticket']['used_number'] + 1;
+                                $tx2->config = $tempConfig;
+
+                                $tx2->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['black_ticket']['duration'] . ' seconds', strtotime(now())));
+                                $tx2->save();
+                            }
+                        }
+                    }
                 }
             }
 

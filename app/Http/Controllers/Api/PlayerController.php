@@ -588,44 +588,56 @@ class PlayerController extends Controller
 
                 if ($thief->black_ticket_finished_at === null || $now > $thief->black_ticket_finished_at) {
 
-                    $thief->mergeCasts([
-                        'global_position' => Point::class,
-                        'hidden_position' => Point::class,
-                        'fake_position' => Point::class,
-                    ]);
-
                     if ($thief->fake_position_finished_at && $now <= $thief->fake_position_finished_at) {
 
-                        if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
+                        if ($thief->fake_position !== null) {
 
-                            $fakePosition = "{$thief->fake_position->longitude} {$thief->fake_position->latitude}";
+                            $thief->mergeCasts([
+                                'global_position' => Point::class,
+                                'hidden_position' => Point::class,
+                                'fake_position' => Point::class,
+                            ]);
 
-                            $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($fakePosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
-                            $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($fakePosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+                            if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
 
-                            if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
+                                $fakePosition = "{$thief->fake_position->longitude} {$thief->fake_position->latitude}";
+
+                                $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($fakePosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                                $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($fakePosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+
+                                if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
+                                    $thief->global_position = $thief->fake_position;
+                                }
+
+                            } else {
                                 $thief->global_position = $thief->fake_position;
                             }
-
-                        } else {
-                            $thief->global_position = $thief->fake_position;
                         }
 
                     } else {
 
-                        if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
+                        if ($thief->hidden_position !== null) {
 
-                            $hiddenPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
+                            $thief->mergeCasts([
+                                'global_position' => Point::class,
+                                'hidden_position' => Point::class,
+                                'fake_position' => Point::class,
+                            ]);
 
-                            $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
-                            $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+                            if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
 
-                            if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
+                                $hiddenPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
+
+                                $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                                $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+
+                                if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
+                                    $thief->global_position = $thief->hidden_position;
+                                }
+
+                            } else {
                                 $thief->global_position = $thief->hidden_position;
                             }
-
-                        } else {
-                            $thief->global_position = $thief->hidden_position;
                         }
                     }
 
@@ -651,12 +663,25 @@ class PlayerController extends Controller
                 );
             }
 
-            if ($player->black_ticket_finished_at) {
-                throw new ApiException(
-                    DefaultErrorCode::FAILED_VALIDATION(),
-                    __('validation.custom.black-ticket-active'),
-                    __FUNCTION__
-                );
+            if ($player->fake_position_finished_at && now() <= $player->fake_position_finished_at ||
+                $player->black_ticket_finished_at && now() <= $player->black_ticket_finished_at)
+            {
+                if ($player->fake_position_finished_at && now() <= $player->fake_position_finished_at) {
+                    throw new ApiException(
+                        DefaultErrorCode::FAILED_VALIDATION(),
+                        __('validation.custom.fake-position-active'),
+                        __FUNCTION__
+                    );
+                } else {
+                    throw new ApiException(
+                        DefaultErrorCode::FAILED_VALIDATION(),
+                        __('validation.custom.black-ticket-active'),
+                        __FUNCTION__
+                    );
+                }
+
+            } else {
+                $player->black_ticket_finished_at = null;
             }
 
             if ($player->config['black_ticket']['number'] - $player->config['black_ticket']['used_number'] <= 0) {
@@ -687,12 +712,26 @@ class PlayerController extends Controller
                 );
             }
 
-            if ($player->fake_position_finished_at) {
-                throw new ApiException(
-                    DefaultErrorCode::FAILED_VALIDATION(),
-                    __('validation.custom.fake-position-active'),
-                    __FUNCTION__
-                );
+            if ($player->fake_position_finished_at && now() <= $player->fake_position_finished_at ||
+                $player->black_ticket_finished_at && now() <= $player->black_ticket_finished_at)
+            {
+                if ($player->fake_position_finished_at && now() <= $player->fake_position_finished_at) {
+                    throw new ApiException(
+                        DefaultErrorCode::FAILED_VALIDATION(),
+                        __('validation.custom.fake-position-active'),
+                        __FUNCTION__
+                    );
+                } else {
+                    throw new ApiException(
+                        DefaultErrorCode::FAILED_VALIDATION(),
+                        __('validation.custom.black-ticket-active'),
+                        __FUNCTION__
+                    );
+                }
+
+            } else {
+                $player->fake_position = null;
+                $player->fake_position_finished_at = null;
             }
 
             if ($player->config['fake_position']['number'] - $player->config['fake_position']['used_number'] <= 0) {

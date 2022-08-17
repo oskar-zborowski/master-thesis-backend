@@ -134,6 +134,8 @@ class CheckGameCourse extends Command
 
                     if (in_array($player->status, ['CONNECTED', 'DISCONNECTED']) && $player->is_bot == false) {
 
+                        $playerLeft = false;
+
                         if ($player->disconnecting_finished_at === null && $now > date('Y-m-d H:i:s', strtotime('+' . env('DISCONNECTING_TIMEOUT') . ' seconds', strtotime($player->expected_time_at)))) {
 
                             $player->status = 'DISCONNECTED';
@@ -174,6 +176,8 @@ class CheckGameCourse extends Command
                             if ($player->user_id == $room->host_id) {
                                 Other::setNewHost($room);
                             }
+
+                            $playerLeft = true;
                         }
 
                         if ($player->disconnecting_finished_at && $now > $player->disconnecting_finished_at || $player->crossing_boundary_finished_at && $now > $player->crossing_boundary_finished_at) {
@@ -198,9 +202,13 @@ class CheckGameCourse extends Command
                             if ($player->user_id == $room->host_id) {
                                 Other::setNewHost($room);
                             }
+
+                            $playerLeft = true;
                         }
 
-                        $activePlayersNumber++;
+                        if (!$playerLeft) {
+                            $activePlayersNumber++;
+                        }
 
                     } else if ($player->status == 'SUPERVISING') {
                         $activePlayersNumber++;
@@ -459,6 +467,8 @@ class CheckGameCourse extends Command
 
                     if (in_array($player->status, ['CONNECTED', 'DISCONNECTED']) && $player->is_bot == false) {
 
+                        $playerLeft = false;
+
                         if ($player->disconnecting_finished_at === null && $now > date('Y-m-d H:i:s', strtotime('+' . env('DISCONNECTING_TIMEOUT') . ' seconds', strtotime($player->expected_time_at)))) {
 
                             $player->status = 'DISCONNECTED';
@@ -499,6 +509,8 @@ class CheckGameCourse extends Command
                             if ($player->user_id == $room->host_id) {
                                 Other::setNewHost($room);
                             }
+
+                            $playerLeft = true;
                         }
 
                         if ($player->disconnecting_finished_at && $now > $player->disconnecting_finished_at || $player->crossing_boundary_finished_at && $now > $player->crossing_boundary_finished_at) {
@@ -523,9 +535,13 @@ class CheckGameCourse extends Command
                             if ($player->user_id == $room->host_id) {
                                 Other::setNewHost($room);
                             }
+
+                            $playerLeft = true;
                         }
 
-                        $activePlayersNumber++;
+                        if (!$playerLeft) {
+                            $activePlayersNumber++;
+                        }
 
                     } else if ($player->status == 'SUPERVISING') {
                         $activePlayersNumber++;

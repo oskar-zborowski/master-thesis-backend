@@ -15,7 +15,6 @@ use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class RoomController extends Controller
 {
