@@ -1229,25 +1229,29 @@ class ThiefAi extends Command
 
             foreach ($thieves as $t) {
 
-                $botShift = $room->config['other']['bot_speed'] * env('BOT_REFRESH');
+                if ($t->hidden_position !== null) {
 
-                $t->mergeCasts([
-                    'hidden_position' => Point::class,
-                ]);
+                    $botShift = $room->config['other']['bot_speed'] * env('BOT_REFRESH');
 
-                $thiefPos2['x'] = $t->hidden_position->longitude;
-                $thiefPos2['y'] = $t->hidden_position->latitude;
-                $thiefPos2XY = Geometry::convertLatLngToXY($thiefPos2);
+                    $t->mergeCasts([
+                        'hidden_position' => Point::class,
+                    ]);
 
-                $position = $thiefDecision[$t->id];
-                $positionXY = Geometry::convertLatLngToXY($position);
+                    $thiefPos2['x'] = $t->hidden_position->longitude;
+                    $thiefPos2['y'] = $t->hidden_position->latitude;
+                    $thiefPos2XY = Geometry::convertLatLngToXY($thiefPos2);
 
-                $finalPositionXY = Geometry::getShiftedPoint($thiefPos2XY, $positionXY, $botShift);
-                $finalPositionLatLng = Geometry::convertXYToLatLng($finalPositionXY);
+                    $position = $thiefDecision[$t->id];
+                    $positionXY = Geometry::convertLatLngToXY($position);
 
-                $finalPosition = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
+                    $finalPositionXY = Geometry::getShiftedPoint($thiefPos2XY, $positionXY, $botShift);
 
-                $botFinalPositions[$t->id] = $finalPosition;
+                    if (Geometry::checkIfPointBelongsToSegment($finalPositionXY, $thiefPos2XY, $positionXY)) {
+                        $finalPositionLatLng = Geometry::convertXYToLatLng($finalPositionXY);
+                        $finalPosition = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
+                        $botFinalPositions[$t->id] = $finalPosition;
+                    }
+                }
             }
 
             /** @var \App\Models\Player[] $thieves */
@@ -1257,11 +1261,11 @@ class ThiefAi extends Command
             ])->get();
 
             foreach ($thieves2 as $t2) {
-
-                $finPos = $botFinalPositions[$t2->id];
-
-                $t2->hidden_position = DB::raw("ST_GeomFromText('POINT($finPos)')");
-                $t2->save();
+                if (isset($botFinalPositions[$t2->id])) {
+                    $finPos = $botFinalPositions[$t2->id];
+                    $t2->hidden_position = DB::raw("ST_GeomFromText('POINT($finPos)')");
+                    $t2->save();
+                }
             }
 
         } while ($room->status == 'GAME_IN_PROGRESS');
