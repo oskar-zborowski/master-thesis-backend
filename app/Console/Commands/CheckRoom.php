@@ -35,7 +35,7 @@ class CheckRoom extends Command
             /** @var \App\Models\Player $host */
             $host = $room->players()->where('user_id', $room->host_id)->first();
 
-            if ($host->status != 'CONNECTED') {
+            if ($host && $host->status != 'CONNECTED') {
                 Other::setNewHost($room);
             }
 

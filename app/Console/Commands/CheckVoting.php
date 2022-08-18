@@ -257,7 +257,10 @@ class CheckVoting extends Command
                         $gameStarted = true;
 
                         shell_exec('php ' . env('APP_ROOT') . "artisan game-course:check $room->id >/dev/null 2>/dev/null &");
-                        shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai:start $room->id >/dev/null 2>/dev/null &");
+
+                        if ($botNumber > 0) {
+                            shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai:start $room->id >/dev/null 2>/dev/null &");
+                        }
 
                     } else if ($room->voting_type == 'ENDING_COUNTDOWN') {
 
@@ -299,8 +302,14 @@ class CheckVoting extends Command
                             $room->next_disclosure_at = date('Y-m-d H:i:s', strtotime('+' . abs($nextDisclosure) . ' seconds', strtotime($room->game_ended_at)));
                         }
 
+                        /** @var Player $botExists */
+                        $botExists = $room->players()->where('is_bot', true)->first();
+
                         shell_exec('php ' . env('APP_ROOT') . "artisan game-course:check $room->id >/dev/null 2>/dev/null &");
-                        shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai:start $room->id >/dev/null 2>/dev/null &");
+
+                        if ($botExists > 0) {
+                            shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai:start $room->id >/dev/null 2>/dev/null &");
+                        }
 
                     } else if ($room->voting_type == 'END_GAME') {
 

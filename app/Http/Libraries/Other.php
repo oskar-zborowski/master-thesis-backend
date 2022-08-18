@@ -53,6 +53,8 @@ class Other
             $player->status = 'LEFT';
             $player->save();
         }
+
+        shell_exec('php ' . env('APP_ROOT') . "artisan room:check $newRoom->id >/dev/null 2>/dev/null &");
     }
 
     public static function setNewHost(Room $room) {
