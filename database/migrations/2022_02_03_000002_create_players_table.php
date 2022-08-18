@@ -28,9 +28,9 @@ return new class extends Migration
             $table->enum('status', Validation::getPlayerStatuses())->default('CONNECTED');
             $table->enum('failed_voting_type', Validation::getVotingTypes())->nullable(); // Flaga informująca każdego użytkownika jednokrotnie, że głosowanie się nie powiodło
             $table->unsignedTinyInteger('warning_number')->default(0);
-            $table->unsignedSmallInteger('ping')->default(0); // wyrażone w [ms]
-            $table->unsignedSmallInteger('average_ping')->default(0); // wyrażone w [ms]
-            $table->unsignedSmallInteger('samples_number')->default(0);
+            $table->unsignedBigInteger('ping')->default(0); // wyrażone w [ms]
+            $table->unsignedBigInteger('average_ping')->default(0); // wyrażone w [ms]
+            $table->unsignedBigInteger('samples_number')->default(0);
             $table->timestamp('expected_time_at')->nullable();
             $table->timestamp('black_ticket_finished_at')->nullable();
             $table->timestamp('fake_position_finished_at')->nullable();
