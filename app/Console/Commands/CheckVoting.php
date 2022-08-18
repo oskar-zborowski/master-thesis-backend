@@ -428,49 +428,108 @@ class CheckVoting extends Command
 
     private function setPlayersRoles(Room $room) {
 
+        $policemenNumber = 0;
+        $thiefNumber = 0;
+        $agentNumber = 0;
+        $pegasusNumber = 0;
+        $fattyManNumber = 0;
+        $eagleNumber = 0;
+
+        /** @var Player[] $players */
+        $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+
+        foreach ($players as $player) {
+            if ($player->role == 'POLICEMAN') {
+                $policemenNumber++;
+            } else if ($player->role == 'THIEF') {
+                $thiefNumber++;
+            } else if ($player->role == 'AGENT') {
+                $agentNumber++;
+            } else if ($player->role == 'PEGASUS') {
+                $pegasusNumber++;
+            } else if ($player->role == 'FATTY_MAN') {
+                $fattyManNumber++;
+            } else if ($player->role == 'EAGLE') {
+                $eagleNumber++;
+            }
+        }
+
         if ($room->config['actor']['agent']['probability'] == 1) {
-            $agentNumber = $room->config['actor']['agent']['number'];
+            if ($room->config['actor']['agent']['number'] > $agentNumber) {
+                $agentNumber = $room->config['actor']['agent']['number'] - $agentNumber;
+            } else {
+                $agentNumber = 0;
+            }
         } else if ($room->config['actor']['agent']['probability'] == 0) {
             $agentNumber = 0;
         } else {
-            $agentNumber = (int) ($room->config['actor']['agent']['number'] * rand((int) (200 * $room->config['actor']['agent']['probability']) - 100, 100) / 100);
-            $agentNumber = $agentNumber >= 0 ? $agentNumber : 0;
+            $agentNumberRand = (int) ($room->config['actor']['agent']['number'] * rand((int) (200 * $room->config['actor']['agent']['probability']) - 100, 100) / 100);
+            $agentNumber = $agentNumberRand > $agentNumber ? ($agentNumberRand - $agentNumber) : 0;
         }
 
         if ($room->config['actor']['pegasus']['probability'] == 1) {
-            $pegasusNumber = $room->config['actor']['pegasus']['number'];
+            if ($room->config['actor']['pegasus']['number'] > $pegasusNumber) {
+                $pegasusNumber = $room->config['actor']['pegasus']['number'] - $pegasusNumber;
+            } else {
+                $pegasusNumber = 0;
+            }
         } else if ($room->config['actor']['pegasus']['probability'] == 0) {
             $pegasusNumber = 0;
         } else {
-            $pegasusNumber = (int) ($room->config['actor']['pegasus']['number'] * rand((int) (200 * $room->config['actor']['pegasus']['probability']) - 100, 100) / 100);
-            $pegasusNumber = $pegasusNumber >= 0 ? $pegasusNumber : 0;
+            $pegasusNumberRand = (int) ($room->config['actor']['pegasus']['number'] * rand((int) (200 * $room->config['actor']['pegasus']['probability']) - 100, 100) / 100);
+            $pegasusNumber = $pegasusNumberRand > $pegasusNumber ? ($pegasusNumberRand - $pegasusNumber) : 0;
         }
 
         if ($room->config['actor']['fatty_man']['probability'] == 1) {
-            $fattyManNumber = $room->config['actor']['fatty_man']['number'];
+            if ($room->config['actor']['fatty_man']['number'] > $fattyManNumber) {
+                $fattyManNumber = $room->config['actor']['fatty_man']['number'] - $fattyManNumber;
+            } else {
+                $fattyManNumber = 0;
+            }
         } else if ($room->config['actor']['fatty_man']['probability'] == 0) {
             $fattyManNumber = 0;
         } else {
-            $fattyManNumber = (int) ($room->config['actor']['fatty_man']['number'] * rand((int) (200 * $room->config['actor']['fatty_man']['probability']) - 100, 100) / 100);
-            $fattyManNumber = $fattyManNumber >= 0 ? $fattyManNumber : 0;
+            $fattyManNumberRand = (int) ($room->config['actor']['fatty_man']['number'] * rand((int) (200 * $room->config['actor']['fatty_man']['probability']) - 100, 100) / 100);
+            $fattyManNumber = $fattyManNumberRand > $fattyManNumber ? ($fattyManNumberRand - $fattyManNumber) : 0;
         }
 
         if ($room->config['actor']['eagle']['probability'] == 1) {
-            $eagleNumber = $room->config['actor']['eagle']['number'];
+            if ($room->config['actor']['eagle']['number'] > $eagleNumber) {
+                $eagleNumber = $room->config['actor']['eagle']['number'] - $eagleNumber;
+            } else {
+                $eagleNumber = 0;
+            }
         } else if ($room->config['actor']['eagle']['probability'] == 0) {
             $eagleNumber = 0;
         } else {
-            $eagleNumber = (int) ($room->config['actor']['eagle']['number'] * rand((int) (200 * $room->config['actor']['eagle']['probability']) - 100, 100) / 100);
-            $eagleNumber = $eagleNumber >= 0 ? $eagleNumber : 0;
+            $eagleNumberRand = (int) ($room->config['actor']['eagle']['number'] * rand((int) (200 * $room->config['actor']['eagle']['probability']) - 100, 100) / 100);
+            $eagleNumber = $eagleNumberRand > $eagleNumber ? ($eagleNumberRand - $eagleNumber) : 0;
         }
 
         if ($room->config['actor']['thief']['probability'] == 1) {
-            $thiefNumber = $room->config['actor']['thief']['number'];
+            if ($room->config['actor']['thief']['number'] > $thiefNumber) {
+                $thiefNumber = $room->config['actor']['thief']['number'] - $thiefNumber;
+            } else {
+                $thiefNumber = 0;
+            }
         } else if ($room->config['actor']['thief']['probability'] == 0) {
-            $thiefNumber = 1;
+            if ($thiefNumber < 1) {
+                $thiefNumber = 1;
+            }
         } else {
-            $thiefNumber = (int) ($room->config['actor']['thief']['number'] * rand((int) (200 * $room->config['actor']['thief']['probability']) - 100, 100) / 100);
-            $thiefNumber = $thiefNumber >= 1 ? $thiefNumber : 1;
+
+            $thiefNumberRand = (int) ($room->config['actor']['thief']['number'] * rand((int) (200 * $room->config['actor']['thief']['probability']) - 100, 100) / 100);
+            $thiefNumber2 = $thiefNumberRand > $thiefNumber ? ($thiefNumberRand - $thiefNumber) : 0;
+
+            if ($thiefNumber2 < 1 && $thiefNumber < 1) {
+                $thiefNumber = 1;
+            } else if ($thiefNumber2 < 1 && $thiefNumber >= 1) {
+                $thiefNumber = 0;
+            } else if ($thiefNumber2 >= 1 && $thiefNumber < 1) {
+                $thiefNumber = $thiefNumber2;
+            } else {
+                $thiefNumber = $thiefNumber2 - $thiefNumber;
+            }
         }
 
         $thievesShouldBe = $room->config['actor']['thief']['number'];
@@ -479,26 +538,11 @@ class CheckVoting extends Command
             $thievesShouldBe = 1;
         }
 
-        $policemenNumber = $room->config['actor']['policeman']['number'] + $thievesShouldBe - ($agentNumber + $pegasusNumber + $fattyManNumber + $eagleNumber + $thiefNumber);
-
         /** @var Player[] $players */
-        $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+        $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->whereNull('role')->get();
+        $countPlayers = count($players);
 
-        foreach ($players as $player) {
-            if ($player->role == 'POLICEMAN') {
-                $policemenNumber--;
-            } else if ($player->role == 'THIEF') {
-                $thiefNumber--;
-            } else if ($player->role == 'AGENT') {
-                $agentNumber--;
-            } else if ($player->role == 'PEGASUS') {
-                $pegasusNumber--;
-            } else if ($player->role == 'FATTY_MAN') {
-                $fattyManNumber--;
-            } else if ($player->role == 'EAGLE') {
-                $eagleNumber--;
-            }
-        }
+        $policemenNumber = $countPlayers - ($agentNumber + $pegasusNumber + $fattyManNumber + $eagleNumber + $thiefNumber);
 
         $roles = null;
 
@@ -531,10 +575,8 @@ class CheckVoting extends Command
         $i = 0;
 
         foreach ($players as $player) {
-            if ($player->role === null) {
-                $player->role = $roles[$i++];
-                $player->save();
-            }
+            $player->role = $roles[$i++];
+            $player->save();
         }
     }
 
