@@ -263,14 +263,17 @@ class CheckGameCourse extends Command
 
                                     if ($room->config['actor']['policeman']['visibility_radius'] != -1) {
 
-                                        $hiddenPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
+                                        if ($thief->hidden_position) {
 
-                                        $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
-                                        $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+                                            $hiddenPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
 
-                                        if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
-                                            $thief->global_position = $thief->hidden_position;
-                                            $thiefSave = true;
+                                            $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
+                                            $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+
+                                            if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
+                                                $thief->global_position = $thief->hidden_position;
+                                                $thiefSave = true;
+                                            }
                                         }
 
                                     } else {
@@ -281,67 +284,70 @@ class CheckGameCourse extends Command
                             }
                         }
 
-                        $hiddenPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
+                        if ($thief->hidden_position) {
 
-                        if ($room->config['actor']['thief']['visibility_radius'] != -1) {
+                            $hiddenPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
 
-                            $policemenInRange = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status IN ('CONNECTED', 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['thief']['visibility_radius']}"));
+                            if ($room->config['actor']['thief']['visibility_radius'] != -1) {
 
-                            /** @var Player[] $policemen */
-                            $policemen = $room->players()->whereIn('id', $policemenInRange)->get();
+                                $policemenInRange = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status IN ('CONNECTED', 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['thief']['visibility_radius']}"));
 
-                            foreach ($policemen as $policeman) {
+                                /** @var Player[] $policemen */
+                                $policemen = $room->players()->whereIn('id', $policemenInRange)->get();
 
-                                if (!in_array($policeman->id, $disclosedPolicemen)) {
+                                foreach ($policemen as $policeman) {
 
-                                    $policeman->mergeCasts([
-                                        'global_position' => Point::class,
-                                        'hidden_position' => Point::class,
-                                    ]);
+                                    if (!in_array($policeman->id, $disclosedPolicemen)) {
 
-                                    $disclosedPolicemen[] = $policeman->id;
-                                    $policeman->global_position = $policeman->hidden_position;
-                                    $policeman->save();
-                                }
-                            }
-                        }
+                                        $policeman->mergeCasts([
+                                            'global_position' => Point::class,
+                                            'hidden_position' => Point::class,
+                                        ]);
 
-                        $thiefCaughtByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND role <> 'FATTY_MAN' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
-                        $thiefCaughtByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['catching']['radius']}"));
-                        $thiefCaughtByFattyMan = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'FATTY_MAN' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
-
-                        if (count($thiefCaughtByPoliceman) + count($thiefCaughtByEagle) + 2 * count($thiefCaughtByFattyMan) >= $room->config['actor']['policeman']['catching']['number']) {
-                            $thief->is_caughting = false;
-                            $thief->caught_at = now();
-                            $thiefSave = true;
-                        } else if (count($thiefCaughtByPoliceman) > 0 || count($thiefCaughtByEagle) > 0 || count($thiefCaughtByFattyMan) > 0) {
-
-                            $allPolicemenId = array_merge($thiefCaughtByPoliceman, $thiefCaughtByEagle, $thiefCaughtByFattyMan);
-
-                            /** @var Player[] $policemen */
-                            $policemen = $room->players()->whereIn('id', $allPolicemenId)->get();
-
-                            foreach ($policemen as $policeman) {
-                                if (!in_array($policeman->id, $catchers)) {
-                                    $catchers[] = $policeman->id;
-                                    $policeman->is_catching = true;
-                                    $policeman->save();
+                                        $disclosedPolicemen[] = $policeman->id;
+                                        $policeman->global_position = $policeman->hidden_position;
+                                        $policeman->save();
+                                    }
                                 }
                             }
 
-                            $thief->is_caughting = true;
-                            $thievesNotCaught++;
-                            $thiefSave = true;
+                            $thiefCaughtByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND role <> 'FATTY_MAN' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
+                            $thiefCaughtByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['catching']['radius']}"));
+                            $thiefCaughtByFattyMan = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'FATTY_MAN' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['catching']['radius']}"));
 
-                        } else if ($thief->is_caughting) {
-                            $thief->is_caughting = false;
-                            $thievesNotCaught++;
-                            $thiefSave = true;
-                        } else {
-                            $thievesNotCaught++;
+                            if (count($thiefCaughtByPoliceman) + count($thiefCaughtByEagle) + 2 * count($thiefCaughtByFattyMan) >= $room->config['actor']['policeman']['catching']['number']) {
+                                $thief->is_caughting = false;
+                                $thief->caught_at = now();
+                                $thiefSave = true;
+                            } else if (count($thiefCaughtByPoliceman) > 0 || count($thiefCaughtByEagle) > 0 || count($thiefCaughtByFattyMan) > 0) {
+
+                                $allPolicemenId = array_merge($thiefCaughtByPoliceman, $thiefCaughtByEagle, $thiefCaughtByFattyMan);
+
+                                /** @var Player[] $policemen */
+                                $policemen = $room->players()->whereIn('id', $allPolicemenId)->get();
+
+                                foreach ($policemen as $policeman) {
+                                    if (!in_array($policeman->id, $catchers)) {
+                                        $catchers[] = $policeman->id;
+                                        $policeman->is_catching = true;
+                                        $policeman->save();
+                                    }
+                                }
+
+                                $thief->is_caughting = true;
+                                $thievesNotCaught++;
+                                $thiefSave = true;
+
+                            } else if ($thief->is_caughting) {
+                                $thief->is_caughting = false;
+                                $thievesNotCaught++;
+                                $thiefSave = true;
+                            } else {
+                                $thievesNotCaught++;
+                            }
                         }
 
-                        if ($thiefSave) {
+                        if (isset($thiefSave) && $thiefSave) {
                             $thief->save();
                         }
                     }
