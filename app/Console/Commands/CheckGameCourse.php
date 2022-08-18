@@ -299,22 +299,30 @@ class CheckGameCourse extends Command
                                 $singleThiefVisibilityRadius = 1 * $room->config['actor']['thief']['visibility_radius'];
 
                                 $policemenInRange = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status IN ('CONNECTED', 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'AGENT' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= $singleThiefVisibilityRadius"));
+                                $policemenInRangeArray = [];
 
-                                /** @var Player[] $policemen */
-                                $policemen = $room->players()->whereIn('id', $policemenInRange)->get();
+                                foreach ($policemenInRange as $policemanInRange) {
+                                    $policemenInRangeArray[] = $policemanInRange->id;
+                                }
 
-                                foreach ($policemen as $policeman) {
+                                if (count($policemenInRangeArray) > 0) {
 
-                                    if (!in_array($policeman->id, $disclosedPolicemen)) {
+                                    /** @var Player[] $policemen */
+                                    $policemen = $room->players()->whereIn('id', $policemenInRangeArray)->get();
 
-                                        $policeman->mergeCasts([
-                                            'global_position' => Point::class,
-                                            'hidden_position' => Point::class,
-                                        ]);
+                                    foreach ($policemen as $policeman) {
 
-                                        $disclosedPolicemen[] = $policeman->id;
-                                        $policeman->global_position = $policeman->hidden_position;
-                                        $policeman->save();
+                                        if (!in_array($policeman->id, $disclosedPolicemen)) {
+
+                                            $policeman->mergeCasts([
+                                                'global_position' => Point::class,
+                                                'hidden_position' => Point::class,
+                                            ]);
+
+                                            $disclosedPolicemen[] = $policeman->id;
+                                            $policeman->global_position = $policeman->hidden_position;
+                                            $policeman->save();
+                                        }
                                     }
                                 }
                             }
@@ -332,16 +340,31 @@ class CheckGameCourse extends Command
                                 $thiefSave = true;
                             } else if (count($thiefCaughtByPoliceman) > 0 || count($thiefCaughtByEagle) > 0 || count($thiefCaughtByFattyMan) > 0) {
 
-                                $allPolicemenId = array_merge($thiefCaughtByPoliceman, $thiefCaughtByEagle, $thiefCaughtByFattyMan);
+                                $allPolicemenIdArray = [];
 
-                                /** @var Player[] $policemen */
-                                $policemen = $room->players()->whereIn('id', $allPolicemenId)->get();
+                                foreach ($thiefCaughtByPoliceman as $thiefCaughtByPoliceman2) {
+                                    $allPolicemenIdArray[] = $thiefCaughtByPoliceman2->id;
+                                }
 
-                                foreach ($policemen as $policeman) {
-                                    if (!in_array($policeman->id, $catchers)) {
-                                        $catchers[] = $policeman->id;
-                                        $policeman->is_catching = true;
-                                        $policeman->save();
+                                foreach ($thiefCaughtByEagle as $thiefCaughtByEagle2) {
+                                    $allPolicemenIdArray[] = $thiefCaughtByEagle2->id;
+                                }
+
+                                foreach ($thiefCaughtByFattyMan as $thiefCaughtByFattyMan2) {
+                                    $allPolicemenIdArray[] = $thiefCaughtByFattyMan2->id;
+                                }
+
+                                if (count($allPolicemenIdArray) > 0) {
+
+                                    /** @var Player[] $policemen */
+                                    $policemen = $room->players()->whereIn('id', $allPolicemenIdArray)->get();
+
+                                    foreach ($policemen as $policeman) {
+                                        if (!in_array($policeman->id, $catchers)) {
+                                            $catchers[] = $policeman->id;
+                                            $policeman->is_catching = true;
+                                            $policeman->save();
+                                        }
                                     }
                                 }
 
@@ -364,11 +387,19 @@ class CheckGameCourse extends Command
                     }
                 }
 
-                /** @var Player[] $policemen */
-                $policemen = $room->players()->whereNotIn('id', $catchers)->where([
-                    'status' => 'CONNECTED',
-                    'is_catching' => true,
-                ])->get();
+                if (count($catchers) > 0) {
+                    /** @var Player[] $policemen */
+                    $policemen = $room->players()->whereNotIn('id', $catchers)->where([
+                        'status' => 'CONNECTED',
+                        'is_catching' => true,
+                    ])->get();
+                } else {
+                    /** @var Player[] $policemen */
+                    $policemen = $room->players()->where([
+                        'status' => 'CONNECTED',
+                        'is_catching' => true,
+                    ])->get();
+                }
 
                 foreach ($policemen as $policeman) {
                     $policeman->is_catching = false;

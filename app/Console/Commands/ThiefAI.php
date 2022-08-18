@@ -1188,10 +1188,14 @@ class ThiefAi extends Command
                 foreach ($thieves as $tx2) {
 
                     $thiefAvailableTickets = ($tx2->config['black_ticket']['number'] + $tx2->config['fake_position']['number']) / 0.625;
-                    $timeIntervalBetweenTickets = floor($thievesTicketRefresh / $thiefAvailableTickets);
+
+                    if ($thiefAvailableTickets != 0) {
+                        $timeIntervalBetweenTickets = floor($thievesTicketRefresh / $thiefAvailableTickets);
+                    }
+
                     $sumAvailableTickets = ($tx2->config['black_ticket']['number'] - $tx2->config['black_ticket']['used_number']) * $room->config['actor']['thief']['black_ticket']['duration'] + ($tx2->config['fake_position']['number'] - $tx2->config['fake_position']['used_number']) * $room->config['actor']['thief']['fake_position']['duration'];
 
-                    if ($globalCounter % $timeIntervalBetweenTickets == 0 || $sumAvailableTickets >= $remainingTime) {
+                    if (isset($timeIntervalBetweenTickets) && $globalCounter % $timeIntervalBetweenTickets == 0 || $sumAvailableTickets >= $remainingTime) {
 
                         if (($tx2->fake_position_finished_at === null || now() > $tx2->fake_position_finished_at) &&
                             ($tx2->black_ticket_finished_at === null || now() > $tx2->black_ticket_finished_at))
