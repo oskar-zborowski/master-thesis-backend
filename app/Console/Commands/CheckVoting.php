@@ -473,7 +473,13 @@ class CheckVoting extends Command
             $thiefNumber = $thiefNumber >= 1 ? $thiefNumber : 1;
         }
 
-        $policemenNumber = $room->config['actor']['policeman']['number'] + $room->config['actor']['thief']['number'] - ($agentNumber + $pegasusNumber + $fattyManNumber + $eagleNumber + $thiefNumber);
+        $thievesShouldBe = $room->config['actor']['thief']['number'];
+
+        if ($thievesShouldBe < 1) {
+            $thievesShouldBe = 1;
+        }
+
+        $policemenNumber = $room->config['actor']['policeman']['number'] + $thievesShouldBe - ($agentNumber + $pegasusNumber + $fattyManNumber + $eagleNumber + $thiefNumber);
 
         /** @var Player[] $players */
         $players = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
