@@ -25,6 +25,8 @@ class ThiefAi extends Command
      */
     public function handle() {
 
+        $globalCounter = 0;
+
         $roomId = $this->argument('roomId');
 
         do {
@@ -1168,57 +1170,74 @@ class ThiefAi extends Command
                 }
             }
 
-            foreach ($thieves as $tx2) {
+            if (now() >= $room->game_started_at) {
 
-                if (($tx2->fake_position_finished_at === null || now() > $tx2->fake_position_finished_at) &&
-                    ($tx2->black_ticket_finished_at === null || now() > $tx2->black_ticket_finished_at))
-                {
-                    $blackTicketToUsed = 0;
-                    $fakePositionToUsed = 0;
+                $thievesTicketRefresh = $room->config['duration']['scheduled'] / env('BOT_REFRESH');
+                $remainingTime = strtotime($room->game_ended_at) - strtotime(now());
 
-                    if ($tx2->config['black_ticket']['number'] - $tx2->config['black_ticket']['used_number'] > 0) {
-                        $blackTicketToUsed = $tx2->config['black_ticket']['number'] - $tx2->config['black_ticket']['used_number'];
-                    }
+                if ($remainingTime < 0) {
+                    $remainingTime = 0;
+                }
 
-                    if ($tx2->config['fake_position']['number'] - $tx2->config['fake_position']['used_number'] > 0) {
-                        $fakePositionToUsed = $tx2->config['fake_position']['number'] - $tx2->config['fake_position']['used_number'];
-                    }
+                foreach ($thieves as $tx2) {
 
-                    if ($blackTicketToUsed + $fakePositionToUsed > 0) {
+                    $thiefAvailableTickets = ($tx2->config['black_ticket']['number'] + $tx2->config['fake_position']['number']) / 0.625;
+                    $timeIntervalBetweenTickets = floor($thievesTicketRefresh / $thiefAvailableTickets);
+                    $sumAvailableTickets = ($tx2->config['black_ticket']['number'] - $tx2->config['black_ticket']['used_number']) * $room->config['actor']['thief']['black_ticket']['duration'] + ($tx2->config['fake_position']['number'] - $tx2->config['fake_position']['used_number']) * $room->config['actor']['thief']['fake_position']['duration'];
 
-                        $timeLapseRand = round(rand((int) (200 * $timeLapse) - 100, 100) / 100);
-                        $timeLapseRand = $timeLapseRand >= 0 ? $timeLapseRand : 0;
+                    if ($globalCounter % $timeIntervalBetweenTickets == 0 || $sumAvailableTickets >= $remainingTime) {
 
-                        if ($timeLapseRand == 1) {
+                        if (($tx2->fake_position_finished_at === null || now() > $tx2->fake_position_finished_at) &&
+                            ($tx2->black_ticket_finished_at === null || now() > $tx2->black_ticket_finished_at))
+                        {
+                            $blackTicketToUsed = 0;
+                            $fakePositionToUsed = 0;
 
-                            $randTicket = rand(1, $blackTicketToUsed + $fakePositionToUsed);
+                            if ($tx2->config['black_ticket']['number'] - $tx2->config['black_ticket']['used_number'] > 0) {
+                                $blackTicketToUsed = $tx2->config['black_ticket']['number'] - $tx2->config['black_ticket']['used_number'];
+                            }
 
-                            if ($blackTicketToUsed - $randTicket < 0) {
+                            if ($tx2->config['fake_position']['number'] - $tx2->config['fake_position']['used_number'] > 0) {
+                                $fakePositionToUsed = $tx2->config['fake_position']['number'] - $tx2->config['fake_position']['used_number'];
+                            }
 
-                                if (isset($destinationsConfirmed[$tx2->id])) {
+                            if ($blackTicketToUsed + $fakePositionToUsed > 0) {
 
-                                    $countDestin = count($destinationsConfirmed[$tx2->id]);
-                                    $randDestin = rand(0, $countDestin-1);
+                                $timeLapseRand = round(rand((int) (200 * $timeLapse) - 100, 100) / 100);
+                                $timeLapseRand = $timeLapseRand >= 0 ? $timeLapseRand : 0;
 
-                                    $finLoc = "{$destinationsConfirmed[$tx2->id][$randDestin]['x']} {$destinationsConfirmed[$tx2->id][$randDestin]['y']}";
+                                if ($timeLapseRand == 1) {
 
-                                    $tempConfig = $tx2->config;
-                                    $tempConfig['fake_position']['used_number'] = $tx2->config['fake_position']['used_number'] + 1;
-                                    $tx2->config = $tempConfig;
+                                    $randTicket = rand(1, $blackTicketToUsed + $fakePositionToUsed);
 
-                                    $tx2->fake_position = DB::raw("ST_GeomFromText('POINT($finLoc)')");
-                                    $tx2->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['fake_position']['duration'] . ' seconds', strtotime(now())));
-                                    $tx2->save();
+                                    if ($blackTicketToUsed - $randTicket < 0) {
+
+                                        if (isset($destinationsConfirmed[$tx2->id])) {
+
+                                            $countDestin = count($destinationsConfirmed[$tx2->id]);
+                                            $randDestin = rand(0, $countDestin-1);
+
+                                            $finLoc = "{$destinationsConfirmed[$tx2->id][$randDestin]['x']} {$destinationsConfirmed[$tx2->id][$randDestin]['y']}";
+
+                                            $tempConfig = $tx2->config;
+                                            $tempConfig['fake_position']['used_number'] = $tx2->config['fake_position']['used_number'] + 1;
+                                            $tx2->config = $tempConfig;
+
+                                            $tx2->fake_position = DB::raw("ST_GeomFromText('POINT($finLoc)')");
+                                            $tx2->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['fake_position']['duration'] . ' seconds', strtotime(now())));
+                                            $tx2->save();
+                                        }
+
+                                    } else {
+
+                                        $tempConfig = $tx2->config;
+                                        $tempConfig['black_ticket']['used_number'] = $tx2->config['black_ticket']['used_number'] + 1;
+                                        $tx2->config = $tempConfig;
+
+                                        $tx2->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['black_ticket']['duration'] . ' seconds', strtotime(now())));
+                                        $tx2->save();
+                                    }
                                 }
-
-                            } else {
-
-                                $tempConfig = $tx2->config;
-                                $tempConfig['black_ticket']['used_number'] = $tx2->config['black_ticket']['used_number'] + 1;
-                                $tx2->config = $tempConfig;
-
-                                $tx2->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['black_ticket']['duration'] . ' seconds', strtotime(now())));
-                                $tx2->save();
                             }
                         }
                     }
@@ -1267,6 +1286,8 @@ class ThiefAi extends Command
                     $t2->save();
                 }
             }
+
+            $globalCounter++;
 
         } while ($room->status == 'GAME_IN_PROGRESS');
     }
