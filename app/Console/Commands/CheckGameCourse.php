@@ -267,8 +267,11 @@ class CheckGameCourse extends Command
 
                                             $hiddenPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
 
-                                            $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {$room->config['actor']['policeman']['visibility_radius']}"));
-                                            $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= {2 * $room->config['actor']['policeman']['visibility_radius']}"));
+                                            $singlePolicemanVisibilityRadius = 1 * $room->config['actor']['policeman']['visibility_radius'];
+                                            $doublePolicemanVisibilityRadius = 2 * $room->config['actor']['policeman']['visibility_radius'];
+
+                                            $disclosureThiefByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= $singlePolicemanVisibilityRadius"));
+                                            $disclosureThiefByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND status = 'CONNECTED' AND crossing_boundary_finished_at IS NULL AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($hiddenPosition)'), hidden_position) <= $doublePolicemanVisibilityRadius"));
 
                                             if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                                 $thief->global_position = $thief->hidden_position;
