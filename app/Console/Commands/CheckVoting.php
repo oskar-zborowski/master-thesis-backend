@@ -292,8 +292,14 @@ class CheckVoting extends Command
                         $fakePositionFinishedAt = [];
 
                         foreach ($allThieves as $singleThief) {
-                            $blackTicketFinishedAt[$singleThief->id] = strtotime($room->game_ended_at) - strtotime($singleThief->black_ticket_finished_at);
-                            $fakePositionFinishedAt[$singleThief->id] = strtotime($room->game_ended_at) - strtotime($singleThief->fake_position_finished_at);
+
+                            if ($singleThief->black_ticket_finished_at) {
+                                $blackTicketFinishedAt[$singleThief->id] = strtotime($room->game_ended_at) - strtotime($singleThief->black_ticket_finished_at);
+                            }
+
+                            if ($singleThief->fake_position_finished_at) {
+                                $fakePositionFinishedAt[$singleThief->id] = strtotime($room->game_ended_at) - strtotime($singleThief->fake_position_finished_at);
+                            }
                         }
 
                         $nextDisclosure = strtotime($room->game_ended_at) - strtotime($room->next_disclosure_at);
@@ -309,19 +315,33 @@ class CheckVoting extends Command
 
                         foreach ($allThieves as $singleThief) {
 
-                            if ($blackTicketFinishedAt[$singleThief->id] > 0) {
-                                $singleThief->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('-' . $blackTicketFinishedAt[$singleThief->id] . ' seconds', strtotime($room->game_ended_at)));
-                            } else {
-                                $singleThief->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('+' . abs($blackTicketFinishedAt[$singleThief->id]) . ' seconds', strtotime($room->game_ended_at)));
+                            $ifSave = false;
+
+                            if (isset($blackTicketFinishedAt[$singleThief->id])) {
+
+                                if ($blackTicketFinishedAt[$singleThief->id] > 0) {
+                                    $singleThief->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('-' . $blackTicketFinishedAt[$singleThief->id] . ' seconds', strtotime($room->game_ended_at)));
+                                } else {
+                                    $singleThief->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('+' . abs($blackTicketFinishedAt[$singleThief->id]) . ' seconds', strtotime($room->game_ended_at)));
+                                }
+
+                                $ifSave = true;
                             }
 
-                            if ($fakePositionFinishedAt[$singleThief->id] > 0) {
-                                $singleThief->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('-' . $fakePositionFinishedAt[$singleThief->id] . ' seconds', strtotime($room->game_ended_at)));
-                            } else {
-                                $singleThief->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . abs($fakePositionFinishedAt[$singleThief->id]) . ' seconds', strtotime($room->game_ended_at)));
+                            if (isset($fakePositionFinishedAt[$singleThief->id])) {
+
+                                if ($fakePositionFinishedAt[$singleThief->id] > 0) {
+                                    $singleThief->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('-' . $fakePositionFinishedAt[$singleThief->id] . ' seconds', strtotime($room->game_ended_at)));
+                                } else {
+                                    $singleThief->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . abs($fakePositionFinishedAt[$singleThief->id]) . ' seconds', strtotime($room->game_ended_at)));
+                                }
+
+                                $ifSave = true;
                             }
 
-                            $singleThief->save();
+                            if ($ifSave) {
+                                $singleThief->save();
+                            }
                         }
 
                         if ($nextDisclosure > 0) {
