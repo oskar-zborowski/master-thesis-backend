@@ -285,6 +285,17 @@ class CheckVoting extends Command
 
                         $now = now();
 
+                        /** @var Player $allThieves */
+                        $allThieves = $room->players()->where('role', 'THIEF')->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+
+                        $blackTicketFinishedAt = [];
+                        $fakePositionFinishedAt = [];
+
+                        foreach ($allThieves as $singleThief) {
+                            $blackTicketFinishedAt[$singleThief->id] = strtotime($room->game_ended_at) - strtotime($singleThief->black_ticket_finished_at);
+                            $fakePositionFinishedAt[$singleThief->id] = strtotime($room->game_ended_at) - strtotime($singleThief->fake_position_finished_at);
+                        }
+
                         $nextDisclosure = strtotime($room->game_ended_at) - strtotime($room->next_disclosure_at);
 
                         $room->status = 'GAME_IN_PROGRESS';
@@ -294,6 +305,23 @@ class CheckVoting extends Command
                         } else {
                             $room->game_started_at = date('Y-m-d H:i:s', strtotime('+' . abs($room->config['duration']['real']) . ' seconds', strtotime($now)));
                             $room->game_ended_at = date('Y-m-d H:i:s', strtotime('+' . ($room->config['duration']['scheduled'] + abs($room->config['duration']['real'])) . ' seconds', strtotime($now)));
+                        }
+
+                        foreach ($allThieves as $singleThief) {
+
+                            if ($blackTicketFinishedAt[$singleThief->id] > 0) {
+                                $singleThief->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('-' . $blackTicketFinishedAt[$singleThief->id] . ' seconds', strtotime($room->game_ended_at)));
+                            } else {
+                                $singleThief->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('+' . abs($blackTicketFinishedAt[$singleThief->id]) . ' seconds', strtotime($room->game_ended_at)));
+                            }
+
+                            if ($fakePositionFinishedAt[$singleThief->id] > 0) {
+                                $singleThief->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('-' . $fakePositionFinishedAt[$singleThief->id] . ' seconds', strtotime($room->game_ended_at)));
+                            } else {
+                                $singleThief->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . abs($fakePositionFinishedAt[$singleThief->id]) . ' seconds', strtotime($room->game_ended_at)));
+                            }
+
+                            $singleThief->save();
                         }
 
                         if ($nextDisclosure > 0) {
