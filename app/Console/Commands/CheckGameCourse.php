@@ -44,6 +44,10 @@ class CheckGameCourse extends Command
             /** @var Room $room */
             $room = Room::where('id', $roomId)->first();
 
+            if ($room->status != 'GAME_IN_PROGRESS') {
+                break;
+            }
+
             /** @var \App\Models\Player $host */
             $host = $room->players()->where('user_id', $room->host_id)->first();
 
