@@ -1150,29 +1150,48 @@ class ThiefAi extends Command
                     $bestCoefficient = null;
                     $bestCoefficientId = null;
 
-                    foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed9) {
+                    if (isset($destinationsConfirmed[$thief->id])) {
 
-                        $safeDestinationCoefficient = 1;
-                        $safeDestination = 0.1 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0.25 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.45 * $destinationConfirmed9['maxDistanceCoefficient'] + 0.2 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
+                        foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed9) {
 
-                        $finalCoefficient = $safeDestinationCoefficient * $safeDestination;
-                        $destinationConfirmed9['finalCoefficient'] = $finalCoefficient;
-                    }
+                            $safeDestinationCoefficient = 1;
+                            $safeDestination = 0.1 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0.25 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.45 * $destinationConfirmed9['maxDistanceCoefficient'] + 0.2 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
 
-                    foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed11) {
-                        if ($bestCoefficient === null || $bestCoefficient < $destinationConfirmed11['finalCoefficient']) {
-                            $bestCoefficient = $destinationConfirmed11['finalCoefficient'];
-                            $bestCoefficientId = [
-                                'x' => $destinationConfirmed11['x'],
-                                'y' => $destinationConfirmed11['y'],
-                            ];
+                            $finalCoefficient = $safeDestinationCoefficient * $safeDestination;
+                            $destinationConfirmed9['finalCoefficient'] = $finalCoefficient;
                         }
-                    }
 
-                    $thiefDecision[$thief->id] = [
-                        'x' => $bestCoefficientId['x'],
-                        'y' => $bestCoefficientId['y'],
-                    ];
+                        foreach ($destinationsConfirmed[$thief->id] as $destinationConfirmed11) {
+                            if ($bestCoefficient === null || $bestCoefficient < $destinationConfirmed11['finalCoefficient']) {
+                                $bestCoefficient = $destinationConfirmed11['finalCoefficient'];
+                                $bestCoefficientId = [
+                                    'x' => $destinationConfirmed11['x'],
+                                    'y' => $destinationConfirmed11['y'],
+                                ];
+                            }
+                        }
+
+                        $thiefDecision[$thief->id] = [
+                            'x' => $bestCoefficientId['x'],
+                            'y' => $bestCoefficientId['y'],
+                        ];
+
+                    } else {
+
+                        $boundary = Geometry::convertGeometryLatLngToXY($room->boundary_points);
+                        $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($boundary))'))) AS polygonCenter"));
+                        $polygonCenter = substr($polygonCenter[0]->polygonCenter, 6, -1);
+
+                        $finalPoint = explode(' ', $polygonCenter);
+
+                        $destPoint['x'] = $finalPoint[0];
+                        $destPoint['y'] = $finalPoint[1];
+
+                        $thiefDecision[$thief->id] = [
+                            'x' => $destPoint['x'],
+                            'y' => $destPoint['y'],
+                        ];
+                    }
                 }
             }
 
