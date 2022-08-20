@@ -76,7 +76,7 @@ class PolicemanAI extends Command
      * @param Player[] $policemen
      * @return array
      */
-    private function getThievesPosition(array $policemen): array
+    private function getThievesPosition(\Collection $policemen): array
     {
         $thievesPosition = [];
         foreach ($policemen as $policeman) {
@@ -127,7 +127,7 @@ WHERE room_id = $this->room->id AND global_position IS NOT NULL
      * @param array $thievesPositions
      * @return int
      */
-    private function getNearestThief(array $policemen, array $thievesPositions): int
+    private function getNearestThief(\Collection $policemen, array $thievesPositions): int
     {
         $policeCenter = $this->getPoliceCenter($policemen);
         $closestThiefId = null;
@@ -150,7 +150,7 @@ WHERE room_id = $this->room->id AND global_position IS NOT NULL
     }
 
     /** @param Player[] $policemen */
-    private function getPoliceCenter(array $policemen): array
+    private function getPoliceCenter(\Collection $policemen): array
     {
         $longitude = 0.0;
         $latitude = 0.0;
@@ -176,7 +176,7 @@ WHERE room_id = $this->room->id AND global_position IS NOT NULL
      * @param array $targetThief
      * @param Player[] $policemen
      */
-    private function goToThief(array $targetThief, array $policemen)
+    private function goToThief(array $targetThief, \Collection $policemen)
     {
         $targetPositions = [];
         $catchingSmallRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
@@ -207,7 +207,6 @@ WHERE room_id = $this->room->id AND global_position IS NOT NULL
         }
 
         $this->makeAStep($targetPositions, $policemen);
-
     }
 
     /**
@@ -216,7 +215,7 @@ WHERE room_id = $this->room->id AND global_position IS NOT NULL
      * @param array $thief
      * @return array
      */
-    private function getReorderedPoliceLocation(array $policemen, array $thief): array
+    private function getReorderedPoliceLocation(\Collection $policemen, array $thief): array
     {
         function order($a, $b): int
         {
@@ -286,7 +285,7 @@ WHERE room_id = $this->room->id AND global_position IS NOT NULL
      * @param array $targetPositions
      * @param Player[] $policemen
      */
-    private function makeAStep(array $targetPositions, array $policemen)
+    private function makeAStep(array $targetPositions, \Collection $policemen)
     {
         $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         foreach ($policemen as $policeman) {
