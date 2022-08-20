@@ -34,7 +34,7 @@ class PolicemanAI extends Command
             $policemen = $this->room
                 ->players()
                 ->where(['is_bot' => true,])
-                ->where('role', '!=', 'THIEF')
+                ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
 
 
@@ -58,7 +58,7 @@ class PolicemanAI extends Command
             ->players()
             ->whereNull('hidden_position')
             ->where(['is_bot' => true])
-            ->where('role', '!=', 'THIEF')
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
         if (0 === count($policemenWithoutLocation)) {
             return;
@@ -67,6 +67,13 @@ class PolicemanAI extends Command
         $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
         $polygonCenter = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($boundary))'))) AS polygonCenter"));
         $polygonCenterString = substr($polygonCenter[0]->polygonCenter, 6, -1);
+        $polygonCenterPoint = explode(' ', $polygonCenterString);
+        $polygonCenterPoint = [
+            'x' => $polygonCenterPoint[0],
+            'y' => $polygonCenterPoint[1],
+        ];
+        $polygonCenterPoint = Geometry::convertXYToLatLng($polygonCenterPoint);
+        $polygonCenterString = "{$polygonCenterPoint['x']} {$polygonCenterPoint['y']}";
         foreach ($policemenWithoutLocation as $policeman) {
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($polygonCenterString)')");
             $policeman->save();
