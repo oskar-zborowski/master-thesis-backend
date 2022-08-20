@@ -260,6 +260,7 @@ class CheckVoting extends Command
 
                         if ($botNumber > 0) {
                             shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai:start $room->id >/dev/null 2>/dev/null &");
+                            shell_exec('php ' . env('APP_ROOT') . "artisan policeman-ai:start $room->id >/dev/null 2>/dev/null &");
                         }
 
                     } else if ($room->voting_type == 'ENDING_COUNTDOWN') {
@@ -357,6 +358,7 @@ class CheckVoting extends Command
 
                         if ($botExists) {
                             shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai:start $room->id >/dev/null 2>/dev/null &");
+                            shell_exec('php ' . env('APP_ROOT') . "artisan policeman-ai:start $room->id >/dev/null 2>/dev/null &");
                         }
 
                     } else if ($room->voting_type == 'END_GAME') {

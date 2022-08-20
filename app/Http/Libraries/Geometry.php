@@ -235,6 +235,10 @@ class Geometry
         return $result;
     }
 
+    public static function getAngleMadeOfPoints($p1, $p2, $p3) {
+        return atan2($p3['y'] - $p2['y'], $p3['x'] - $p2['x']) - atan2($p1['y'] - $p2['y'], $p1['x'] - $p2['x']);
+    }
+
     public static function convertGeometryLatLngToXY(string $geometry) {
 
         $convertedGeometry = '';
