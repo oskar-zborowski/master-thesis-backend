@@ -1107,11 +1107,8 @@ class ThiefAi extends Command
 
                         foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed9) {
 
-                            // $safeRoadCoefficient = (1-$timeLapse) * 0.5 + 0.25;
-                            // $safeDestinationCoefficient = $timeLapse * 0.5 + 0.25;
-
-                            $safeRoadCoefficient = 0.5;
-                            $safeDestinationCoefficient = 0.5;
+                            $safeRoadCoefficient = (1-$timeLapse) * 0.5 + 0.25;
+                            $safeDestinationCoefficient = $timeLapse * 0.5 + 0.25;
 
                             $safeRoad = $destinationConfirmed9['policemanDistanceCoefficient'];
                             // $safeDestination = 0.1 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0.25 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.45 * $destinationConfirmed9['maxDistanceCoefficient'] + 0.2 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
