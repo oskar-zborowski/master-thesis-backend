@@ -1115,7 +1115,7 @@ class ThiefAi extends Command
 
                             $safeRoad = $destinationConfirmed9['policemanDistanceCoefficient'];
                             // $safeDestination = 0.1 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0.25 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.45 * $destinationConfirmed9['maxDistanceCoefficient'] + 0.2 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
-                            $safeDestination = 0.1 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.7 * $destinationConfirmed9['maxDistanceCoefficient'] + 0.2 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
+                            $safeDestination = 0.3 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.7 * $destinationConfirmed9['maxDistanceCoefficient'] + 0 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
 
                             $finalCoefficient = $safeRoadCoefficient * $safeRoad + $safeDestinationCoefficient * $safeDestination;
                             $destinationConfirmed9['finalCoefficient'] = $finalCoefficient;
@@ -1163,7 +1163,7 @@ class ThiefAi extends Command
                         foreach ($destinationsConfirmed[$thief->id] as &$destinationConfirmed9) {
 
                             $safeDestinationCoefficient = 1;
-                            $safeDestination = 0.1 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.7 * $destinationConfirmed9['maxDistanceCoefficient'] + 0.2 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
+                            $safeDestination = 0.3 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.7 * $destinationConfirmed9['maxDistanceCoefficient'] + 0 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
 
                             $finalCoefficient = $safeDestinationCoefficient * $safeDestination;
                             $destinationConfirmed9['finalCoefficient'] = $finalCoefficient;
