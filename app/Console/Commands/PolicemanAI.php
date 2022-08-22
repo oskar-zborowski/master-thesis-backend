@@ -314,13 +314,13 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
                 'x' => $position[0],
                 'y' => $position[1],
             ];
+            $policemen[0]->black_ticket_finished_at = now();
+            $policemen[0]->save();
             $positionCartesian = Geometry::convertLatLngToXY($position);
             $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
             $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
             $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
             $newPositionFormatted = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
-            $policemen[0]->black_ticket_finished_at = now();
-            $policemen[0]->save();
 //            $newPositionFormatted = "{$targetPositions[$policeman->id]['x']} {$targetPositions[$policeman->id]['y']}";
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($newPositionFormatted)')");
             $policeman->save();
