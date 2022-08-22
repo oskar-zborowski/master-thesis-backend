@@ -31,10 +31,6 @@ class PolicemanAI extends Command
         $roomId = $this->argument('roomId');
 
         do {
-            if (now() < $this->room->game_started_at) {
-                continue;
-            }
-
             $this->room = Room::where('id', $roomId)->first();
             $policemen = $this->room
                 ->players()
@@ -44,6 +40,10 @@ class PolicemanAI extends Command
 
 
             $this->handleSettingStartPositions();
+            if (strtotime($this->room->game_started_at) > strtotime(now())) {
+                continue;
+            }
+
             $targets = $this->getTargetOnTheWall($policemen);
             $this->makeAStep($targets, $policemen);
 
