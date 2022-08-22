@@ -310,7 +310,7 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
             ->get();
         foreach ($policemen as $policeman) {
             $position = explode(' ', $policeman->hidden_position);
-            $policeman->warning_number = count($position);
+            $policeman->config = ['position' => $policeman->hidden_position];
             $policeman->save();
             $position = [
                 'x' => $position[0],
