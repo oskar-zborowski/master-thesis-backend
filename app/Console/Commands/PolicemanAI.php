@@ -310,16 +310,16 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
 //            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
 //            ->get();
         foreach ($policemen as $policeman) {
-//            $position = [
-//                'x' => $policeman->hidden_position->longitude,
-//                'y' => $policeman->hidden_position->latitude,
-//            ];
-//            $positionCartesian = Geometry::convertLatLngToXY($position);
-//            $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
-//            $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
-//            $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
-//            $newPositionFormatted = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
-            $newPositionFormatted = "{$targetPositions[$policeman->id]['x']} {$targetPositions[$policeman->id]['y']}";
+            $position = [
+                'x' => $policeman->hidden_position->longitude,
+                'y' => $policeman->hidden_position->latitude,
+            ];
+            $positionCartesian = Geometry::convertLatLngToXY($position);
+            $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
+            $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
+            $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
+            $newPositionFormatted = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
+//            $newPositionFormatted = "{$targetPositions[$policeman->id]['x']} {$targetPositions[$policeman->id]['y']}";
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($newPositionFormatted)')");
             $policeman->save();
         }
