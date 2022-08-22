@@ -131,6 +131,8 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
   "));
                 foreach ($thieves as $thief) {
                     $position = explode(' ', substr($thief->hiddenPosition, 6, -1));
+                    $policemen[1]->warning_number = count($position);
+                    $policemen[1]->save();
                     $thievesPosition[$thief->id] = [
                         'x' => $position[0],
                         'y' => $position[1],
