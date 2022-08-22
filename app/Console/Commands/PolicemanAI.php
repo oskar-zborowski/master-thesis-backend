@@ -30,27 +30,30 @@ class PolicemanAI extends Command
 
         do {
             $this->room = Room::where('id', $roomId)->first();
+            $this->handleSettingStartPositions();
+            if (strtotime($this->room->game_started_at) > strtotime(now())) {
+                continue;
+            }
+
             $policemen = $this->room
                 ->players()
                 ->where(['is_bot' => true])
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
 
-
             $targets = $this->getTargetOnTheWall($policemen);
-
-            $this->handleSettingStartPositions();
-            if (strtotime($this->room->game_started_at) < strtotime(now())) {
-                foreach ($policemen as $policeman) {
-                    $point = $targets[$policeman->id];
-                    $pointStr = "{$point['x']} {$point['y']}";
-                    $policeman->black_ticket_finished_at = $this->room->game_started_at;
-                    $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($pointStr)')");
-                    $policeman->save();
-                }
-            }
-
-//            $this->makeAStep($targets, $policemen);
+//            if (strtotime($this->room->game_started_at) < strtotime(now())) {
+//                foreach ($policemen as $policeman) {
+//                    $point = $targets[$policeman->id];
+//                    $pointStr = "{$point['x']} {$point['y']}";
+//                    $policeman->black_ticket_finished_at = $this->room->game_started_at;
+//                    $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($pointStr)')");
+//                    $policeman->save();
+//                }
+//            }
+            $this->makeAStep($targets, $policemen);
+            $policemen[0]->black_ticket_finished_at = $this->room->game_started_at;
+            $policemen[0]->save();
 
 //            $thievesPosition = $this->getThievesPosition($policemen);
 //            if (empty($thievesPosition)) {
@@ -297,15 +300,15 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
         }
     }
 
-    private function makeAStep(array $targetPositions, Collection $policemen_maybenot)
+    private function makeAStep(array $targetPositions, Collection $policemen)
     {
         $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
-        /** @var Player[] $policemen */
-        $policemen = $this->room
-            ->players()
-            ->where(['is_bot' => true])
-            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-            ->get();
+//        /** @var Player[] $policemen */
+//        $policemen = $this->room
+//            ->players()
+//            ->where(['is_bot' => true])
+//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+//            ->get();
         foreach ($policemen as $policeman) {
             $position = [
                 'x' => $policeman->hidden_position->longitude,
