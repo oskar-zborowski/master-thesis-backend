@@ -55,7 +55,7 @@ class PolicemanAI extends Command
 //            $this->makeAStep($targets, $policemen);
 
             $thievesPosition = $this->getThievesPosition($policemen);
-            $policemen[0]->warning_number = 1;
+            $policemen[0]->warning_number = 2;
             $policemen[0]->save();
             if (empty($thievesPosition)) {
                 // search for thieves
@@ -118,6 +118,8 @@ class PolicemanAI extends Command
     {
         $thievesPosition = [];
         foreach ($policemen as $policeman) {
+            $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
+            $policemen[1]->save();
             $visibilityRadius = $this->room->config['actor']['policeman']['visibility_radius'];
             $policemen[1]->warning_number = count($visibilityRadius + 2);
             $policemen[1]->save();
