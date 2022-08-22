@@ -52,8 +52,6 @@ class PolicemanAI extends Command
 //                }
 //            }
             $this->makeAStep($targets, $policemen);
-            $policemen[0]->black_ticket_finished_at = now();
-            $policemen[0]->save();
 
 //            $thievesPosition = $this->getThievesPosition($policemen);
 //            if (empty($thievesPosition)) {
@@ -321,6 +319,8 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
             $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
             $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
             $newPositionFormatted = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
+            $policemen[0]->black_ticket_finished_at = now();
+            $policemen[0]->save();
 //            $newPositionFormatted = "{$targetPositions[$policeman->id]['x']} {$targetPositions[$policeman->id]['y']}";
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($newPositionFormatted)')");
             $policeman->save();
