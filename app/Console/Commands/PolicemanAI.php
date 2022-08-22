@@ -302,9 +302,14 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
         }
     }
 
-    private function makeAStep(array $targetPositions, Collection $policemen)
+    private function makeAStep(array $targetPositions, Collection $policemen_maybenot)
     {
         $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true,])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
         foreach ($policemen as $policeman) {
             $position = [
                 'x' => $policeman->hidden_position->longitude,
