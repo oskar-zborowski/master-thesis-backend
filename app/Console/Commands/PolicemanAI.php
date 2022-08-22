@@ -29,16 +29,20 @@ class PolicemanAI extends Command
 
     private $center;
 
+    private $x;
+
     /** Execute the console command. */
     public function handle()
     {
         $roomId = $this->argument('roomId');
+        $this->x = 0;
 
         do {
+            $this->x = ($this->x + 1)%3;
             $this->room = Room::where('id', $roomId)->first();
             $policemen = $this->room
                 ->players()
-                ->where(['is_bot' => true,])
+                ->where(['is_bot' => true])
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
 
@@ -66,7 +70,7 @@ class PolicemanAI extends Command
     private function getTargetOnTheWall($policemen): array
     {
         $boundaryPoints = explode(',', $this->room->boundary_points);
-        $boundaryPoint = explode(' ', $boundaryPoints[0]);
+        $boundaryPoint = explode(' ', $boundaryPoints[$this->x]);
         $target = [
             'x' => $boundaryPoint[0],
             'y' => $boundaryPoint[1],
@@ -305,9 +309,10 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
     private function makeAStep(array $targetPositions, Collection $policemen_maybenot)
     {
         $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        /** @var Player[] $policemen */
         $policemen = $this->room
             ->players()
-            ->where(['is_bot' => true,])
+            ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
         foreach ($policemen as $policeman) {
