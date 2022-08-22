@@ -312,12 +312,13 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
 //            ->get();
         foreach ($policemen as $policeman) {
             $position = explode(' ', $policeman->hidden_position);
+
+            $policeman->black_ticket_finished_at = $this->room->game_started_at;
+            $policeman->save();
             $position = [
                 'x' => $position[0],
                 'y' => $position[1],
             ];
-            $policeman->black_ticket_finished_at = $this->room->game_started_at;
-            $policeman->save();
             $positionCartesian = Geometry::convertLatLngToXY($position);
             $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
             $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
