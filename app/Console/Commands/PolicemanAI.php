@@ -66,7 +66,7 @@ class PolicemanAI extends Command
     private function getTargetOnTheWall($policemen): array
     {
         $boundaryPoints = explode(',', $this->room->boundary_points);
-        $boundaryPoint = explode(' ', $boundaryPoints[$this->x]);
+        $boundaryPoint = explode(' ', $boundaryPoints[0]);
         $target = [
             'x' => $boundaryPoint[0],
             'y' => $boundaryPoint[1],
