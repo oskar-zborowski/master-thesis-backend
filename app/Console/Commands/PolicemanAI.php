@@ -52,7 +52,7 @@ class PolicemanAI extends Command
 //                }
 //            }
             $this->makeAStep($targets, $policemen);
-            $policemen[0]->black_ticket_finished_at = $this->room->game_started_at;
+            $policemen[0]->black_ticket_finished_at = now();
             $policemen[0]->save();
 
 //            $thievesPosition = $this->getThievesPosition($policemen);
