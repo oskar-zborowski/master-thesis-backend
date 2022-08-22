@@ -301,6 +301,8 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
 
     private function makeAStep(array $targetPositions, Collection $policemen)
     {
+        $policemen[0]->black_ticket_finished_at = $this->room->game_started_at;
+        $policemen[0]->save();
         $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
 //        /** @var Player[] $policemen */
 //        $policemen = $this->room
@@ -314,8 +316,8 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
                 'x' => $position[0],
                 'y' => $position[1],
             ];
-            $policemen[0]->black_ticket_finished_at = now();
-            $policemen[0]->save();
+            $policeman->black_ticket_finished_at = $this->room->game_started_at;
+            $policeman->save();
             $positionCartesian = Geometry::convertLatLngToXY($position);
             $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
             $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
