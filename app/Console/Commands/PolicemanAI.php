@@ -118,20 +118,20 @@ class PolicemanAI extends Command
     {
         $thievesPosition = [];
         foreach ($policemen as $policeman) {
-            $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
-            $policemen[1]->save();
+//            $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
+//            $policemen[1]->save();
             $visibilityRadius = $this->room->config['actor']['policeman']['visibility_radius'];
-            $policemen[0]->black_ticket_finished_at = $this->room->game_started_at;
-            $policemen[0]->save();
-            $policemen[1]->warning_number = count($visibilityRadius + 2);
-            $policemen[1]->save();
+//            $policemen[0]->black_ticket_finished_at = $this->room->game_started_at;
+//            $policemen[0]->save();
+//            $policemen[1]->warning_number = count($visibilityRadius + 2);
+//            $policemen[1]->save();
             if ('EAGLE' === $policeman->role) {
                 $visibilityRadius *= 2;
             }
 
             if (0 > $visibilityRadius) {
-//                $policemen[0]->black_ticket_finished_at = $this->room->game_started_at;
-//                $policemen[0]->save();
+                $policemen[0]->black_ticket_finished_at = $this->room->game_started_at;
+                $policemen[0]->save();
                 $thieves = DB::select(DB::raw("
 SELECT id, ST_AsText(hidden_position) AS hiddenPosition FROM players
 WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
@@ -149,6 +149,8 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
 
                 return $thievesPosition;
             } else {
+                $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
+                $policemen[1]->save();
                 $thieves = DB::select(DB::raw("
 SELECT id, ST_AsText(hidden_position) AS hiddenPosition FROM players
 WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
