@@ -51,8 +51,8 @@ class PolicemanAI extends Command
 //                    $policeman->save();
 //                }
 //            }
-            $policemen[0]->black_ticket_finished_at = now();
             $this->makeAStep($targets, $policemen);
+            $policemen[0]->black_ticket_finished_at = now();
             $policemen[0]->save();
 
 //            $thievesPosition = $this->getThievesPosition($policemen);
@@ -115,7 +115,6 @@ class PolicemanAI extends Command
     {
         $thievesPosition = [];
         foreach ($policemen as $policeman) {
-            $policemanPosition = "{$policeman->hidden_position->longitude} {$policeman->hidden_position->latitude}";
             $visibilityRadius = $this->room->config['actor']['policeman']['visibility_radius'];
             if ('EAGLE' === $policeman->role) {
                 $visibilityRadius *= 2;
@@ -141,7 +140,7 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
 SELECT id, ST_AsText(hidden_position) AS hiddenPosition FROM players
 WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
   AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role = 'THIEF'
-  AND ST_Distance_Sphere(ST_GeomFromText('POINT($policemanPosition)'), global_position) <= $visibilityRadius
+  AND ST_Distance_Sphere(ST_GeomFromText('POINT($policeman->hidden_position)'), global_position) <= $visibilityRadius
   "));
             }
 
@@ -185,12 +184,13 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
         $latitude = 0.0;
         $pointsNumber = 0;
         foreach ($policemen as $policeman) {
-            if (null !== $policemen->hidden_position->longitude || null !== $policemen->hidden_position->latitude) {
+            if (null !== $policemen->hidden_position) {
                 continue;
             }
 
-            $longitude += $policeman->hidden_position->longitude;
-            $latitude += $policeman->hidden_position->latitude;
+            $point = explode(' ', $policeman->hidden_position);
+            $longitude += $point[0];
+            $latitude += $point[1];
             $pointsNumber++;
         }
 
@@ -243,9 +243,10 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
 
         $newOrder = [];
         foreach ($policemen as $policeman) {
+            $position = explode(' ', $policeman->hidden_position);
             $policemanPosition = [
-                'x' => $policeman->hidden_position->longitude,
-                'y' => $policeman->hidden_position->latitude,
+                'x' => $position[0],
+                'y' => $position[1],
             ];
             $angle = Geometry::getAngleMadeOfPoints($this->policeCenter, $thief, $policemanPosition);
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thief, $policemanPosition);
@@ -310,9 +311,10 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
 //            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
 //            ->get();
         foreach ($policemen as $policeman) {
+            $position = explode(' ', $policeman->hidden_position);
             $position = [
-                'x' => $policeman->hidden_position->longitude,
-                'y' => $policeman->hidden_position->latitude,
+                'x' => $position[0],
+                'y' => $position[1],
             ];
             $positionCartesian = Geometry::convertLatLngToXY($position);
             $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
