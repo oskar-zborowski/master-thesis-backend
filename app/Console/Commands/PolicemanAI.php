@@ -23,22 +23,12 @@ class PolicemanAI extends Command
 
     private Room $room;
 
-    private array $thievesPosition;
-
-    private $tmp;
-
-    private $center;
-
-    private $x;
-
     /** Execute the console command. */
     public function handle()
     {
         $roomId = $this->argument('roomId');
-        $this->x = 0;
 
         do {
-            $this->x = ($this->x + 1)%3;
             $this->room = Room::where('id', $roomId)->first();
             $policemen = $this->room
                 ->players()
@@ -50,11 +40,17 @@ class PolicemanAI extends Command
             $targets = $this->getTargetOnTheWall($policemen);
 
             $this->handleSettingStartPositions();
-//            if (strtotime($this->room->game_started_at) > strtotime(now())) {
-//                continue;
-//            }
+            if (strtotime($this->room->game_started_at) < strtotime(now())) {
+                foreach ($policemen as $policeman) {
+                    $point = $targets[$policeman->id];
+                    $pointStr = "{$point['x']} {$point['y']}";
+                    $policeman->black_ticket_finished_at = $this->room->game_started_at;
+                    $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($pointStr)')");
+                    $policeman->save();
+                }
+            }
 
-            $this->makeAStep($targets, $policemen);
+//            $this->makeAStep($targets, $policemen);
 
 //            $thievesPosition = $this->getThievesPosition($policemen);
 //            if (empty($thievesPosition)) {
@@ -75,7 +71,6 @@ class PolicemanAI extends Command
             'x' => $boundaryPoint[0],
             'y' => $boundaryPoint[1],
         ];
-        $this->tmp = $target;
         $targetOnTheWall = [];
         foreach ($policemen as $policeman) {
             $targetOnTheWall[$policeman->id] = $target;
@@ -106,10 +101,6 @@ class PolicemanAI extends Command
             'y' => $polygonCenterPoint[1],
         ];
         $polygonCenterPoint = Geometry::convertXYToLatLng($polygonCenterPoint);
-
-        $this->center = $polygonCenterPoint;
-        $polygonCenterPoint = $this->tmp;
-
         $polygonCenterString = "{$polygonCenterPoint['x']} {$polygonCenterPoint['y']}";
         foreach ($policemenWithoutLocation as $policeman) {
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($polygonCenterString)')");
@@ -324,7 +315,6 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
             $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
             $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
             $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
-            $newPositionLatLng = $this->center;
             $newPositionFormatted = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($newPositionFormatted)')");
             $policeman->save();
