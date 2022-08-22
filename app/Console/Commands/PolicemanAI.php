@@ -25,6 +25,10 @@ class PolicemanAI extends Command
 
     private array $thievesPosition;
 
+    private $tmp;
+
+    private $center;
+
     /** Execute the console command. */
     public function handle()
     {
@@ -39,12 +43,13 @@ class PolicemanAI extends Command
                 ->get();
 
 
+            $targets = $this->getTargetOnTheWall($policemen);
+
             $this->handleSettingStartPositions();
 //            if (strtotime($this->room->game_started_at) > strtotime(now())) {
 //                continue;
 //            }
 
-            $targets = $this->getTargetOnTheWall($policemen);
             $this->makeAStep($targets, $policemen);
 
 //            $thievesPosition = $this->getThievesPosition($policemen);
@@ -66,6 +71,7 @@ class PolicemanAI extends Command
             'x' => $boundaryPoint[0],
             'y' => $boundaryPoint[1],
         ];
+        $this->tmp = $target;
         $targetOnTheWall = [];
         foreach ($policemen as $policeman) {
             $targetOnTheWall[$policeman->id] = $target;
@@ -96,6 +102,10 @@ class PolicemanAI extends Command
             'y' => $polygonCenterPoint[1],
         ];
         $polygonCenterPoint = Geometry::convertXYToLatLng($polygonCenterPoint);
+
+        $this->center = $polygonCenterPoint;
+        $polygonCenterPoint = $this->tmp;
+
         $polygonCenterString = "{$polygonCenterPoint['x']} {$polygonCenterPoint['y']}";
         foreach ($policemenWithoutLocation as $policeman) {
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($polygonCenterString)')");
@@ -304,6 +314,7 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
             $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
             $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
             $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
+            $newPositionLatLng = $this->center;
             $newPositionFormatted = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($newPositionFormatted)')");
             $policeman->save();
