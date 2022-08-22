@@ -137,6 +137,10 @@ SELECT id, ST_AsText(hidden_position) AS hiddenPosition FROM players
 WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
   AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role = 'THIEF'
   "));
+                $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
+                $policemen[1]->save();
+                $policemen[1]->warning_number = count($thieves);
+                $policemen[1]->save();
                 foreach ($thieves as $thief) {
                     $position = explode(' ', substr($thief->hiddenPosition, 6, -1));
                     $policemen[1]->warning_number = count($position);
@@ -149,8 +153,6 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
 
                 return $thievesPosition;
             } else {
-                $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
-                $policemen[1]->save();
                 $thieves = DB::select(DB::raw("
 SELECT id, ST_AsText(hidden_position) AS hiddenPosition FROM players
 WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
