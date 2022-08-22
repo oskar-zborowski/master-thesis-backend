@@ -301,7 +301,7 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
 
     private function makeAStep(array $targetPositions, Collection $policemen)
     {
-        $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        $botShift = 50; //$this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         /** @var Player[] $policemen */
         $policemen = $this->room
             ->players()
@@ -314,16 +314,16 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
                 'x' => $position[0],
                 'y' => $position[1],
             ];
-            $positionCartesian = Geometry::convertLatLngToXY($position);
-            $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
-            $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
-            $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
             $policeman->black_ticket_finished_at = $this->room->game_started_at;
             $policeman->save();
-            $newPositionFormatted = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
-//            $newPositionFormatted = "{$targetPositions[$policeman->id]['x']} {$targetPositions[$policeman->id]['y']}";
+            $positionCartesian = Geometry::convertLatLngToXY($position);
+            $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
             $policeman->warning_number = count($policemen);
             $policeman->save();
+            $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
+            $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
+            $newPositionFormatted = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
+//            $newPositionFormatted = "{$targetPositions[$policeman->id]['x']} {$targetPositions[$policeman->id]['y']}";
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($newPositionFormatted)')");
             $policeman->save();
         }
