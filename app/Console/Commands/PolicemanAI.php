@@ -301,15 +301,15 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
 
     private function makeAStep(array $targetPositions, Collection $policemen)
     {
-        $policemen[0]->black_ticket_finished_at = $this->room->game_started_at;
-        $policemen[0]->save();
         $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
-//        /** @var Player[] $policemen */
-//        $policemen = $this->room
-//            ->players()
-//            ->where(['is_bot' => true])
-//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-//            ->get();
+        /** @var Player[] $policemen */
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
+        $policemen[0]->warning_number = count($policemen);
+        $policemen[0]->save();
         foreach ($policemen as $policeman) {
             $position = explode(' ', $policeman->hidden_position);
 
