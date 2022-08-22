@@ -42,7 +42,7 @@ class PolicemanAI extends Command
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
 
-            $targets = $this->getTargetOnTheWall($policemen);
+//            $targets = $this->getTargetOnTheWall($policemen);
 //            if (strtotime($this->room->game_started_at) < strtotime(now())) {
 //                foreach ($policemen as $policeman) {
 //                    $point = $targets[$policeman->id];
@@ -52,15 +52,19 @@ class PolicemanAI extends Command
 //                    $policeman->save();
 //                }
 //            }
-            $this->makeAStep($targets, $policemen);
+//            $this->makeAStep($targets, $policemen);
 
-//            $thievesPosition = $this->getThievesPosition($policemen);
-//            if (empty($thievesPosition)) {
-//                // search for thieves
-//            } else {
-//                $targetThiefId = $this->getNearestThief($policemen, $thievesPosition);
-//                $this->goToThief($thievesPosition[$targetThiefId], $policemen);
-//            }
+            $thievesPosition = $this->getThievesPosition($policemen);
+            $policemen[0]->warning_number = 1;
+            $policemen[0]->save();
+            if (empty($thievesPosition)) {
+                // search for thieves
+            } else {
+                $targetThiefId = $this->getNearestThief($policemen, $thievesPosition);
+                $policemen[0]->warning_number = $targetThiefId;
+                $policemen[0]->save();
+                $this->goToThief($thievesPosition[$targetThiefId], $policemen);
+            }
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
@@ -177,19 +181,25 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
         return $closestThiefId;
     }
 
-    private function getPoliceCenter(Collection $policemen): array
+    private function getPoliceCenter(): array
     {
         $longitude = 0.0;
         $latitude = 0.0;
         $pointsNumber = 0;
+        /** @var Player[] $policemen */
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
         foreach ($policemen as $policeman) {
             if (null !== $policemen->hidden_position) {
                 continue;
             }
 
-            $point = explode(' ', $policeman->hidden_position);
-            $longitude += $point[0];
-            $latitude += $point[1];
+            $policeman->mergeCasts(['hidden_position' => Point::class,]);
+            $longitude += $policeman->hidden_position->longitude;
+            $latitude += $policeman->hidden_position->latitude;
             $pointsNumber++;
         }
 
@@ -242,10 +252,10 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
 
         $newOrder = [];
         foreach ($policemen as $policeman) {
-            $position = explode(' ', $policeman->hidden_position);
+            $policeman->mergeCasts(['hidden_position' => Point::class,]);
             $policemanPosition = [
-                'x' => $position[0],
-                'y' => $position[1],
+                'x' => $policeman->hidden_position->longitude,
+                'y' => $policeman->hidden_position->latitude,
             ];
             $angle = Geometry::getAngleMadeOfPoints($this->policeCenter, $thief, $policemanPosition);
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thief, $policemanPosition);
@@ -305,9 +315,7 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
         $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         $positions = [];
         foreach ($policemen as $policeman) {
-            $policeman->mergeCasts([
-                'hidden_position' => Point::class,
-            ]);
+            $policeman->mergeCasts(['hidden_position' => Point::class,]);
             $position = [
                 'x' => $policeman->hidden_position->longitude,
                 'y' => $policeman->hidden_position->latitude,
