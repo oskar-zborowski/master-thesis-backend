@@ -31,6 +31,10 @@ class PolicemanAI extends Command
         $roomId = $this->argument('roomId');
 
         do {
+            if (now() < $this->room->game_started_at) {
+                continue;
+            }
+
             $this->room = Room::where('id', $roomId)->first();
             $policemen = $this->room
                 ->players()
@@ -40,16 +44,34 @@ class PolicemanAI extends Command
 
 
             $this->handleSettingStartPositions();
+            $targets = $this->getTargetOnTheWall($policemen);
+            $this->makeAStep($targets, $policemen);
 
-            $thievesPosition = $this->getThievesPosition($policemen);
-            if (empty($thievesPosition)) {
-                // search for thieves
-            } else {
-                $targetThiefId = $this->getNearestThief($policemen, $thievesPosition);
-                $this->goToThief($thievesPosition[$targetThiefId], $policemen);
-            }
+//            $thievesPosition = $this->getThievesPosition($policemen);
+//            if (empty($thievesPosition)) {
+//                // search for thieves
+//            } else {
+//                $targetThiefId = $this->getNearestThief($policemen, $thievesPosition);
+//                $this->goToThief($thievesPosition[$targetThiefId], $policemen);
+//            }
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
+    }
+
+    private function getTargetOnTheWall($policemen): array
+    {
+        $boundaryPoints = explode(',', $this->room->boundary_points);
+        $boundaryPoint = explode(' ', $boundaryPoints[0]);
+        $target = [
+            'x' => $boundaryPoint[0],
+            'y' => $boundaryPoint[1],
+        ];
+        $targetOnTheWall = [];
+        foreach ($policemen as $policeman) {
+            $targetOnTheWall[$policeman->id] = $target;
+        }
+
+        return $targetOnTheWall;
     }
 
     private function handleSettingStartPositions()
