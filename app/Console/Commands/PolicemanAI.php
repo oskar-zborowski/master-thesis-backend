@@ -308,8 +308,6 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
-        $policemen[0]->warning_number = count($policemen);
-        $policemen[0]->save();
         foreach ($policemen as $policeman) {
             $position = explode(' ', $policeman->hidden_position);
             $position = [
@@ -324,6 +322,8 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
             $policeman->save();
             $newPositionFormatted = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
 //            $newPositionFormatted = "{$targetPositions[$policeman->id]['x']} {$targetPositions[$policeman->id]['y']}";
+            $policeman->warning_number = count($policemen);
+            $policeman->save();
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($newPositionFormatted)')");
             $policeman->save();
         }
