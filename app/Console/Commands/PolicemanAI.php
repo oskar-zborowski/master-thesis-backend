@@ -310,6 +310,8 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
             ->get();
         foreach ($policemen as $policeman) {
             $position = explode(' ', $policeman->hidden_position);
+            $policeman->warning_number = count($position);
+            $policeman->save();
             $position = [
                 'x' => $position[0],
                 'y' => $position[1],
@@ -318,8 +320,6 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
             $policeman->save();
             $positionCartesian = Geometry::convertLatLngToXY($position);
             $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
-            $policeman->warning_number = count($policemen);
-            $policeman->save();
             $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
             $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
             $newPositionFormatted = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
