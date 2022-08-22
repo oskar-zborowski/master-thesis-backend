@@ -40,9 +40,9 @@ class PolicemanAI extends Command
 
 
             $this->handleSettingStartPositions();
-            if (strtotime($this->room->game_started_at) > strtotime(now())) {
-                continue;
-            }
+//            if (strtotime($this->room->game_started_at) > strtotime(now())) {
+//                continue;
+//            }
 
             $targets = $this->getTargetOnTheWall($policemen);
             $this->makeAStep($targets, $policemen);
