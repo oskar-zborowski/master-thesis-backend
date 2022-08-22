@@ -302,19 +302,12 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
 
     private function makeAStep(array $targetPositions, Collection $policemen)
     {
-        $botShift = 50; //$this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         $positions = [];
         foreach ($policemen as $policeman) {
             $policeman->mergeCasts([
                 'hidden_position' => Point::class,
             ]);
-//            $position = explode(' ', $policeman->hidden_position);
-//            $policeman->config = ['position' => $policeman->hidden_position];
-//            $policeman->save();
-//            $position = [
-//                'x' => $position[0],
-//                'y' => $position[1],
-//            ];
             $position = [
                 'x' => $policeman->hidden_position->longitude,
                 'y' => $policeman->hidden_position->latitude,
@@ -324,14 +317,8 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
             $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
             $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
             $positions[$policeman->id] = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
-//            $newPositionFormatted = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
-//            $newPositionFormatted = "{$targetPositions[$policeman->id]['x']} {$targetPositions[$policeman->id]['y']}";
-//            $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($newPositionFormatted)')");
-//            $policeman->save();
         }
 
-        $policemen[0]->black_ticket_finished_at = $this->room->game_started_at;
-        $policeman->save();
         /** @var Player[] $policemen */
         $policemen = $this->room
             ->players()
