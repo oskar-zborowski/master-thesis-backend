@@ -31,7 +31,7 @@ class PolicemanAI extends Command
         do {
             $this->room = Room::where('id', $roomId)->first();
             $this->handleSettingStartPositions();
-//            if (strtotime($this->room->game_started_at) > strtotime(now())) {
+//            if ($this->room->game_started_at > now()) {
 //                continue;
 //            }
 
@@ -42,18 +42,18 @@ class PolicemanAI extends Command
                 ->get();
 
             $targets = $this->getTargetOnTheWall($policemen);
-//            if (strtotime($this->room->game_started_at) < strtotime(now())) {
-//                foreach ($policemen as $policeman) {
-//                    $point = $targets[$policeman->id];
-//                    $pointStr = "{$point['x']} {$point['y']}";
-//                    $policeman->black_ticket_finished_at = $this->room->game_started_at;
-//                    $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($pointStr)')");
-//                    $policeman->save();
-//                }
-//            }
-            $this->makeAStep($targets, $policemen);
-            $policemen[0]->black_ticket_finished_at = now();
-            $policemen[0]->save();
+            if (strtotime($this->room->game_started_at) < strtotime(now())) {
+                foreach ($policemen as $policeman) {
+                    $point = $targets[$policeman->id];
+                    $pointStr = "{$point['x']} {$point['y']}";
+                    $policeman->black_ticket_finished_at = $this->room->game_started_at;
+                    $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($pointStr)')");
+                    $policeman->save();
+                }
+            }
+//            $this->makeAStep($targets, $policemen);
+//            $policemen[0]->black_ticket_finished_at = now();
+//            $policemen[0]->save();
 
 //            $thievesPosition = $this->getThievesPosition($policemen);
 //            if (empty($thievesPosition)) {
