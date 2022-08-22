@@ -133,8 +133,8 @@ class PolicemanAI extends Command
                 $policemen[0]->black_ticket_finished_at = $this->room->game_started_at;
                 $policemen[0]->save();
                 $thieves = DB::select(DB::raw("
-SELECT id, ST_AsText(hidden_position) AS hiddenPosition FROM players
-WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
+SELECT id, ST_AsText(global_position) AS globalPosition FROM players
+WHERE room_id = $this->room->id AND global_position IS NOT NULL
   AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role = 'THIEF'
   "));
                 $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
@@ -142,7 +142,7 @@ WHERE room_id = $this->room->id AND hidden_position IS NOT NULL
                 $policemen[1]->warning_number = count($thieves);
                 $policemen[1]->save();
                 foreach ($thieves as $thief) {
-                    $position = explode(' ', substr($thief->hiddenPosition, 6, -1));
+                    $position = explode(' ', substr($thief->globalPosition, 6, -1));
                     $policemen[1]->warning_number = count($position);
                     $policemen[1]->save();
                     $thievesPosition[$thief->id] = [
