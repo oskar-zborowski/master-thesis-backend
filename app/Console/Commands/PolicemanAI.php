@@ -66,7 +66,7 @@ class PolicemanAI extends Command
 //            $thievesPosition = $this->getThievesPosition($policemen);
             $this->updateThievesPosition($policemen, $this->room);
 //            $policemen[1]->warning_number = count($this->thievesPositions);
-            $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
+            $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
             $policemen[1]->save();
 
 //            if (empty($thievesPosition)) {
@@ -128,7 +128,6 @@ class PolicemanAI extends Command
 
     private function updateThievesPosition($policemen, $room)
     {
-        return;
 //        $policemen = $this->room
 //            ->players()
 //            ->where(['is_bot' => true])
