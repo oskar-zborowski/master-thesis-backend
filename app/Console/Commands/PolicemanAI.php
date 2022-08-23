@@ -64,11 +64,12 @@ class PolicemanAI extends Command
 //            $this->makeAStep($targets, $policemen);
 
             $this->updateThievesPosition();
+            $policemen[1]->warning_number = count($this->thievesPositions);
+            $policemen[1]->save();
 
             if (empty($this->thievesPosition)) {
                 // search for thieves
             } else {
-                $policemen[1]->warning_number = count($this->thievesPositions);
                 $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
                 $policemen[1]->save();
                 $this->makeAStep($this->thievesPositions);
