@@ -144,12 +144,12 @@ class PolicemanAI extends Command
 //        }
 
         $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
-        $policemen[0]->save();
-        if (0 >= strtotime($this->room->next_disclosure_at) - strtotime($this->lastDisclosure)) {
-//            $policemen[0]->warning_number = 1;
-//            $policemen[0]->save();
-            return;
-        }
+//        $policemen[0]->save();
+//        if (0 >= strtotime($this->room->next_disclosure_at) - strtotime($this->lastDisclosure)) {
+////            $policemen[0]->warning_number = 1;
+////            $policemen[0]->save();
+//            return;
+//        }
 
         $policemen[0]->warning_number = 2;
         $policemen[0]->save();
