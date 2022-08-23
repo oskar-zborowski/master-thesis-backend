@@ -64,8 +64,6 @@ class PolicemanAI extends Command
 //            $this->makeAStep($targets, $policemen);
 
             $this->updateThievesPosition();
-            $policemen[1]->warning_number = count($this->thievesPositions);
-            $policemen[1]->save();
 
             if (0 === count($this->thievesPositions)) {
                 // search for thieves
@@ -247,15 +245,26 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 
     private function getNearestThief(array $thievesPositions): int
     {
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
         $this->updatePoliceCenter();
         $closestThiefId = null;
-        $closestThiefDistans = null;
+        $closestThiefDistance = null;
         foreach ($thievesPositions as $playerId => $thief) {
+            $policemen[1]->warning_number = 1;
+            $policemen[1]->save();
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thief, $this->policeCenter);
-            if (null === $closestThiefDistans || $closestThiefDistans > $distance) {
-                $closestThiefDistans = $distance;
+            $policemen[1]->warning_number = 2;
+            $policemen[1]->save();
+            if (null === $closestThiefDistance || $closestThiefDistance > $distance) {
+                $closestThiefDistance = $distance;
                 $closestThiefId = $playerId;
             }
+            $policemen[1]->warning_number = 3;
+            $policemen[1]->save();
         }
 
         return $closestThiefId;
