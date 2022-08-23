@@ -250,13 +250,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         $closestThiefId = null;
         $closestThiefDistans = null;
         foreach ($thievesPositions as $playerId => $thief) {
-            $distance = Geometry::getSphericalDistanceBetweenTwoPoints(
-                [
-                    'x' => $thief['longitude'],
-                    'y' => $thief['latitude'],
-                ],
-                $this->policeCenter,
-            );
+            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thief, $this->policeCenter);
             if (null === $closestThiefDistans || $closestThiefDistans > $distance) {
                 $closestThiefDistans = $distance;
                 $closestThiefId = $playerId;
@@ -283,8 +277,6 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 continue;
             }
 
-            $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
-            $policemen[0]->save();
             $longitude += $policeman->hidden_position->longitude;
             $latitude += $policeman->hidden_position->latitude;
             $pointsNumber++;
@@ -298,6 +290,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             'x' => $longitude / $pointsNumber,
             'y' => $latitude / $pointsNumber,
         ];
+        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+        $policemen[0]->save();
     }
 
     private function goToThief(array $targetThief, Collection $policemen)
