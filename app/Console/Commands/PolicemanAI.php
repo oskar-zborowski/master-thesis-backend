@@ -65,7 +65,7 @@ class PolicemanAI extends Command
 
 //            $thievesPosition = $this->getThievesPosition($policemen);
             $this->updateThievesPosition();
-//            $policemen[1]->warning_number = count($this->thievesPositions);
+            $policemen[1]->warning_number = count($this->thievesPositions);
             $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
             $policemen[1]->save();
 
@@ -133,34 +133,15 @@ class PolicemanAI extends Command
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
-//        $policemen[0]->black_ticket_finished_at = $this->lastDisclosure;
-//        $policemen[0]->warning_number = 0;
-//        $policemen[0]->save();
-//        $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
-//        $policemen[1]->save();
-//        if (false === strtotime($this->room->next_disclosure_at) || false === strtotime($this->lastDisclosure)) {
-//            $policemen[1]->warning_number = 3;
-//            $policemen[1]->save();
-//        }
-
-//        $policemen[0]->save();
-//        if (0 >= strtotime($this->room->next_disclosure_at) - strtotime($this->lastDisclosure)) {
-////            $policemen[0]->warning_number = 1;
-////            $policemen[0]->save();
-//            return;
-//        }
         if ($this->lastDisclosure >= $this->room->next_disclosure_at) {
             return;
         }
 
         $this->lastDisclosure = $this->room->next_disclosure_at;
-//        $chybasiewypierdalanatym = $this->lastDisclosure >= $this->room->next_disclosure_at ? 2 : 1;
-//        $policemen[0]->warning_number = $chybasiewypierdalanatym;
+
         $policemen[0]->black_ticket_finished_at = $this->lastDisclosure;
         $policemen[0]->save();
-        return;
 
-        $this->lastDisclosure = $this->room->next_disclosure_at;
         $positions = [];
 //        $policemen[0]->warning_number = 1;
 //        $policemen[0]->save();
@@ -173,8 +154,8 @@ class PolicemanAI extends Command
                     ->orWhere(['status' => 'DISCONNECTED']);
             })
             ->get();
-        $policemen[0]->warning_number = 2;
-        $policemen[0]->save();
+//        $policemen[0]->warning_number = 2;
+//        $policemen[0]->save();
         $visibilityRadius = $this->room->config['actor']['policeman']['visibility_radius'];
 //        $policemen = $this->room
 //            ->players()
@@ -182,8 +163,8 @@ class PolicemanAI extends Command
 //            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
 //            ->get();
         foreach ($thieves as $thief) {
-            $policemen[0]->warning_number = 2;
-            $policemen[0]->save();
+//            $policemen[0]->warning_number = 2;
+//            $policemen[0]->save();
             $thief->mergeCasts(['hidden_position' => Point::class]);
             $thiefPosition = [
                 'x' => $thief->hidden_position->longitude,
