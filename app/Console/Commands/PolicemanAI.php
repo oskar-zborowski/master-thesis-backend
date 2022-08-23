@@ -24,7 +24,7 @@ class PolicemanAI extends Command
 
     private Room $room;
 
-    private array $thievesPositions;
+    private array $thievesPositions = [];
 
     private $lastDisclosure;
 
