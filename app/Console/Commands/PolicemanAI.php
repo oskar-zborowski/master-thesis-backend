@@ -255,7 +255,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         $closestThiefDistance = null;
         foreach ($thievesPositions as $playerId => $thief) {
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thief, $this->policeCenter);
-            $policemen[1]->warning_number = $playerId;
+            $policemen[1]->warning_number = $playerId + 1;
             $policemen[1]->save();
             if (null === $closestThiefDistance || $closestThiefDistance > $distance) {
                 $closestThiefDistance = $distance;
