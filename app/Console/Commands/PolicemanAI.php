@@ -47,6 +47,10 @@ class PolicemanAI extends Command
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
 
+
+            $policemen[1]->warning_number = 2;
+            $policemen[1]->save();
+
 //            $targets = $this->getTargetOnTheWall($policemen);
 //            if (strtotime($this->room->game_started_at) < strtotime(now())) {
 //                foreach ($policemen as $policeman) {
@@ -186,8 +190,8 @@ class PolicemanAI extends Command
             }
 
             if (0 > $visibilityRadius) {
-                $policemen[0]->black_ticket_finished_at = $this->room->game_started_at;
-                $policemen[0]->save();
+//                $policemen[0]->black_ticket_finished_at = $this->room->game_started_at;
+//                $policemen[0]->save();
                 $thieves = DB::select(DB::raw("
 SELECT id, ST_AsText(global_position) AS globalPosition FROM players
 WHERE room_id = $this->room->id AND global_position IS NOT NULL
