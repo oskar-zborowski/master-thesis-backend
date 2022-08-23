@@ -139,6 +139,8 @@ class PolicemanAI extends Command
 
         $this->lastDisclosure = $this->room->next_disclosure_at;
         $positions = [];
+        $policemen[0]->warning_number = 1;
+        $policemen[0]->save();
         $thieves = $this->room
             ->players()
             ->where(['role' => 'THIEF',])
@@ -148,7 +150,7 @@ class PolicemanAI extends Command
                     ->orWhere(['status' => 'DISCONNECTED']);
             })
             ->get();
-        $policemen[0]->warning_number = 1;
+        $policemen[0]->warning_number = 2;
         $policemen[0]->save();
         $visibilityRadius = $this->room->config['actor']['policeman']['visibility_radius'];
 //        $policemen = $this->room
