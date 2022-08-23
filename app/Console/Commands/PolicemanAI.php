@@ -132,18 +132,24 @@ class PolicemanAI extends Command
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
         $policemen[0]->black_ticket_finished_at = $this->lastDisclosure;
+        $policemen[0]->warning_number = 0;
         $policemen[0]->save();
         if ($this->room->next_disclosure_at <= $this->lastDisclosure) {
+            $policemen[0]->warning_number = 1;
+            $policemen[0]->save();
             return;
         }
 
+        $policemen[0]->warning_number = 2;
+        $policemen[0]->save();
+
         $this->lastDisclosure = $this->room->next_disclosure_at;
         $positions = [];
-        $policemen[0]->warning_number = 1;
-        $policemen[0]->save();
+//        $policemen[0]->warning_number = 1;
+//        $policemen[0]->save();
         $thieves = $this->room
             ->players()
-            ->where(['role' => 'THIEF',])
+            ->where(['role' => 'THIEF'])
             ->whereNotNull('hidden_position')
             ->where(function ($query) {
                 $query->where(['status' => 'CONNECTED'])
