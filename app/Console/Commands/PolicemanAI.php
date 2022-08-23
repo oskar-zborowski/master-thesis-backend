@@ -76,6 +76,7 @@ class PolicemanAI extends Command
 //                }
                 $targetThiefId = $this->getNearestThief($this->thievesPositions);
                 $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
+                $policemen[1]->warning_number = $targetThiefId;
                 $policemen[1]->save();
                 $this->makeAStep($this->thievesPositions[$targetThiefId]);
 
