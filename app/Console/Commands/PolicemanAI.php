@@ -40,18 +40,16 @@ class PolicemanAI extends Command
             /** @var Room $room */
             $this->room = Room::where('id', $roomId)->first();
 
-//            $this->handleSettingStartPositions();
-//            if ($this->room->game_started_at > now()) {
-//                continue;
-//            }
+            $this->handleSettingStartPositions();
+            if ($this->room->game_started_at > now()) {
+                continue;
+            }
 
             $policemen = $this->room
                 ->players()
                 ->where(['is_bot' => true])
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
-            $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
-            $policemen[0]->save();
 
 //            $targets = $this->getTargetOnTheWall($policemen);
 //            if (strtotime($this->room->game_started_at) < strtotime(now())) {
@@ -66,11 +64,11 @@ class PolicemanAI extends Command
 //            $this->makeAStep($targets, $policemen);
 
 //            $thievesPosition = $this->getThievesPosition($policemen);
-//            $this->updateThievesPosition();
-//            $policemen[1]->warning_number = count($this->thievesPositions);
-//            $policemen[1]->save();
-//            $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
-//            $policemen[1]->save();
+            $this->updateThievesPosition();
+            $policemen[1]->warning_number = count($this->thievesPositions);
+            $policemen[1]->save();
+            $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
+            $policemen[1]->save();
 
 //            if (empty($thievesPosition)) {
 //                // search for thieves
@@ -136,18 +134,18 @@ class PolicemanAI extends Command
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
-        $policemen[0]->black_ticket_finished_at = $this->lastDisclosure;
-        $policemen[0]->warning_number = 0;
-        $policemen[0]->save();
-        $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
-        $policemen[1]->save();
-        if (false === strtotime($this->room->next_disclosure_at) || false === strtotime($this->lastDisclosure)) {
-            $policemen[1]->warning_number = 3;
-            $policemen[1]->save();
-        }
+//        $policemen[0]->black_ticket_finished_at = $this->lastDisclosure;
+//        $policemen[0]->warning_number = 0;
+//        $policemen[0]->save();
+//        $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
+//        $policemen[1]->save();
+//        if (false === strtotime($this->room->next_disclosure_at) || false === strtotime($this->lastDisclosure)) {
+//            $policemen[1]->warning_number = 3;
+//            $policemen[1]->save();
+//        }
         if (0 >= strtotime($this->room->next_disclosure_at) - strtotime($this->lastDisclosure)) {
-            $policemen[0]->warning_number = 1;
-            $policemen[0]->save();
+//            $policemen[0]->warning_number = 1;
+//            $policemen[0]->save();
             return;
         }
 
