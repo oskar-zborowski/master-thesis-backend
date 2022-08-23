@@ -63,6 +63,8 @@ class PolicemanAI extends Command
             $this->updateThievesPosition($policemen);
             $policemen[0]->warning_number = count($this->thievesPositions);
             $policemen[0]->save();
+            $policemen[1]->warning_number = 1;
+            $policemen[1]->save();
 
             if (empty($thievesPosition)) {
                 // search for thieves
