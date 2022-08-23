@@ -64,14 +64,14 @@ class PolicemanAI extends Command
 //            $this->makeAStep($targets, $policemen);
 
             $this->updateThievesPosition();
-            $policemen[1]->warning_number = count($this->thievesPositions);
-            $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
-            $policemen[1]->save();
 
             if (empty($this->thievesPosition)) {
                 // search for thieves
             } else {
-                $this->makeAStep($this->thievesPositions, $policemen);
+                $policemen[1]->warning_number = count($this->thievesPositions);
+                $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
+                $policemen[1]->save();
+                $this->makeAStep($this->thievesPositions);
 
 //                $targetThiefId = $this->getNearestThief($policemen, $thievesPosition);
 //                $policemen[0]->warning_number = $targetThiefId;
@@ -318,7 +318,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             }
         }
 
-        $this->makeAStep($targetPositions, $policemen);
+//        $this->makeAStep($targetPositions, $policemen);
     }
 
     private function getReorderedPoliceLocation(Collection $policemen, array $thief): array
@@ -388,10 +388,16 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         }
     }
 
-    private function makeAStep(array $targetPositions, Collection $policemen)
+    private function makeAStep(array $targetPositions)
     {
-        $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         $positions = [];
+        $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        /** @var Player[] $policemen */
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
         foreach ($policemen as $policeman) {
             $policeman->mergeCasts(['hidden_position' => Point::class]);
             $position = [
@@ -404,6 +410,9 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
             $positions[$policeman->id] = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
         }
+
+        $policemen[0]->warning_number = count($policemen);
+        $policemen[0]->save();
 
         /** @var Player[] $policemen */
         $policemen = $this->room
