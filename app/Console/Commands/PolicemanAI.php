@@ -283,6 +283,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             }
 
             $policeman->mergeCasts(['hidden_position' => Point::class]);
+            $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+            $policemen[0]->save();
             $longitude += $policeman->hidden_position->longitude;
             $latitude += $policeman->hidden_position->latitude;
             $pointsNumber++;
@@ -296,8 +298,6 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             'x' => $longitude / $pointsNumber,
             'y' => $latitude / $pointsNumber,
         ];
-        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
-        $policemen[0]->save();
     }
 
     private function goToThief(array $targetThief, Collection $policemen)
