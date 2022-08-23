@@ -132,7 +132,7 @@ class PolicemanAI extends Command
         }
     }
 
-    private function updateThievesPosition()
+    private function updateThievesPosition(): void
     {
 //        if ($this->lastDisclosure >= $this->room->next_disclosure_at) {
 //            return;
@@ -266,7 +266,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         return $closestThiefId;
     }
 
-    private function updatePoliceCenter(): array
+    private function updatePoliceCenter(): void
     {
         $longitude = 0.0;
         $latitude = 0.0;
@@ -278,7 +278,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
         foreach ($policemen as $policeman) {
-            if (null !== $policeman->hidden_position) {
+            if (null === $policeman->hidden_position->longitude || null === $policeman->hidden_position->latitude) {
                 continue;
             }
 
@@ -288,15 +288,16 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             $pointsNumber++;
         }
 
+        if (0 === $pointsNumber) {
+            $this->policeCenter = ['x' => 0.0, 'y' => 0.0];
+        }
+
         $this->policeCenter = [
             'x' => $longitude / $pointsNumber,
             'y' => $latitude / $pointsNumber,
         ];
-
         $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
         $policemen[0]->save();
-
-        return $this->policeCenter;
     }
 
     private function goToThief(array $targetThief, Collection $policemen)
