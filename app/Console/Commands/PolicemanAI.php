@@ -39,16 +39,19 @@ class PolicemanAI extends Command
             sleep(env('BOT_REFRESH'));
             /** @var Room $room */
             $this->room = Room::where('id', $roomId)->first();
-            $this->handleSettingStartPositions();
-            if ($this->room->game_started_at > now()) {
-                continue;
-            }
+
+//            $this->handleSettingStartPositions();
+//            if ($this->room->game_started_at > now()) {
+//                continue;
+//            }
 
             $policemen = $this->room
                 ->players()
                 ->where(['is_bot' => true])
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
+            $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+            $policemen[0]->save();
 
 //            $targets = $this->getTargetOnTheWall($policemen);
 //            if (strtotime($this->room->game_started_at) < strtotime(now())) {
@@ -63,20 +66,20 @@ class PolicemanAI extends Command
 //            $this->makeAStep($targets, $policemen);
 
 //            $thievesPosition = $this->getThievesPosition($policemen);
-            $this->updateThievesPosition();
-            $policemen[1]->warning_number = count($this->thievesPositions);
-            $policemen[1]->save();
-            $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
-            $policemen[1]->save();
+//            $this->updateThievesPosition();
+//            $policemen[1]->warning_number = count($this->thievesPositions);
+//            $policemen[1]->save();
+//            $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
+//            $policemen[1]->save();
 
-            if (empty($thievesPosition)) {
-                // search for thieves
-            } else {
-//                $targetThiefId = $this->getNearestThief($policemen, $thievesPosition);
-//                $policemen[0]->warning_number = $targetThiefId;
-//                $policemen[0]->save();
-//                $this->goToThief($thievesPosition[$targetThiefId], $policemen);
-            }
+//            if (empty($thievesPosition)) {
+//                // search for thieves
+//            } else {
+////                $targetThiefId = $this->getNearestThief($policemen, $thievesPosition);
+////                $policemen[0]->warning_number = $targetThiefId;
+////                $policemen[0]->save();
+////                $this->goToThief($thievesPosition[$targetThiefId], $policemen);
+//            }
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
