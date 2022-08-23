@@ -150,8 +150,9 @@ class PolicemanAI extends Command
 //            return;
 //        }
 
-        $this->lastDisclosure = $this->room->next_disclosure_at;
-        $policemen[0]->black_ticket_finished_at = $this->lastDisclosure;
+        $chybasiewypierdalanatym = $this->lastDisclosure >= $this->room->next_disclosure_at ? 2 : 1;
+        $policemen[0]->warning_number = $chybasiewypierdalanatym;
+        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
         $policemen[0]->save();
         return;
 
