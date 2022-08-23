@@ -74,7 +74,7 @@ class PolicemanAI extends Command
 //                foreach ($policemen as $policeman) {
 //                    $targets[$policeman->id] = $this->thievesPositions[0];
 //                }
-                $targetThiefId = $this->getNearestThief($policemen, $this->thievesPositions);
+                $targetThiefId = $this->getNearestThief($this->thievesPositions);
                 $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
                 $policemen[1]->save();
                 $this->makeAStep($this->thievesPositions[$targetThiefId]);
@@ -244,9 +244,9 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         return $thievesPosition;
     }
 
-    private function getNearestThief(Collection $policemen, array $thievesPositions): int
+    private function getNearestThief(array $thievesPositions): int
     {
-        $policeCenter = $this->getPoliceCenter($policemen);
+        $this->updatePoliceCenter();
         $closestThiefId = null;
         $closestThiefDistans = null;
         foreach ($thievesPositions as $playerId => $thief) {
@@ -255,7 +255,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                     'x' => $thief['longitude'],
                     'y' => $thief['latitude'],
                 ],
-                $policeCenter,
+                $this->policeCenter,
             );
             if (null === $closestThiefDistans || $closestThiefDistans > $distance) {
                 $closestThiefDistans = $distance;
@@ -266,7 +266,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         return $closestThiefId;
     }
 
-    private function getPoliceCenter(): array
+    private function updatePoliceCenter(): array
     {
         $longitude = 0.0;
         $latitude = 0.0;
@@ -278,11 +278,11 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
         foreach ($policemen as $policeman) {
-            if (null !== $policemen->hidden_position) {
+            if (null !== $policeman->hidden_position) {
                 continue;
             }
 
-            $policeman->mergeCasts(['hidden_position' => Point::class,]);
+            $policeman->mergeCasts(['hidden_position' => Point::class]);
             $longitude += $policeman->hidden_position->longitude;
             $latitude += $policeman->hidden_position->latitude;
             $pointsNumber++;
@@ -292,6 +292,10 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             'x' => $longitude / $pointsNumber,
             'y' => $latitude / $pointsNumber,
         ];
+
+        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+        $policemen[0]->save();
+
         return $this->policeCenter;
     }
 
@@ -419,9 +423,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
             $positions[$policeman->id] = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
         }
-
-        $policemen[0]->warning_number = count($policemen);
-        $policemen[0]->save();
+//        $policemen[0]->warning_number = count($policemen);
+//        $policemen[0]->save();
 
         /** @var Player[] $policemen */
         $policemen = $this->room
