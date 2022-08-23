@@ -36,6 +36,9 @@ class PolicemanAI extends Command
         $this->lastDisclosure = $this->room->next_disclosure_at;
 
         do {
+            sleep(env('BOT_REFRESH'));
+            /** @var Room $room */
+            $this->room = Room::where('id', $roomId)->first();
             $this->handleSettingStartPositions();
             if ($this->room->game_started_at > now()) {
                 continue;
@@ -75,7 +78,6 @@ class PolicemanAI extends Command
 //                $this->goToThief($thievesPosition[$targetThiefId], $policemen);
             }
 
-            $this->room = Room::where('id', $roomId)->first();
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
 
