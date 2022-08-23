@@ -66,7 +66,6 @@ class PolicemanAI extends Command
 //            $thievesPosition = $this->getThievesPosition($policemen);
             $this->updateThievesPosition();
             $policemen[1]->warning_number = count($this->thievesPositions);
-            $policemen[1]->save();
             $policemen[1]->black_ticket_finished_at = $this->room->game_started_at;
             $policemen[1]->save();
 
@@ -143,6 +142,9 @@ class PolicemanAI extends Command
 //            $policemen[1]->warning_number = 3;
 //            $policemen[1]->save();
 //        }
+
+        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+        $policemen[0]->save();
         if (0 >= strtotime($this->room->next_disclosure_at) - strtotime($this->lastDisclosure)) {
 //            $policemen[0]->warning_number = 1;
 //            $policemen[0]->save();
@@ -151,6 +153,7 @@ class PolicemanAI extends Command
 
         $policemen[0]->warning_number = 2;
         $policemen[0]->save();
+        return;
 
         $this->lastDisclosure = $this->room->next_disclosure_at;
         $positions = [];
