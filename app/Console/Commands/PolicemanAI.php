@@ -51,7 +51,7 @@ class PolicemanAI extends Command
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
 
-//            $targets = $this->getTargetOnTheWall($policemen);
+            $targets = $this->getTargetOnTheWall($policemen);
 //            if (strtotime($this->room->game_started_at) < strtotime(now())) {
 //                foreach ($policemen as $policeman) {
 //                    $point = $targets[$policeman->id];
@@ -72,7 +72,7 @@ class PolicemanAI extends Command
             } else {
                 $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
                 $policemen[1]->save();
-                $this->makeAStep($this->thievesPositions);
+                $this->makeAStep($targets);
 
 //                $targetThiefId = $this->getNearestThief($policemen, $thievesPosition);
 //                $policemen[0]->warning_number = $targetThiefId;
@@ -130,9 +130,9 @@ class PolicemanAI extends Command
 
     private function updateThievesPosition()
     {
-        if ($this->lastDisclosure >= $this->room->next_disclosure_at) {
-            return;
-        }
+//        if ($this->lastDisclosure >= $this->room->next_disclosure_at) {
+//            return;
+//        }
 
         $positions = [];
         $this->lastDisclosure = $this->room->next_disclosure_at;
@@ -151,6 +151,10 @@ class PolicemanAI extends Command
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
         $visibilityRadius = $this->room->config['actor']['policeman']['visibility_radius'];
+
+        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+        $policemen[0]->save();
+
         foreach ($thieves as $thief) {
             $thief->mergeCasts(['hidden_position' => Point::class]);
             $thiefPosition = [
