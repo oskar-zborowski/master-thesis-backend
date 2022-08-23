@@ -51,7 +51,7 @@ class PolicemanAI extends Command
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
 
-            $targets = $this->getTargetOnTheWall($policemen);
+//            $targets = $this->getTargetOnTheWall($policemen);
 //            if (strtotime($this->room->game_started_at) < strtotime(now())) {
 //                foreach ($policemen as $policeman) {
 //                    $point = $targets[$policeman->id];
@@ -70,6 +70,10 @@ class PolicemanAI extends Command
             if (0 === count($this->thievesPositions)) {
                 // search for thieves
             } else {
+                $targets = [];
+                foreach ($policemen as $policeman) {
+                    $targets[$policeman->id] = $this->thievesPositions[0];
+                }
                 $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
                 $policemen[1]->save();
                 $this->makeAStep($targets);
@@ -409,9 +413,11 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 'x' => $policeman->hidden_position->longitude,
                 'y' => $policeman->hidden_position->latitude,
             ];
+            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions[$policeman->id]);
+            $distance = $distance > $botShift ? $botShift : $distance;
             $positionCartesian = Geometry::convertLatLngToXY($position);
             $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
-            $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $botShift);
+            $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $distance);
             $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
             $positions[$policeman->id] = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
         }
