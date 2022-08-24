@@ -408,7 +408,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
     private function makeAStep(array $targetPositions)
     {
         $positions = [];
-        $botShift = 3 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        $botShift = 10 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         /** @var Player[] $policemen */
         $policemen = $this->room
             ->players()
@@ -416,8 +416,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
         foreach ($policemen as $policeman) {
-            $policeman->warning_number = 1;
-            $policeman->save();
+//            $policeman->warning_number = 1;
+//            $policeman->save();
             $policeman->mergeCasts(['hidden_position' => Point::class]);
             $position = [
                 'x' => $policeman->hidden_position->longitude,
