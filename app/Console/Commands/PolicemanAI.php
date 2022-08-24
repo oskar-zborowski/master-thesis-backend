@@ -428,7 +428,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
     private function makeAStep(array $targetPositions)
     {
         $positions = [];
-        $botShift = 20 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        $botShift = 10 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         /** @var Player[] $policemen */
         $policemen = $this->room
             ->players()
@@ -440,8 +440,6 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         $policemen[0]->save();
 
         foreach ($policemen as $policeman) {
-//            $policeman->warning_number = 1;
-//            $policeman->save();
             $policeman->mergeCasts(['hidden_position' => Point::class]);
             $position = [
                 'x' => $policeman->hidden_position->longitude,
@@ -449,7 +447,6 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ];
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions[$policeman->id]);
 //            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions);
-//            $policeman->ping = $distance;
             $policeman->save();
             $distance = $distance != $botShift ? $botShift : $distance;
             $positionCartesian = Geometry::convertLatLngToXY($position);
@@ -466,12 +463,10 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
-//        $policemen[1]->ping = $policemen[1]->id;
-//        $policemen[1]->save();
         foreach ($policemen as $policeman) {
-//            $position = $positions[$policeman->id];
-            $position = $targetPositions[$policeman->id];
-            $position = "{$position['x']} {$position['y']}";
+            $position = $positions[$policeman->id];
+//            $position = $targetPositions[$policeman->id];
+//            $position = "{$position['x']} {$position['y']}";
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($position)')");
             $policeman->save();
         }
