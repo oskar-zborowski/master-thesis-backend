@@ -291,11 +291,11 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         $catchingSmallRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
         $goToCatching = $catchingSmallRadius > $halfWayRadius;
-//        $policemen[0]->warning_number = 1;
-//        $policemen[0]->save();
+        $policemen[0]->warning_number = 1;
+        $policemen[0]->save();
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
-//        $policemen[0]->warning_number = 2;
-//        $policemen[0]->save();
+        $policemen[0]->warning_number = 2;
+        $policemen[0]->save();
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
@@ -336,8 +336,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
         foreach ($policemen as $policeman) {
-            $policeman->warning_number = 1;
-            $policeman->save();
+//            $policeman->warning_number = 1;
+//            $policeman->save();
             $policeman->mergeCasts(['hidden_position' => Point::class]);
             $policemanPosition = [
                 'x' => $policeman->hidden_position->longitude,
@@ -352,13 +352,16 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ];
         }
 
-        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
-        $policemen[0]->save();
+//        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+//        $policemen[0]->save();
 
         usort($newOrder, 'order');
         $policeArray = [];
         foreach ($newOrder as $key => $value) {
-            $policeArray[$key] = $newOrder[$key]['officer'];
+            $policeArray[$key] = [
+                'position' => $newOrder[$key]['position'],
+                'playerId' => $newOrder[$key]['playerId'],
+            ];
         }
 
         return $policeArray;
