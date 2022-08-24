@@ -335,7 +335,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
-        foreach ($policemen as $policeman) {
+        foreach ($policemen as $key => $policeman) {
             $policeman->ping = 1;
             $policeman->save();
             $policeman->mergeCasts(['hidden_position' => Point::class]);
@@ -343,10 +343,10 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 'x' => $policeman->hidden_position->longitude,
                 'y' => $policeman->hidden_position->latitude,
             ];
-            $angle = Geometry::getAngleMadeOfPoints($this->policeCenter, $thief, $policemanPosition);
+            $angle = 0.5 * $key; //Geometry::getAngleMadeOfPoints($this->policeCenter, $thief, $policemanPosition);
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thief, $policemanPosition);
-//            $policeman->ping = $distance * sin($angle);
-//            $policeman->save();
+            $policeman->ping = $distance * sin($angle);
+            $policeman->save();
             $newOrder[] = [
                 'order' => $distance * sin($angle),
                 'position' => $policemanPosition,
@@ -357,8 +357,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
         $policemen[0]->save();
         usort($newOrder, 'order');
-        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
-        $policemen[0]->save();
+        $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
+        $policemen[1]->save();
 
         $policeArray = [];
         foreach ($newOrder as $value) {
