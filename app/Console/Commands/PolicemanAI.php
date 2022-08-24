@@ -466,8 +466,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
-//        $policemen[0]->ping = $policemen[0]->id;
-//        $policemen[0]->save();
+        $policemen[1]->ping = $policemen[1]->id;
+        $policemen[1]->save();
         foreach ($policemen as $policeman) {
 //            $position = $positions[$policeman->id];
             $position = $targetPositions[$policeman->id];
