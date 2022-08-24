@@ -58,7 +58,7 @@ class PolicemanAI extends Command
 //                $this->goToThief($this->thievesPositions[$targetThiefId]);
 
 //                $this->goToThief($this->getTargetOnTheWall());
-                $this->makeAStep($this->getArrayWithTarget($this->getTargetOnTheWall()));
+                $this->makeAStep($this->getArrayWithTarget($this->thievesPositions[$targetThiefId]));
             }
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
@@ -428,7 +428,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
     private function makeAStep(array $targetPositions)
     {
         $positions = [];
-        $botShift = 17 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        $botShift = 5 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         /** @var Player[] $policemen */
         $policemen = $this->room
             ->players()
