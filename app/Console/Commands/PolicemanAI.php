@@ -449,7 +449,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ];
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions[$policeman->id]);
 //            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions);
-            $policeman->ping = $distance;
+//            $policeman->ping = $distance;
             $policeman->save();
             $distance = $distance != $botShift ? $botShift : $distance;
             $positionCartesian = Geometry::convertLatLngToXY($position);
@@ -466,8 +466,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
-        $policemen[1]->ping = $policemen[1]->id;
-        $policemen[1]->save();
+//        $policemen[1]->ping = $policemen[1]->id;
+//        $policemen[1]->save();
         foreach ($policemen as $policeman) {
 //            $position = $positions[$policeman->id];
             $position = $targetPositions[$policeman->id];
