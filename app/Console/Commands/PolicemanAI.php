@@ -74,8 +74,8 @@ class PolicemanAI extends Command
             ->get();
         foreach ($policemen as $policeman) {
             $array[$policeman->id] = $target;
-            $policeman->ping = $policeman->id;
-            $policeman->save();
+//            $policeman->ping = $policeman->id;
+//            $policeman->save();
         }
 
 //        $policemen[1]->ping = $policemen[1]->id;
@@ -428,7 +428,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
     private function makeAStep(array $targetPositions)
     {
         $positions = [];
-        $botShift = 5 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        $botShift = 17 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         /** @var Player[] $policemen */
         $policemen = $this->room
             ->players()
@@ -436,8 +436,10 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
 
-        $policemen[0]->warning_number = 1;
+        $policemen[0]->ping = $targetPositions[0]['x'];
         $policemen[0]->save();
+        $policemen[1]->ping = $targetPositions[0]['y'];
+        $policemen[1]->save();
 
         foreach ($policemen as $policeman) {
             $policeman->mergeCasts(['hidden_position' => Point::class]);
