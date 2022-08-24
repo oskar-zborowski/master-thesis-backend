@@ -345,7 +345,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ];
             $angle = Geometry::getAngleMadeOfPoints($this->policeCenter, $thief, $policemanPosition);
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thief, $policemanPosition);
-            $policeman->ping = $distance;
+            $policeman->ping = $angle;
             $policeman->save();
             $newOrder[] = [
                 'order' => $distance * sin($angle),
