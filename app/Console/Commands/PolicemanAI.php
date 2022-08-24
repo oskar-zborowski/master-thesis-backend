@@ -50,6 +50,7 @@ class PolicemanAI extends Command
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
             $this->updateThievesPosition();
+            $this->updatePoliceCenter();
             if (0 === count($this->thievesPositions)) {
                 // search for thieves
             } else {
@@ -224,7 +225,6 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
-        $this->updatePoliceCenter();
         $closestThiefId = null;
         $closestThiefDistance = null;
         foreach ($thievesPositions as $playerId => $thief) {
@@ -291,11 +291,11 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         $catchingSmallRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
         $goToCatching = $catchingSmallRadius > $halfWayRadius;
-        $policemen[0]->warning_number = 1;
-        $policemen[0]->save();
-        $policemenObject = $this->getReorderedPoliceLocation($policemen, $targetThief);
-        $policemen[0]->warning_number = 2;
-        $policemen[0]->save();
+//        $policemen[0]->warning_number = 1;
+//        $policemen[0]->save();
+        $policemenObject = $this->getReorderedPoliceLocation($targetThief);
+//        $policemen[0]->warning_number = 2;
+//        $policemen[0]->save();
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
@@ -322,7 +322,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //        $this->makeAStep($targetPositions, $policemen);
     }
 
-    private function getReorderedPoliceLocation(Collection $policemen, array $thief): array
+    private function getReorderedPoliceLocation(array $thief): array
     {
         function order($a, $b): int
         {
@@ -330,7 +330,14 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         }
 
         $newOrder = [];
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
         foreach ($policemen as $policeman) {
+            $policeman->warning_number = 1;
+            $policeman->save();
             $policeman->mergeCasts(['hidden_position' => Point::class]);
             $policemanPosition = [
                 'x' => $policeman->hidden_position->longitude,
@@ -344,6 +351,9 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 'playerId' => $policeman->id,
             ];
         }
+
+        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+        $policemen[0]->save();
 
         usort($newOrder, 'order');
         $policeArray = [];
