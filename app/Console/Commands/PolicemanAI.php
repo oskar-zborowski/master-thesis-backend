@@ -74,7 +74,6 @@ class PolicemanAI extends Command
 //                }
                 $targetThiefId = $this->getNearestThief($this->thievesPositions);
                 $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
-                $policemen[1]->warning_number = $targetThiefId;
                 $policemen[1]->save();
                 $this->makeAStep($this->thievesPositions[$targetThiefId]);
 
@@ -254,22 +253,20 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         $closestThiefId = null;
         $closestThiefDistance = null;
         foreach ($thievesPositions as $playerId => $thief) {
-            $policemen[0]->warning_number = 1;
-            $policemen[0]->save();
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thief, $this->policeCenter);
-            $policemen[0]->warning_number = 2;
-            $policemen[0]->save();
             if (null === $closestThiefDistance || $closestThiefDistance > $distance) {
-                $policemen[0]->warning_number = 3;
+                $policemen[0]->warning_number = 1;
                 $policemen[0]->save();
                 $closestThiefDistance = $distance;
                 $closestThiefId = $playerId;
             } else {
-                $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+                $policemen[0]->warning_number = 2;
                 $policemen[0]->save();
             }
         }
 
+        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+        $policemen[0]->save();
         return $closestThiefId;
     }
 
