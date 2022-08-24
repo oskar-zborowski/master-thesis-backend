@@ -315,11 +315,13 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             }
         }
 
-        $policemen[0]->warning_number = 1;
+        $policemen[0]->warning_number = count($targetPositions);
         $policemen[0]->save();
 
+        $this->makeAStep($targetPositions, $policemen);
 
-//        $this->makeAStep($targetPositions, $policemen);
+        $policemen[1]->warning_number = 2;
+        $policemen[1]->save();
     }
 
     private function getReorderedPoliceLocation(array $thief): array
@@ -421,18 +423,16 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 'x' => $policeman->hidden_position->longitude,
                 'y' => $policeman->hidden_position->latitude,
             ];
-//            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions[$policeman->id]);
-            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions);
+            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions[$policeman->id]);
+//            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions);
             $distance = $distance > $botShift ? $botShift : $distance;
             $positionCartesian = Geometry::convertLatLngToXY($position);
-//            $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
-            $targetCartesian = Geometry::convertLatLngToXY($targetPositions);
+            $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
+//            $targetCartesian = Geometry::convertLatLngToXY($targetPositions);
             $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $distance);
             $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
             $positions[$policeman->id] = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
         }
-//        $policemen[0]->warning_number = count($policemen);
-//        $policemen[0]->save();
 
         /** @var Player[] $policemen */
         $policemen = $this->room
