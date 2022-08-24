@@ -408,7 +408,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
     private function makeAStep(array $targetPositions)
     {
         $positions = [];
-        $botShift = 5 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        $botShift = 20 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         /** @var Player[] $policemen */
         $policemen = $this->room
             ->players()
@@ -425,7 +425,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ];
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions[$policeman->id]);
 //            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions);
-            $distance = $distance > $botShift ? $botShift : $distance;
+            $distance = $distance != $botShift ? $botShift : $distance;
             $positionCartesian = Geometry::convertLatLngToXY($position);
             $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
 //            $targetCartesian = Geometry::convertLatLngToXY($targetPositions);
