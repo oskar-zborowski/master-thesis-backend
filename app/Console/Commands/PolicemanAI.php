@@ -56,13 +56,13 @@ class PolicemanAI extends Command
             } else {
                 $targetThiefId = $this->getNearestThief($this->thievesPositions);
 //                $this->goToThief($this->thievesPositions[$targetThiefId]);
-                $this->goToThief($this->getTargetOnTheWall($policemen));
+                $this->goToThief($this->getTargetOnTheWall());
             }
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
 
-    private function getTargetOnTheWall($policemen): array
+    private function getTargetOnTheWall(): array
     {
         $boundaryPoints = explode(',', $this->room->boundary_points);
         $boundaryPoint = explode(' ', $boundaryPoints[0]);
@@ -70,12 +70,8 @@ class PolicemanAI extends Command
             'x' => $boundaryPoint[0],
             'y' => $boundaryPoint[1],
         ];
-        $targetOnTheWall = [];
-        foreach ($policemen as $policeman) {
-            $targetOnTheWall[$policeman->id] = $target;
-        }
 
-        return $targetOnTheWall;
+        return $target;
     }
 
     private function handleSettingStartPositions()
