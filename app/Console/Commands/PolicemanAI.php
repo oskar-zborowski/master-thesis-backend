@@ -312,13 +312,15 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                     // go to even catch
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingEvenlySpreadPoints[$key], $targetThief);
                 }
+
+                $targetPositions[$policemanObject['playerId']] = $targetThief;
             }
         }
 
         $policemen[0]->warning_number = count($targetPositions);
         $policemen[0]->save();
 
-        $this->makeAStep($targetPositions, $policemen);
+        $this->makeAStep($targetPositions);
 
         $policemen[1]->warning_number = 2;
         $policemen[1]->save();
