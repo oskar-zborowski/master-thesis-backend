@@ -291,24 +291,14 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         $catchingSmallRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
         $goToCatching = $catchingSmallRadius > $halfWayRadius;
-//        $policemen[0]->warning_number = 1;
-//        $policemen[0]->save();
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
-//        $policemen[0]->warning_number = 2;
-//        $policemen[0]->save();
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
             $halfWayPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $halfWayRadius, count($policemenObject));
-
-            $policemen[0]->warning_number = 1;
-            $policemen[0]->save();
             $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingSmallRadius, count($policemenObject));
             $catchingEvenlySpreadPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingSmallRadius, count($policemenObject), true);
             foreach ($policemenObject as $key => $policemanObject) {
-
-                $policemen[0]->warning_number = 2;
-                $policemen[0]->save();
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
                 $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
                 $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
@@ -324,6 +314,10 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 }
             }
         }
+
+        $policemen[0]->warning_number = 1;
+        $policemen[0]->save();
+
 
 //        $this->makeAStep($targetPositions, $policemen);
     }
@@ -344,7 +338,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 'x' => $policeman->hidden_position->longitude,
                 'y' => $policeman->hidden_position->latitude,
             ];
-            $angle = 0.5 * $key; //Geometry::getAngleMadeOfPoints($this->policeCenter, $thief, $policemanPosition);
+            $angle = Geometry::getAngleMadeOfPoints($this->policeCenter, $thief, $policemanPosition);
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thief, $policemanPosition);
 //            $policeman->ping = $distance * sin($angle);
 //            $policeman->save();
