@@ -294,15 +294,21 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //        $policemen[0]->warning_number = 1;
 //        $policemen[0]->save();
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
-        $policemen[0]->warning_number = 2;
-        $policemen[0]->save();
+//        $policemen[0]->warning_number = 2;
+//        $policemen[0]->save();
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
             $halfWayPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $halfWayRadius, count($policemenObject));
+
+            $policemen[0]->warning_number = 1;
+            $policemen[0]->save();
             $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingSmallRadius, count($policemenObject));
             $catchingEvenlySpreadPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingSmallRadius, count($policemenObject), true);
             foreach ($policemenObject as $key => $policemanObject) {
+
+                $policemen[0]->warning_number = 2;
+                $policemen[0]->save();
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
                 $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
                 $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
@@ -324,11 +330,6 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 
     private function getReorderedPoliceLocation(array $thief): array
     {
-//        function order($a, $b): int
-//        {
-//            return ($a['order'] < $b['order']) ? -1 : 1;
-//        }
-
         $newOrder = [];
         $policemen = $this->room
             ->players()
@@ -336,8 +337,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
         foreach ($policemen as $key => $policeman) {
-            $policeman->ping = 1;
-            $policeman->save();
+//            $policeman->ping = 1;
+//            $policeman->save();
             $policeman->mergeCasts(['hidden_position' => Point::class]);
             $policemanPosition = [
                 'x' => $policeman->hidden_position->longitude,
@@ -345,8 +346,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ];
             $angle = 0.5 * $key; //Geometry::getAngleMadeOfPoints($this->policeCenter, $thief, $policemanPosition);
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thief, $policemanPosition);
-            $policeman->ping = $distance * sin($angle);
-            $policeman->save();
+//            $policeman->ping = $distance * sin($angle);
+//            $policeman->save();
             $newOrder[] = [
                 'order' => $distance * sin($angle),
                 'position' => $policemanPosition,
@@ -354,13 +355,13 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ];
         }
 
-        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
-        $policemen[0]->save();
+//        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+//        $policemen[0]->save();
         usort($newOrder, function ($a, $b) {
             return ($a['order'] < $b['order']) ? -1 : 1;
         });
-        $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
-        $policemen[1]->save();
+//        $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
+//        $policemen[1]->save();
 
         $policeArray = [];
         foreach ($newOrder as $value) {
