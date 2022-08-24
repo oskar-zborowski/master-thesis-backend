@@ -324,10 +324,10 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 
     private function getReorderedPoliceLocation(array $thief): array
     {
-        function order($a, $b): int
-        {
-            return ($a['order'] < $b['order']) ? -1 : 1;
-        }
+//        function order($a, $b): int
+//        {
+//            return ($a['order'] < $b['order']) ? -1 : 1;
+//        }
 
         $newOrder = [];
         $policemen = $this->room
@@ -356,7 +356,9 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 
         $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
         $policemen[0]->save();
-        usort($newOrder, 'order');
+        usort($newOrder, function ($a, $b) {
+            return ($a['order'] < $b['order']) ? -1 : 1;
+        });
         $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
         $policemen[1]->save();
 
