@@ -258,8 +258,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             }
         }
 
-//        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
-//        $policemen[0]->save();
+        $policemen[0]->ping = $closestThiefId;
+        $policemen[0]->save();
         return $closestThiefId;
     }
 
@@ -287,6 +287,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 
         if (0 === $pointsNumber) {
             $this->policeCenter = ['x' => 0.0, 'y' => 0.0];
+            return;
         }
 
         $this->policeCenter = [
@@ -436,10 +437,10 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
 
-        $policemen[0]->ping = $targetPositions[$policemen[0]->id]['x'];
-        $policemen[0]->save();
-        $policemen[1]->ping = $targetPositions[$policemen[0]->id]['y'];
-        $policemen[1]->save();
+//        $policemen[0]->ping = $targetPositions[$policemen[0]->id]['x'];
+//        $policemen[0]->save();
+//        $policemen[1]->ping = $targetPositions[$policemen[0]->id]['y'];
+//        $policemen[1]->save();
 
         foreach ($policemen as $policeman) {
             $policeman->mergeCasts(['hidden_position' => Point::class]);
