@@ -471,8 +471,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         foreach ($policemen as $policeman) {
 //            $position = $positions[$policeman->id];
             $position = $targetPositions[$policeman->id];
-            $policemen[0]->warning_number = 2;
-            $policemen[0]->save();
+            $position = "{$position['x']} {$position['y']}";
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($position)')");
             $policeman->save();
         }
