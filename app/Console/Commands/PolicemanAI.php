@@ -291,8 +291,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         $catchingSmallRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
         $goToCatching = $catchingSmallRadius > $halfWayRadius;
-        $policemen[0]->warning_number = 1;
-        $policemen[0]->save();
+//        $policemen[0]->warning_number = 1;
+//        $policemen[0]->save();
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
         $policemen[0]->warning_number = 2;
         $policemen[0]->save();
@@ -352,15 +352,17 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ];
         }
 
-//        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
-//        $policemen[0]->save();
-
+        $policemen[0]->warning_number = 1;
+        $policemen[0]->save();
         usort($newOrder, 'order');
+        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+        $policemen[0]->save();
+
         $policeArray = [];
-        foreach ($newOrder as $key => $value) {
-            $policeArray[$key] = [
-                'position' => $newOrder[$key]['position'],
-                'playerId' => $newOrder[$key]['playerId'],
+        foreach ($newOrder as $value) {
+            $policeArray[] = [
+                'position' => $value['position'],
+                'playerId' => $value['playerId'],
             ];
         }
 
