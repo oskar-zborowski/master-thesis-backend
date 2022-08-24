@@ -300,8 +300,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             'x' => $longitude / $pointsNumber,
             'y' => $latitude / $pointsNumber,
         ];
-        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
-        $policemen[0]->save();
+//        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+//        $policemen[0]->save();
     }
 
     private function goToThief(array $targetThief, Collection $policemen)
@@ -422,10 +422,12 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 'x' => $policeman->hidden_position->longitude,
                 'y' => $policeman->hidden_position->latitude,
             ];
-            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions[$policeman->id]);
+//            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions[$policeman->id]);
+            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions);
             $distance = $distance > $botShift ? $botShift : $distance;
             $positionCartesian = Geometry::convertLatLngToXY($position);
-            $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
+//            $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
+            $targetCartesian = Geometry::convertLatLngToXY($targetPositions);
             $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $distance);
             $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
             $positions[$policeman->id] = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
