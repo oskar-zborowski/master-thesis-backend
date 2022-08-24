@@ -56,10 +56,27 @@ class PolicemanAI extends Command
             } else {
                 $targetThiefId = $this->getNearestThief($this->thievesPositions);
 //                $this->goToThief($this->thievesPositions[$targetThiefId]);
-                $this->goToThief($this->getTargetOnTheWall());
+
+//                $this->goToThief($this->getTargetOnTheWall());
+                $this->makeAStep($this->getArrayWithTarget($this->getTargetOnTheWall()));
             }
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
+    }
+
+    private function getArrayWithTarget($target)
+    {
+        $array = [];
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
+        foreach ($policemen as $policeman) {
+            $array[$policeman->id] = $target;
+        }
+
+        return $array;
     }
 
     private function getTargetOnTheWall(): array
@@ -314,13 +331,13 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             }
         }
 
-        $policemen[0]->warning_number = count($targetPositions);
-        $policemen[0]->save();
+//        $policemen[0]->warning_number = count($targetPositions);
+//        $policemen[0]->save();
 
         $this->makeAStep($targetPositions);
 
-        $policemen[1]->warning_number = 2;
-        $policemen[1]->save();
+//        $policemen[1]->warning_number = 2;
+//        $policemen[1]->save();
     }
 
     private function getReorderedPoliceLocation(array $thief): array
@@ -414,6 +431,10 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
+
+        $policemen[0]->warning_number = 1;
+        $policemen[0]->save();
+
         foreach ($policemen as $policeman) {
 //            $policeman->warning_number = 1;
 //            $policeman->save();
@@ -442,10 +463,15 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
         foreach ($policemen as $policeman) {
+            $policemen[0]->warning_number = 2;
+            $policemen[0]->save();
 //            $position = $positions[$policeman->id];
             $position = $targetPositions[$policeman->id];
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($position)')");
             $policeman->save();
         }
+
+        $policemen[1]->warning_number = 1;
+        $policemen[1]->save();
     }
 }
