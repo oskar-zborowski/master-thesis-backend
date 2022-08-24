@@ -39,7 +39,6 @@ class PolicemanAI extends Command
             sleep(env('BOT_REFRESH'));
             /** @var Room $room */
             $this->room = Room::where('id', $roomId)->first();
-
             $this->handleSettingStartPositions();
             if ($this->room->game_started_at > now()) {
                 continue;
@@ -50,36 +49,12 @@ class PolicemanAI extends Command
                 ->where(['is_bot' => true])
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
-
-//            $targets = $this->getTargetOnTheWall($policemen);
-//            if (strtotime($this->room->game_started_at) < strtotime(now())) {
-//                foreach ($policemen as $policeman) {
-//                    $point = $targets[$policeman->id];
-//                    $pointStr = "{$point['x']} {$point['y']}";
-//                    $policeman->black_ticket_finished_at = $this->room->game_started_at;
-//                    $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($pointStr)')");
-//                    $policeman->save();
-//                }
-//            }
-//            $this->makeAStep($targets, $policemen);
-
             $this->updateThievesPosition();
-
             if (0 === count($this->thievesPositions)) {
                 // search for thieves
             } else {
-//                $targets = [];
-//                foreach ($policemen as $policeman) {
-//                    $targets[$policeman->id] = $this->thievesPositions[0];
-//                }
                 $targetThiefId = $this->getNearestThief($this->thievesPositions);
-                $policemen[1]->black_ticket_finished_at = $this->room->next_disclosure_at;
-                $policemen[1]->save();
-                $this->makeAStep($this->thievesPositions[$targetThiefId]);
-
-//                $policemen[0]->warning_number = $targetThiefId;
-//                $policemen[0]->save();
-//                $this->goToThief($thievesPosition[$targetThiefId], $policemen);
+                $this->goToThief($this->thievesPositions[$targetThiefId]);
             }
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
@@ -304,13 +279,23 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //        $policemen[0]->save();
     }
 
-    private function goToThief(array $targetThief, Collection $policemen)
+    private function goToThief(array $targetThief): void
     {
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
+
         $targetPositions = [];
         $catchingSmallRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
         $goToCatching = $catchingSmallRadius > $halfWayRadius;
+        $policemen[0]->warning_number = 1;
+        $policemen[0]->save();
         $policemenObject = $this->getReorderedPoliceLocation($policemen, $targetThief);
+        $policemen[0]->warning_number = 2;
+        $policemen[0]->save();
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
