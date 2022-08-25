@@ -465,6 +465,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
+
         $thieves = $this->room
             ->players()
             ->where(['role' => 'THIEF'])
@@ -474,13 +475,18 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                     ->orWhere(['status' => 'DISCONNECTED']);
             })
             ->get();
+        foreach ($thieves as $key => $thief) {
+            $thief->mergeCasts(['hidden_position' => Point::class]);
+            $positions[$key] = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
+        }
+
         foreach ($policemen as $key => $policeman) {
 //            $position = $positions[$policeman->id];
 
-            $position = $targetPositions[$policeman->id];
-            $position = "{$position['x']} {$position['y']}";
+//            $position = $targetPositions[$policeman->id];
+//            $position = "{$position['x']} {$position['y']}";
 
-            $position = $thieves[$key]->hidden_position;
+            $position = $positions[$key];
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($position)')");
             $policeman->save();
         }
