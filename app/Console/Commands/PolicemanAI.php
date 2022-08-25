@@ -442,23 +442,22 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //        $policemen[1]->ping = $targetPositions[$policemen[0]->id]['y'];
 //        $policemen[1]->save();
 
-        foreach ($policemen as $policeman) {
-            $policeman->mergeCasts(['hidden_position' => Point::class]);
-            $position = [
-                'x' => $policeman->hidden_position->longitude,
-                'y' => $policeman->hidden_position->latitude,
-            ];
-            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions[$policeman->id]);
-//            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions);
-            $policeman->save();
-            $distance = $distance > $botShift ? $botShift : $distance;
-            $positionCartesian = Geometry::convertLatLngToXY($position);
-            $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
-//            $targetCartesian = Geometry::convertLatLngToXY($targetPositions);
-            $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $distance);
-            $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
-            $positions[$policeman->id] = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
-        }
+//        foreach ($policemen as $policeman) {
+//            $policeman->mergeCasts(['hidden_position' => Point::class]);
+//            $position = [
+//                'x' => $policeman->hidden_position->longitude,
+//                'y' => $policeman->hidden_position->latitude,
+//            ];
+//            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions[$policeman->id]);
+////            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions);
+//            $distance = $distance > $botShift ? $botShift : $distance;
+//            $positionCartesian = Geometry::convertLatLngToXY($position);
+//            $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
+////            $targetCartesian = Geometry::convertLatLngToXY($targetPositions);
+//            $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $distance);
+//            $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
+//            $positions[$policeman->id] = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
+//        }
 
         /** @var Player[] $policemen */
         $policemen = $this->room
