@@ -465,10 +465,22 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
-        foreach ($policemen as $policeman) {
+        $thieves = $this->room
+            ->players()
+            ->where(['role' => 'THIEF'])
+            ->whereNotNull('hidden_position')
+            ->where(function ($query) {
+                $query->where(['status' => 'CONNECTED'])
+                    ->orWhere(['status' => 'DISCONNECTED']);
+            })
+            ->get();
+        foreach ($policemen as $key => $policeman) {
 //            $position = $positions[$policeman->id];
+
             $position = $targetPositions[$policeman->id];
             $position = "{$position['x']} {$position['y']}";
+
+            $position = $thieves[$key]->hidden_position;
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($position)')");
             $policeman->save();
         }
