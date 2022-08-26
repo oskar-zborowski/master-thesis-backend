@@ -126,9 +126,9 @@ class PolicemanAI extends Command
 
     private function updateThievesPosition(): void
     {
-//        if ($this->lastDisclosure >= $this->room->next_disclosure_at) {
-//            return;
-//        }
+        if ($this->lastDisclosure >= $this->room->next_disclosure_at) {
+            return;
+        }
 
         $positions = [];
         $this->lastDisclosure = $this->room->next_disclosure_at;
@@ -324,12 +324,18 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 if (!$goToCatching && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
                     // go to half way
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($halfWayPoints[$key], $targetThief);
+                    $policemen[0]->warning_number = 1;
+                    $policemen[0]->save();
                 } elseif (self::CLOSE_DISTANCE_DELTA < $distanceToUneven) {
                     // go to uneven catch
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingPoints[$key], $targetThief);
+                    $policemen[0]->warning_number = 2;
+                    $policemen[0]->save();
                 } else {
                     // go to even catch
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingEvenlySpreadPoints[$key], $targetThief);
+                    $policemen[0]->warning_number = 3;
+                    $policemen[0]->save();
                 }
 
                 $targetPositions[$policemanObject['playerId']] = $targetThief;
@@ -429,7 +435,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
     private function makeAStep(array $targetPositions)
     {
         $positions = [];
-        $botShift = 17 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         /** @var Player[] $policemen */
         $policemen = $this->room
             ->players()
