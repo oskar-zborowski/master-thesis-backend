@@ -442,22 +442,20 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //        $policemen[1]->ping = $targetPositions[$policemen[0]->id]['y'];
 //        $policemen[1]->save();
 
-//        foreach ($policemen as $policeman) {
-//            $policeman->mergeCasts(['hidden_position' => Point::class]);
-//            $position = [
-//                'x' => $policeman->hidden_position->longitude,
-//                'y' => $policeman->hidden_position->latitude,
-//            ];
-//            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions[$policeman->id]);
-////            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions);
-//            $distance = $distance > $botShift ? $botShift : $distance;
-//            $positionCartesian = Geometry::convertLatLngToXY($position);
-//            $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
-////            $targetCartesian = Geometry::convertLatLngToXY($targetPositions);
-//            $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $distance);
-//            $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
-//            $positions[$policeman->id] = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
-//        }
+        foreach ($policemen as $policeman) {
+            $policeman->mergeCasts(['hidden_position' => Point::class]);
+            $position = [
+                'x' => $policeman->hidden_position->longitude,
+                'y' => $policeman->hidden_position->latitude,
+            ];
+            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($position, $targetPositions[$policeman->id]);
+            $distance = $distance > $botShift ? $botShift : $distance;
+            $positionCartesian = Geometry::convertLatLngToXY($position);
+            $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
+            $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $distance);
+            $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
+            $positions[$policeman->id] = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
+        }
 
         /** @var Player[] $policemen */
         $policemen = $this->room
@@ -466,27 +464,27 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
 
-        $thieves = $this->room
-            ->players()
-            ->where(['role' => 'THIEF'])
-            ->whereNotNull('hidden_position')
-            ->where(function ($query) {
-                $query->where(['status' => 'CONNECTED'])
-                    ->orWhere(['status' => 'DISCONNECTED']);
-            })
-            ->get();
-        foreach ($thieves as $key => $thief) {
-            $thief->mergeCasts(['hidden_position' => Point::class]);
-            $positions[$key] = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
-        }
+//        $thieves = $this->room
+//            ->players()
+//            ->where(['role' => 'THIEF'])
+//            ->whereNotNull('hidden_position')
+//            ->where(function ($query) {
+//                $query->where(['status' => 'CONNECTED'])
+//                    ->orWhere(['status' => 'DISCONNECTED']);
+//            })
+//            ->get();
+//        foreach ($thieves as $key => $thief) {
+//            $thief->mergeCasts(['hidden_position' => Point::class]);
+//            $positions[$key] = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
+//        }
 
-        foreach ($policemen as $key => $policeman) {
+        foreach ($policemen as $policeman) {
 //            $position = $positions[$policeman->id];
 
 //            $position = $targetPositions[$policeman->id];
 //            $position = "{$position['x']} {$position['y']}";
 
-            $position = $positions[$key];
+            $position = $positions[$policeman->id];
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($position)')");
             $policeman->save();
         }
