@@ -126,9 +126,9 @@ class PolicemanAI extends Command
 
     private function updateThievesPosition(): void
     {
-        if ($this->lastDisclosure >= $this->room->next_disclosure_at) {
-            return;
-        }
+//        if ($this->lastDisclosure >= $this->room->next_disclosure_at) {
+//            return;
+//        }
 
         $positions = [];
         $this->lastDisclosure = $this->room->next_disclosure_at;
@@ -347,7 +347,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //        $policemen[0]->save();
 
 //        $this->makeAStep($targetPositions);
-        $this->makeAStep($this->getArrayWithTarget($this->getTargetOnTheWall()));
+//        $this->makeAStep($this->getArrayWithTarget($this->getTargetOnTheWall()));
 
 //        $policemen[1]->warning_number = 2;
 //        $policemen[1]->save();
