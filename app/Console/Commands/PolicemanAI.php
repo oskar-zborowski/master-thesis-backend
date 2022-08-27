@@ -261,8 +261,6 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             }
         }
 
-        $policemen[0]->ping = $closestThiefId;
-        $policemen[0]->save();
         return $closestThiefId;
     }
 
@@ -348,7 +346,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //        $policemen[0]->warning_number = count($targetPositions);
 //        $policemen[0]->save();
 
-        $this->makeAStep($targetPositions);
+//        $this->makeAStep($targetPositions);
+        $this->makeAStep($this->getArrayWithTarget($this->getTargetOnTheWall()));
 
 //        $policemen[1]->warning_number = 2;
 //        $policemen[1]->save();
