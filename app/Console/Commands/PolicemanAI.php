@@ -55,12 +55,12 @@ class PolicemanAI extends Command
                 // search for thieves
             } else {
                 $targetThiefId = $this->getNearestThief($this->thievesPositions);
-                $this->goToThief($this->thievesPositions[$targetThiefId]);
+//                $this->goToThief($this->thievesPositions[$targetThiefId]);
 //                $this->makeAStep($this->getArrayWithTarget($this->getTargetOnTheWall()));
             }
 
-            $policemen[1]->warning_number = 1;
-            $policemen[1]->save();
+//            $policemen[1]->warning_number = 1;
+//            $policemen[1]->save();
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
@@ -359,10 +359,10 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //                $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
 //                if (!$goToCatching && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
 //                    // go to half way
-//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($halfWayPoints[$key], $targetThief, null);
+//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($halfWayPoints[$key], $targetThief, $targetThief);
 //                } elseif (self::CLOSE_DISTANCE_DELTA < $distanceToUneven) {
 //                    // go to uneven catch
-//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingPoints[$key], $targetThief, null);
+//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingPoints[$key], $targetThief, $targetThief);
 //                } else {
 //                    // go to even catch
 //                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingEvenlySpreadPoints[$key], $targetThief);
