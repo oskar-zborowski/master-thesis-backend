@@ -312,6 +312,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         $thiefRangeRadius = $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
         $catchingRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
+        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+        $policemen[0]->save();
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
