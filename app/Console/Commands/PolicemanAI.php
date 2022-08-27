@@ -353,8 +353,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
             }
         }
 
-//        $this->makeAStep($targetPositions);
-        $this->goToPoints($targetPositions);
+        $this->makeAStep($targetPositions);
+//        $this->goToPoints($targetPositions);
     }
 
 //    private function goToThief(array $targetThief): void
