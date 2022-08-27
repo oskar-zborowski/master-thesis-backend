@@ -146,6 +146,8 @@ class PolicemanAI extends Command
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
+        $policemen[0]->black_ticket_finished_at = $this->lastDisclosure;
+        $policemen[0]->save();
         $visibilityRadius = $this->room->config['actor']['policeman']['visibility_radius'];
 //        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
 //        $policemen[0]->save();
