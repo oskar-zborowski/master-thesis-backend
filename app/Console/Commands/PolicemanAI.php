@@ -33,7 +33,7 @@ class PolicemanAI extends Command
     {
         $roomId = $this->argument('roomId');
         $this->room = Room::where('id', $roomId)->first();
-        $this->lastDisclosure = $this->room->next_disclosure_at;
+        $this->lastDisclosure = now();
 
         do {
             sleep(env('BOT_REFRESH'));
@@ -59,8 +59,8 @@ class PolicemanAI extends Command
 //                $this->makeAStep($this->getArrayWithTarget($this->getTargetOnTheWall()));
             }
 
-//            $policemen[1]->warning_number = 1;
-//            $policemen[1]->save();
+            $policemen[1]->warning_number = 1;
+            $policemen[1]->save();
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
@@ -302,11 +302,11 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 
     private function goToThief(array $targetThief): void
     {
-//        $policemen = $this->room
-//            ->players()
-//            ->where(['is_bot' => true])
-//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-//            ->get();
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
 
         $targetPositions = [];
         $thiefRangeRadius = $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
@@ -323,9 +323,13 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 if ($thiefRangeRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToRange) {
                     // go to thief range
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($thiefRangePoints[$key], $catchingPoints[$key], $targetThief);
+                    $policemen[0]->warning_number = 1;
+                    $policemen[0]->save();
                 } else {
                     // go to catching range
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingPoints[$key], $targetThief, $targetThief);
+                    $policemen[0]->warning_number = 2;
+                    $policemen[0]->save();
                 }
             }
         }
