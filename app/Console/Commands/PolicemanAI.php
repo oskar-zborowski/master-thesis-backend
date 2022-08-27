@@ -322,10 +322,10 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //            $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $thiefRangeRadius, count($policemenObject));
 //            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingRadius, count($policemenObject), true);
             $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, 200, 2);
-            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, 50, 2, false);
+            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, 50, 2, true);
             foreach ($policemenObject as $key => $policemanObject) {
-                $policemen[$key]->ping = $policemanObject['playerId'];
-                $policemen[$key]->save();
+//                $policemen[$key]->ping = $policemanObject['playerId'];
+//                $policemen[$key]->save();
 //                $policemen[0]->warning_number = count($thiefRangePoints);
 //                $policemen[0]->save();
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
@@ -440,10 +440,18 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 
     private function getPointsOnCircle(array $center, array $reference, float $radius, int $n, bool $isEvenlySpread = false): array
     {
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
         $points = [];
         $angleDelta = 2 * pi() / $n;
         if (!$isEvenlySpread) {
             $angleDelta *= 1 - pow(1.7, -$n);
+        } else {
+            $policemen[0]->ping = $angleDelta;
+            $policemen[0]->save();
         }
 
         for ($i = 0; $i < $n; $i++) {
