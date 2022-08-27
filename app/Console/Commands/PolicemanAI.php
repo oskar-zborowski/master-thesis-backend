@@ -450,7 +450,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         if (!$isEvenlySpread) {
             $angleDelta *= 1 - pow(1.7, -$n);
         } else {
-            $angleDelta *= 1.001;
+            $angleDelta *= 1 - pow(1.7, -$n)
             $policemen[0]->ping = $angleDelta;
             $policemen[0]->save();
         }
