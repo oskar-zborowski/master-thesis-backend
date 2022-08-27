@@ -137,6 +137,7 @@ class PolicemanAI extends Command
             ->players()
             ->where(['role' => 'THIEF'])
             ->whereNotNull('hidden_position')
+            ->whereNull('caught_at')
             ->where(function ($query) {
                 $query->where(['status' => 'CONNECTED'])
                     ->orWhere(['status' => 'DISCONNECTED']);
@@ -147,9 +148,9 @@ class PolicemanAI extends Command
             ->where(['is_bot' => true])
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
-        $policemen[0]->black_ticket_finished_at = $this->lastDisclosure;
-        $policemen[0]->ping = strtotime($this->lastDisclosure);
-        $policemen[0]->save();
+//        $policemen[0]->black_ticket_finished_at = $this->lastDisclosure;
+//        $policemen[0]->ping = strtotime($this->lastDisclosure);
+//        $policemen[0]->save();
         $visibilityRadius = $this->room->config['actor']['policeman']['visibility_radius'];
 //        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
 //        $policemen[0]->save();
@@ -317,6 +318,10 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
+            $policemen[0]->ping = $thiefRangeRadius;
+            $policemen[0]->save();
+            $policemen[1]->ping = $catchingRadius;
+            $policemen[1]->save();
             $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $thiefRangeRadius, count($policemenObject));
             $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingRadius, count($policemenObject), true);
             foreach ($policemenObject as $key => $policemanObject) {
