@@ -147,6 +147,7 @@ class PolicemanAI extends Command
             ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
             ->get();
         $policemen[0]->black_ticket_finished_at = $this->lastDisclosure;
+        $policemen[0]->ping = strtotime($this->lastDisclosure);
         $policemen[0]->save();
         $visibilityRadius = $this->room->config['actor']['policeman']['visibility_radius'];
 //        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
@@ -437,7 +438,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
     private function makeAStep(array $targetPositions)
     {
         $positions = [];
-        $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        $botShift = 20 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         /** @var Player[] $policemen */
         $policemen = $this->room
             ->players()
