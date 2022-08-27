@@ -318,9 +318,11 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
-            $wallPoints = $this->getPointsOnCircle($this->getTargetOnTheWall(2), $this->policeCenter, 100, 2);
-            $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $thiefRangeRadius, count($policemenObject));
-            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingRadius, count($policemenObject), true);
+//            $wallPoints = $this->getPointsOnCircle($this->getTargetOnTheWall(2), $this->policeCenter, 100, 2);
+//            $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $thiefRangeRadius, count($policemenObject));
+//            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingRadius, count($policemenObject), true);
+            $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, 200, 2);
+            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, 50, 2, true);
             foreach ($policemenObject as $key => $policemanObject) {
                 $policemen[$key]->ping = $policemanObject['playerId'];
                 $policemen[$key]->save();
@@ -330,9 +332,9 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 $distanceToRange = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $thiefRangePoints[$key]);
 //                $policemen[0]->ping = $distanceToThief;
 //                $policemen[0]->save();
-                if (1 == 1) {
-                    $targetPositions[$policemanObject['playerId']] = $wallPoints[$key];
-                } else
+//                if (1 == 1) {
+//                    $targetPositions[$policemanObject['playerId']] = $wallPoints[$key];
+//                } else
                 if ($thiefRangeRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToRange) {
                     // go to thief range
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($thiefRangePoints[$key], $catchingPoints[$key], $targetThief);
