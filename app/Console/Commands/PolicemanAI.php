@@ -459,6 +459,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 
     private function preventFromGoingOutside(array $target1, array $target2, array $target3): array
     {
+        return $target1;
         $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
         $point = "{$target1['x']} {$target1['y']}";
         $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
