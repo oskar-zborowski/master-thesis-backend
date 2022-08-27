@@ -318,13 +318,11 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
-            $policemen[0]->ping = $thiefRangeRadius;
-            $policemen[0]->save();
-            $policemen[1]->ping = $catchingRadius;
-            $policemen[1]->save();
             $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $thiefRangeRadius, count($policemenObject));
             $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingRadius, count($policemenObject), true);
             foreach ($policemenObject as $key => $policemanObject) {
+                $policemen[$key]->ping = $policemanObject['playerId'];
+                $policemen[$key]->save();
 //                $policemen[0]->warning_number = count($thiefRangePoints);
 //                $policemen[0]->save();
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
@@ -334,13 +332,13 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 if ($thiefRangeRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToRange) {
                     // go to thief range
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($thiefRangePoints[$key], $catchingPoints[$key], $targetThief);
-                    $policemen[0]->warning_number = 1;
-                    $policemen[0]->save();
+//                    $policemen[0]->warning_number = 1;
+//                    $policemen[0]->save();
                 } else {
                     // go to catching range
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingPoints[$key], $targetThief, $targetThief);
-                    $policemen[0]->warning_number = 2;
-                    $policemen[0]->save();
+//                    $policemen[0]->warning_number = 2;
+//                    $policemen[0]->save();
                 }
             }
         }
