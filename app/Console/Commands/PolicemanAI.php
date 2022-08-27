@@ -84,10 +84,10 @@ class PolicemanAI extends Command
         return $array;
     }
 
-    private function getTargetOnTheWall(): array
+    private function getTargetOnTheWall($n = 0): array
     {
         $boundaryPoints = explode(',', $this->room->boundary_points);
-        $boundaryPoint = explode(' ', $boundaryPoints[2]);
+        $boundaryPoint = explode(' ', $boundaryPoints[$n]);
         $target = [
             'x' => $boundaryPoint[0],
             'y' => $boundaryPoint[1],
@@ -318,6 +318,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
+            $wallPoints = $this->getPointsOnCircle($this->getTargetOnTheWall(2), $this->getTargetOnTheWall(3), 100, 2);
             $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $thiefRangeRadius, count($policemenObject));
             $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingRadius, count($policemenObject), true);
             foreach ($policemenObject as $key => $policemanObject) {
@@ -329,7 +330,9 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
                 $distanceToRange = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $thiefRangePoints[$key]);
 //                $policemen[0]->ping = $distanceToThief;
 //                $policemen[0]->save();
-                if ($thiefRangeRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToRange) {
+                if (1 == 1) {
+                    $targetPositions[$policemanObject['playerId']] = $wallPoints[$key];
+                } elseif ($thiefRangeRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToRange) {
                     // go to thief range
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($thiefRangePoints[$key], $catchingPoints[$key], $targetThief);
 //                    $policemen[0]->warning_number = 1;
