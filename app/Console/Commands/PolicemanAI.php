@@ -312,30 +312,30 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         $thiefRangeRadius = $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
         $catchingRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
-        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
-        $policemen[0]->save();
+//        $policemen[0]->black_ticket_finished_at = $this->room->next_disclosure_at;
+//        $policemen[0]->save();
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
             $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $thiefRangeRadius, count($policemenObject));
             $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingRadius, count($policemenObject), true);
             foreach ($policemenObject as $key => $policemanObject) {
-                $policemen[0]->warning_number = count($thiefRangePoints);
-                $policemen[0]->save();
+//                $policemen[0]->warning_number = count($thiefRangePoints);
+//                $policemen[0]->save();
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
                 $distanceToRange = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $thiefRangePoints[$key]);
-                $policemen[0]->ping = $distanceToThief;
-                $policemen[0]->save();
+//                $policemen[0]->ping = $distanceToThief;
+//                $policemen[0]->save();
                 if ($thiefRangeRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToRange) {
                     // go to thief range
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($thiefRangePoints[$key], $catchingPoints[$key], $targetThief);
-//                    $policemen[0]->warning_number = 1;
-//                    $policemen[0]->save();
+                    $policemen[0]->warning_number = 1;
+                    $policemen[0]->save();
                 } else {
                     // go to catching range
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingPoints[$key], $targetThief, $targetThief);
-//                    $policemen[0]->warning_number = 2;
-//                    $policemen[0]->save();
+                    $policemen[0]->warning_number = 2;
+                    $policemen[0]->save();
                 }
             }
         }
@@ -462,7 +462,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         } else {
             $point = "{$target2['x']} {$target2['y']}";
             $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
-            return $isInside->isIntersects ? $target2 : $target3;
+            return $isInside[0]->isIntersects ? $target2 : $target3;
         }
     }
 
