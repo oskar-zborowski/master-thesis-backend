@@ -318,7 +318,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
-            $wallPoints = $this->getPointsOnCircle($this->getTargetOnTheWall(2), $this->getTargetOnTheWall(3), 100, 2);
+            $wallPoints = $this->getPointsOnCircle($this->getTargetOnTheWall(2), $this->policeCenter, 100, 2);
             $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $thiefRangeRadius, count($policemenObject));
             $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingRadius, count($policemenObject), true);
             foreach ($policemenObject as $key => $policemanObject) {
@@ -332,7 +332,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //                $policemen[0]->save();
                 if (1 == 1) {
                     $targetPositions[$policemanObject['playerId']] = $wallPoints[$key];
-                } elseif ($thiefRangeRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToRange) {
+                } else
+                if ($thiefRangeRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToRange) {
                     // go to thief range
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($thiefRangePoints[$key], $catchingPoints[$key], $targetThief);
 //                    $policemen[0]->warning_number = 1;
