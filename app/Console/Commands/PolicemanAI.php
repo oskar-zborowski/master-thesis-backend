@@ -55,10 +55,8 @@ class PolicemanAI extends Command
                 // search for thieves
             } else {
                 $targetThiefId = $this->getNearestThief($this->thievesPositions);
-                $this->goToThief($this->thievesPositions[$targetThiefId]);
-
-//                $this->goToThief($this->getTargetOnTheWall());
-//                $this->makeAStep($this->getArrayWithTarget($this->thievesPositions[$targetThiefId]));
+//                $this->goToThief($this->thievesPositions[$targetThiefId]);
+                $this->makeAStep($this->getArrayWithTarget($this->getTargetOnTheWall()));
             }
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
@@ -86,7 +84,7 @@ class PolicemanAI extends Command
     private function getTargetOnTheWall(): array
     {
         $boundaryPoints = explode(',', $this->room->boundary_points);
-        $boundaryPoint = explode(' ', $boundaryPoints[0]);
+        $boundaryPoint = explode(' ', $boundaryPoints[2]);
         $target = [
             'x' => $boundaryPoint[0],
             'y' => $boundaryPoint[1],
@@ -349,8 +347,8 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //        $policemen[0]->warning_number = count($targetPositions);
 //        $policemen[0]->save();
 
-//        $this->makeAStep($targetPositions);
-        $this->goToPoints($targetPositions);
+        $this->makeAStep($targetPositions);
+//        $this->goToPoints($targetPositions);
 //        $this->makeAStep($this->getArrayWithTarget($this->getTargetOnTheWall()));
 
 //        $policemen[1]->warning_number = 2;
