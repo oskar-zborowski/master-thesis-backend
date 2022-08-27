@@ -59,6 +59,9 @@ class PolicemanAI extends Command
 //                $this->makeAStep($this->getArrayWithTarget($this->getTargetOnTheWall()));
             }
 
+            $policemen[1]->warning_number = 1;
+            $policemen[1]->save();
+
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
 
@@ -299,55 +302,36 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 
     private function goToThief(array $targetThief): void
     {
-        $policemen = $this->room
-            ->players()
-            ->where(['is_bot' => true])
-            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-            ->get();
+//        $policemen = $this->room
+//            ->players()
+//            ->where(['is_bot' => true])
+//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+//            ->get();
 
         $targetPositions = [];
-        $catchingSmallRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
-        $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
-        $goToCatching = $catchingSmallRadius > $halfWayRadius;
+        $thiefRangeRadius = $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
+        $catchingRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
-            $halfWayPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $halfWayRadius, count($policemenObject));
-            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingSmallRadius, count($policemenObject));
-            $catchingEvenlySpreadPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingSmallRadius, count($policemenObject), true);
+            $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $thiefRangeRadius, count($policemenObject));
+            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingRadius, count($policemenObject), true);
             foreach ($policemenObject as $key => $policemanObject) {
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
-                $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
-                $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
-                if (!$goToCatching && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
-                    // go to half way
-                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($halfWayPoints[$key], $targetThief);
-                    $policemen[0]->warning_number = 1;
-                    $policemen[0]->save();
-                } elseif (self::CLOSE_DISTANCE_DELTA < $distanceToUneven) {
-                    // go to uneven catch
-                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingPoints[$key], $targetThief);
-                    $policemen[0]->warning_number = 2;
-                    $policemen[0]->save();
+                $distanceToRange = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $thiefRangePoints[$key]);
+                if ($thiefRangeRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToRange) {
+                    // go to thief range
+                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($thiefRangePoints[$key], $catchingPoints[$key], $targetThief);
                 } else {
-                    // go to even catch
-                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingEvenlySpreadPoints[$key], $targetThief);
-                    $policemen[0]->warning_number = 3;
-                    $policemen[0]->save();
+                    // go to catching range
+                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingPoints[$key], $targetThief, $targetThief);
                 }
             }
         }
 
-//        $policemen[0]->warning_number = count($targetPositions);
-//        $policemen[0]->save();
-
-        $this->makeAStep($targetPositions);
-//        $this->goToPoints($targetPositions);
-//        $this->makeAStep($this->getArrayWithTarget($this->getTargetOnTheWall()));
-
-//        $policemen[1]->warning_number = 2;
-//        $policemen[1]->save();
+//        $this->makeAStep($targetPositions);
+        $this->goToPoints($targetPositions);
     }
 
 //    private function goToThief(array $targetThief): void
@@ -375,10 +359,10 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //                $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
 //                if (!$goToCatching && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
 //                    // go to half way
-//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($halfWayPoints[$key], $targetThief);
+//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($halfWayPoints[$key], $targetThief, null);
 //                } elseif (self::CLOSE_DISTANCE_DELTA < $distanceToUneven) {
 //                    // go to uneven catch
-//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingPoints[$key], $targetThief);
+//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingPoints[$key], $targetThief, null);
 //                } else {
 //                    // go to even catch
 //                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingEvenlySpreadPoints[$key], $targetThief);
@@ -458,22 +442,25 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
         return $points;
     }
 
-    private function preventFromGoingOutside(array $target, array $thief): array
+    private function preventFromGoingOutside(array $target1, array $target2, array $target3): array
     {
         $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
-        $point = "{$target['x']} {$target['y']}";
-        $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
-        if ($isIntersects[0]->isIntersects) {
-            return $target;
+        $point = "{$target1['x']} {$target1['y']}";
+        $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
+        if ($isInside[0]->isIntersects) {
+            return $target1;
         } else {
-            return $thief;
+            $point = "{$target2['x']} {$target2['y']}";
+            $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
+            return $isInside->isIntersects ? $target2 : $target3;
+            }
         }
     }
 
     private function makeAStep(array $targetPositions)
     {
         $positions = [];
-        $botShift = 20 * $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        $botShift = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
         /** @var Player[] $policemen */
         $policemen = $this->room
             ->players()
