@@ -322,7 +322,7 @@ WHERE room_id = $this->room->id AND globalPosition IS NOT NULL
 //            $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $thiefRangeRadius, count($policemenObject));
 //            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingRadius, count($policemenObject), true);
             $thiefRangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, 200, 2);
-            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, 50, 2, true);
+            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, 50, 2, false);
             foreach ($policemenObject as $key => $policemanObject) {
                 $policemen[$key]->ping = $policemanObject['playerId'];
                 $policemen[$key]->save();
