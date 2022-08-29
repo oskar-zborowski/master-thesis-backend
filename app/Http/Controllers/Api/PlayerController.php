@@ -582,7 +582,7 @@ class PlayerController extends Controller
             }
 
             /** @var Player[] $thieves */
-            $thieves = $room->players()->where('role', 'THIEF')->where('caught_at', null)->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
+            $thieves = $room->players()->where('role', 'THIEF')->whereNull('caught_at')->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->get();
 
             foreach ($thieves as $thief) {
 

@@ -153,7 +153,7 @@ class Log
                 $connection = $ipAddressEntity->connections()->where('user_id', $userId)->first();
             } else {
                 /** @var Connection $connection */
-                $connection = $ipAddressEntity->connections()->where('user_id', null)->first();
+                $connection = $ipAddressEntity->connections()->whereNull('user_id')->first();
             }
 
             if (!$connection) {
