@@ -220,12 +220,6 @@ class PolicemanAI extends Command
 
     private function goToThief(array $targetThief): void
     {
-        $policemen = $this->room
-            ->players()
-            ->where(['is_bot' => true])
-            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-            ->get();
-
         $targetPositions = [];
         $catchingSmallRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
@@ -326,14 +320,30 @@ class PolicemanAI extends Command
 
     private function preventFromGoingOutside(array $target1, array $target2, array $target3): array
     {
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
+
         $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
         $point = "{$target1['x']} {$target1['y']}";
         $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
         if ($isInside[0]->isIntersects) {
+            $policemen[0]->warning_number = 1;
+            $policemen[0]->save();
             return $target1;
         } else {
             $point = "{$target2['x']} {$target2['y']}";
             $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
+
+            if ($isInside[0]->isIntersects) {
+                $policemen[0]->warning_number = 2;
+            } else {
+                $policemen[0]->warning_number = 3;
+            }
+            $policemen[0]->save();
+
             return $isInside[0]->isIntersects ? $target2 : $target3;
         }
     }
