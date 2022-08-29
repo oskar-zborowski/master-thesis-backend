@@ -220,9 +220,19 @@ class PolicemanAI extends Command
 
     private function goToThief(array $targetThief): void
     {
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
         $targetPositions = [];
         $catchingSmallRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
+        $policemen[0]->ping = $halfWayRadius;
+        $policemen[0]->save();
+        $policemen[1]->ping = $catchingSmallRadius;
+        $policemen[1]->save();
+
         $goToCatching = $catchingSmallRadius > $halfWayRadius;
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
         if (1 === count($policemenObject)) {
@@ -320,6 +330,7 @@ class PolicemanAI extends Command
 
     private function preventFromGoingOutside(array $target1, array $target2, array $target3): array
     {
+        return $target1;
         $policemen = $this->room
             ->players()
             ->where(['is_bot' => true])
