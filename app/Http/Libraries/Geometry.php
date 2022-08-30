@@ -235,6 +235,43 @@ class Geometry
         return $result;
     }
 
+    public static function checkIfPointBelongsToSegment2(array $p0, array $p1, array $p2) {
+
+        $multiplayer = 1.0001;
+
+        $p = self::findIntersectionPointAndLine($p0, $p1, $p2);
+
+        if ($p1['x'] > $p2['x']) {
+            $minX = $p2['x'];
+            $maxX = $p1['x'];
+        } else {
+            $minX = $p1['x'];
+            $maxX = $p2['x'];
+        }
+
+        if ($p1['y'] > $p2['y']) {
+            $minY = $p2['y'];
+            $maxY = $p1['y'];
+        } else {
+            $minY = $p1['y'];
+            $maxY = $p2['y'];
+        }
+
+        if ($p) {
+
+            if ($p['x'] * $multiplayer >= $minX && $p['x'] <= $maxX * $multiplayer && $p['y'] * $multiplayer >= $minY && $p['y'] <= $maxY * $multiplayer) {
+                $result = true;
+            } else {
+                $result = false;
+            }
+
+        } else {
+            $result = false;
+        }
+
+        return $result;
+    }
+
     public static function getAngleMadeOfPoints($p1, $p2, $p3) {
         return atan2($p3['y'] - $p2['y'], $p3['x'] - $p2['x']) - atan2($p1['y'] - $p2['y'], $p1['x'] - $p2['x']);
     }
