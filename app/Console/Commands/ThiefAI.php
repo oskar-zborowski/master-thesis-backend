@@ -1110,12 +1110,12 @@ class ThiefAi extends Command
                             // $safeRoadCoefficient = (1-$timeLapse) * 0.5 + 0.25;
                             // $safeDestinationCoefficient = $timeLapse * 0.5 + 0.25;
 
-                            $safeRoadCoefficient = 0.7;
-                            $safeDestinationCoefficient = 0.3;
+                            $safeRoadCoefficient = 0.75;
+                            $safeDestinationCoefficient = 0.25;
 
                             $safeRoad = $destinationConfirmed9['policemanDistanceCoefficient'];
                             // $safeDestination = 0.1 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0.25 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.45 * $destinationConfirmed9['maxDistanceCoefficient'] + 0.2 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
-                            $safeDestination = 0.1 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0.2 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.4 * $destinationConfirmed9['maxDistanceCoefficient'] + 0.3 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
+                            $safeDestination = 0.05 * $destinationConfirmed9['disclosureDistanceCoefficient'] + 0.1 * $destinationConfirmed9['distanceToCenterCoefficient'] + 0.45 * $destinationConfirmed9['maxDistanceCoefficient'] + 0.4 * $destinationConfirmed9['lastDisclosureDistanceCoefficient'];
 
                             $finalCoefficient = $safeRoadCoefficient * $safeRoad + $safeDestinationCoefficient * $safeDestination;
                             $destinationConfirmed9['finalCoefficient'] = $finalCoefficient;
