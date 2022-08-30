@@ -149,17 +149,6 @@ class ThiefAi extends Command
 
                     $checkEnemiesPositionStatus = $this->checkEnemiesPosition($policemen, $newDestinationLatLng, $room, $currentPositionXY);
 
-                    if (!$checkEnemiesPositionStatus) {
-
-                        $newDestinationXYString = "{$newDestinationXY['x']} {$newDestinationXY['y']}";
-
-                        $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundaryXYString))'), ST_GeomFromText('POINT($newDestinationXYString)')) AS isIntersects"));
-
-                        if (!$isIntersects[0]->isIntersects) {
-                            $checkEnemiesPositionStatus = true;
-                        }
-                    }
-
                 } while ($checkEnemiesPositionStatus);
 
                 $lastDestinationLatLng = $newDestinationLatLng;
@@ -176,10 +165,14 @@ class ThiefAi extends Command
             $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundaryXYString))'), ST_GeomFromText('POINT($finalPositionXYString)')) AS isIntersects"));
 
             if ($isIntersects[0]->isIntersects) {
+
                 foreach ($thieves as $thief) {
                     $thief->hidden_position = DB::raw("ST_GeomFromText('POINT($finalPositionLatLngString)')");
                     $thief->save();
                 }
+
+            } else {
+                $lastDestinationLatLng = null;
             }
 
             $lastSavedTime = microtime(true);
