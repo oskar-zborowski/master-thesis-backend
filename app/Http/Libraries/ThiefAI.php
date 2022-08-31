@@ -151,7 +151,7 @@ class ThiefAI
         ];
     }
 
-    public static function checkEnemiesPosition(Room $room, array $policemen, array $currentPositionLatLng, array $lastDestinationLatLng, bool $isDisclosure) {
+    public static function checkEnemiesPosition(Room $room, $policemen, array $currentPositionLatLng, array $lastDestinationLatLng, bool $isDisclosure) {
 
         $randNewDestination = false;
 
