@@ -159,7 +159,7 @@ class ThiefAI3 extends Command
 
                     $randNewDestination = false;
 
-                    $enemiesPosition = LibrariesThiefAi::checkEnemiesPosition($room, $policemen, $currentPositionLatLng, $lastDestinationLatLng, $isDisclosure[$thief->id]);
+                    $enemiesPosition = LibrariesThiefAi::checkEnemiesPosition($room, $policemen, $currentPositionLatLng, $lastDestinationLatLng[$thief->id], $isDisclosure[$thief->id]);
 
                     if ($enemiesPosition['randNewDestination']) {
                         $randNewDestination = true;
