@@ -93,70 +93,29 @@ class ThiefAI
         return true;
     }
 
-    private static function checkToBeWithinXY(Room $room, array $locationXY) {
+    public static function getBoundaryPointsXY(Room $room) {
+
+        $coordinatesXY = [];
 
         $boundaryLatLngString = $room->boundary_points;
         $boundaryXYString = Geometry::convertGeometryLatLngToXY($boundaryLatLngString);
 
-        $locationXYString = "{$locationXY['x']} {$locationXY['y']}";
+        $boundaryXYArray = explode(',', $boundaryXYString);
 
-        $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundaryXYString))'), ST_GeomFromText('POINT($locationXYString)')) AS isIntersects"));
+        foreach ($boundaryXYArray as $singleBoundaryPointXYString) {
 
-        if ($isIntersects[0]->isIntersects) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+            $singleBoundaryPointXYArray = explode(' ', $singleBoundaryPointXYString);
 
-    private static function findMapCenterXY(Room $room) {
+            $singleBoundaryPointXY['x'] = $singleBoundaryPointXYArray[0];
+            $singleBoundaryPointXY['y'] = $singleBoundaryPointXYArray[1];
 
-        $boundaryLatLngString = $room->boundary_points;
-        $boundaryXYString = Geometry::convertGeometryLatLngToXY($boundaryLatLngString);
-        $boundaryCenterXYQuery = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($boundaryXYString))'))) AS boundaryCenter"));
-        $boundaryCenterXYString = substr($boundaryCenterXYQuery[0]->boundaryCenter, 6, -1);
-        $boundaryCenterXYArray = explode(' ', $boundaryCenterXYString);
-
-        $boundaryCenterXY['x'] = $boundaryCenterXYArray[0];
-        $boundaryCenterXY['y'] = $boundaryCenterXYArray[1];
-
-        return $boundaryCenterXY;
-    }
-
-    private static function calcArea(Room $room) {
-
-        $boundaryLatLngString = $room->boundary_points;
-        $boundaryXYString = Geometry::convertGeometryLatLngToXY($boundaryLatLngString);
-
-        $area = DB::select(DB::raw("SELECT ST_Area(ST_GeomFromText('POLYGON(($boundaryXYString))')) AS area"));
-
-        return $area[0]->area;
-    }
-
-    private static function randSpawnLocationXY(array $coordinatesXY, float $radius = 5) {
-
-        $coordinatesNumber = count($coordinatesXY);
-        $randCoord = rand(0, $coordinatesNumber-1);
-        $randShiftX = rand(0, $radius);
-        $randShiftXSign = rand(0, 1);
-        $randShiftY = rand(0, $radius);
-        $randShiftYSign = rand(0, 1);
-
-        if ($randShiftXSign) {
-            $randShiftX *= -1;
+            $coordinatesXY[] = $singleBoundaryPointXY;
         }
 
-        if ($randShiftYSign) {
-            $randShiftY *= -1;
-        }
-
-        return [
-            'x' => ($coordinatesXY[$randCoord]['x'] + $randShiftX),
-            'y' => ($coordinatesXY[$randCoord]['y'] + $randShiftY),
-        ];
+        return $coordinatesXY;
     }
 
-    private static function findExtremePointsXY(array $coordinatesXY) {
+    public static function findExtremePointsXY(array $coordinatesXY) {
 
         $n = null;
         $s = null;
@@ -190,7 +149,50 @@ class ThiefAI
         ];
     }
 
-    private static function randLocationXY(array $extremePointsXY) {
+    public static function checkEnemiesPosition(Room $room, array $policemen, array $currentPositionLatLng, array $lastDestinationLatLng, bool $isDisclosure) {
+
+        $randNewDestination = false;
+
+        $currentPositionXY = Geometry::convertLatLngToXY($currentPositionLatLng);
+        $lastDestinationXY = Geometry::convertLatLngToXY($lastDestinationLatLng);
+
+        foreach ($policemen as $policeman) {
+
+            $policemanRadius = self::getPolicemanRadius($room->config, $policeman->role, $isDisclosure);
+            $r = $policemanRadius['r'];
+            $isDisclosure = $policemanRadius['isDisclosure'];
+
+            $policeman->mergeCasts([
+                'hidden_position' => Point::class,
+            ]);
+
+            $policemanPositionLatLng['x'] = $policeman->hidden_position->longitude;
+            $policemanPositionLatLng['y'] = $policeman->hidden_position->latitude;
+            $policemanPositionXY = Geometry::convertLatLngToXY($policemanPositionLatLng);
+
+            if (Geometry::checkIfPointBelongsToSegment2($policemanPositionXY, $currentPositionXY, $lastDestinationXY)) {
+
+                $intersectionPointAndLineXY = Geometry::findIntersectionPointAndLine($policemanPositionXY, $currentPositionXY, $lastDestinationXY);
+
+                if ($intersectionPointAndLineXY !== false) {
+
+                    $intersectionPointAndLineLatLng = Geometry::convertXYToLatLng($intersectionPointAndLineXY);
+
+                    if (Geometry::getSphericalDistanceBetweenTwoPoints($intersectionPointAndLineLatLng, $policemanPositionLatLng) <= $r) {
+                        $randNewDestination = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return [
+            'isDisclosure' => $isDisclosure,
+            'randNewDestination' => $randNewDestination,
+        ];
+    }
+
+    public static function randLocationXY(array $extremePointsXY) {
 
         $x = rand(round($extremePointsXY['w']), round($extremePointsXY['e']));
         $y = rand(round($extremePointsXY['s']), round($extremePointsXY['n']));
@@ -198,6 +200,102 @@ class ThiefAI
         return [
             'x' => $x,
             'y' => $y,
+        ];
+    }
+
+    public static function calcArea(Room $room) {
+
+        $boundaryLatLngString = $room->boundary_points;
+        $boundaryXYString = Geometry::convertGeometryLatLngToXY($boundaryLatLngString);
+
+        $area = DB::select(DB::raw("SELECT ST_Area(ST_GeomFromText('POLYGON(($boundaryXYString))')) AS area"));
+
+        return $area[0]->area;
+    }
+
+    public static function checkToBeWithinXY(Room $room, array $locationXY) {
+
+        $boundaryLatLngString = $room->boundary_points;
+        $boundaryXYString = Geometry::convertGeometryLatLngToXY($boundaryLatLngString);
+
+        $locationXYString = "{$locationXY['x']} {$locationXY['y']}";
+
+        $isIntersects = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundaryXYString))'), ST_GeomFromText('POINT($locationXYString)')) AS isIntersects"));
+
+        if ($isIntersects[0]->isIntersects) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private static function findMapCenterXY(Room $room) {
+
+        $boundaryLatLngString = $room->boundary_points;
+        $boundaryXYString = Geometry::convertGeometryLatLngToXY($boundaryLatLngString);
+        $boundaryCenterXYQuery = DB::select(DB::raw("SELECT ST_AsText(ST_Centroid(ST_GeomFromText('POLYGON(($boundaryXYString))'))) AS boundaryCenter"));
+        $boundaryCenterXYString = substr($boundaryCenterXYQuery[0]->boundaryCenter, 6, -1);
+        $boundaryCenterXYArray = explode(' ', $boundaryCenterXYString);
+
+        $boundaryCenterXY['x'] = $boundaryCenterXYArray[0];
+        $boundaryCenterXY['y'] = $boundaryCenterXYArray[1];
+
+        return $boundaryCenterXY;
+    }
+
+    private static function randSpawnLocationXY(array $coordinatesXY, float $radius = 5) {
+
+        $coordinatesNumber = count($coordinatesXY);
+        $randCoord = rand(0, $coordinatesNumber-1);
+        $randShiftX = rand(0, $radius);
+        $randShiftXSign = rand(0, 1);
+        $randShiftY = rand(0, $radius);
+        $randShiftYSign = rand(0, 1);
+
+        if ($randShiftXSign) {
+            $randShiftX *= -1;
+        }
+
+        if ($randShiftYSign) {
+            $randShiftY *= -1;
+        }
+
+        return [
+            'x' => ($coordinatesXY[$randCoord]['x'] + $randShiftX),
+            'y' => ($coordinatesXY[$randCoord]['y'] + $randShiftY),
+        ];
+    }
+
+    private static function getPolicemanRadius(array $roomConfig, string $playerRole, bool $isDisclosure = false) {
+
+        $eagleMayExist = false;
+
+        if ($roomConfig['actor']['eagle']['number'] > 0 && $roomConfig['actor']['eagle']['probability'] > 0) {
+            $eagleMayExist = true;
+        }
+
+        if ($roomConfig['actor']['policeman']['visibility_radius'] != -1 && !$isDisclosure) {
+
+            if ($eagleMayExist && ($playerRole == 'EAGLE' || !$roomConfig['actor']['thief']['are_enemies_circles_visible'])) {
+                $r = $roomConfig['actor']['policeman']['visibility_radius'] * 2;
+            } else {
+                $r = $roomConfig['actor']['policeman']['visibility_radius'];
+            }
+
+        } else {
+
+            if ($eagleMayExist && ($playerRole == 'EAGLE' || !$roomConfig['actor']['thief']['are_enemies_circles_visible'])) {
+                $r = $roomConfig['actor']['policeman']['catching']['radius'] * 2;
+            } else {
+                $r = $roomConfig['actor']['policeman']['catching']['radius'];
+            }
+
+            $isDisclosure = true;
+        }
+
+        return [
+            'r' => $r,
+            'isDisclosure' => $isDisclosure,
         ];
     }
 }
