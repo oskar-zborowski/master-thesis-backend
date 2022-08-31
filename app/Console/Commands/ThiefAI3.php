@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Http\Libraries\Geometry;
-use App\Http\Libraries\ThiefAI;
+use App\Http\Libraries\ThiefAI as LibrariesThiefAi;
 use App\Models\Room;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -45,7 +45,7 @@ class ThiefAi3 extends Command
             $isPermanentDisclosure = true;
         } else {
 
-            $area = ThiefAi::calcArea($room);
+            $area = LibrariesThiefAi::calcArea($room);
 
             $agentMayExist = false;
             $eagleMayExist = false;
@@ -101,14 +101,14 @@ class ThiefAi3 extends Command
             $isDisclosure[$thief->id] = $isPermanentDisclosure;
         }
 
-        $spawnBotsStatus = ThiefAI::spawnBots($room);
+        $spawnBotsStatus = LibrariesThiefAi::spawnBots($room);
 
         if (!$spawnBotsStatus) {
-            ThiefAI::spawnBots($room, true);
+            LibrariesThiefAi::spawnBots($room, true);
         }
 
-        $boundaryPointsXY = ThiefAI::getBoundaryPointsXY($room);
-        $boundaryExtremePointsXY = ThiefAI::findExtremePointsXY($boundaryPointsXY);
+        $boundaryPointsXY = LibrariesThiefAi::getBoundaryPointsXY($room);
+        $boundaryExtremePointsXY = LibrariesThiefAi::findExtremePointsXY($boundaryPointsXY);
 
         do {
 
@@ -159,7 +159,7 @@ class ThiefAi3 extends Command
 
                     $randNewDestination = false;
 
-                    $enemiesPosition = ThiefAI::checkEnemiesPosition($room, $policemen, $currentPositionLatLng, $lastDestinationLatLng, $isDisclosure[$thief->id]);
+                    $enemiesPosition = LibrariesThiefAi::checkEnemiesPosition($room, $policemen, $currentPositionLatLng, $lastDestinationLatLng, $isDisclosure[$thief->id]);
 
                     if ($enemiesPosition['randNewDestination']) {
                         $randNewDestination = true;
@@ -180,10 +180,10 @@ class ThiefAi3 extends Command
                             $isDisclosure[$thief->id] = true;
                         }
 
-                        $newDestinationXY = ThiefAi::randLocationXY($boundaryExtremePointsXY);
+                        $newDestinationXY = LibrariesThiefAi::randLocationXY($boundaryExtremePointsXY);
                         $newDestinationLatLng = Geometry::convertXYToLatLng($newDestinationXY);
 
-                        $enemiesPosition = ThiefAI::checkEnemiesPosition($room, $policemen, $currentPositionLatLng, $newDestinationLatLng, $isDisclosure[$thief->id]);
+                        $enemiesPosition = LibrariesThiefAi::checkEnemiesPosition($room, $policemen, $currentPositionLatLng, $newDestinationLatLng, $isDisclosure[$thief->id]);
 
                         $isDisclosure[$thief->id] = $enemiesPosition['isDisclosure'];
 
@@ -201,7 +201,7 @@ class ThiefAi3 extends Command
                 $finalPositionLatLng = Geometry::convertXYToLatLng($finalPositionXY);
                 $finalPositionLatLngString = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
 
-                if (ThiefAi::checkToBeWithinXY($room, $finalPositionXY)) {
+                if (LibrariesThiefAi::checkToBeWithinXY($room, $finalPositionXY)) {
 
                     /** @var \App\Models\Player $appropriateThief */
                     $appropriateThief = $room->players()->where('id', $thief->id)->first();
@@ -216,7 +216,7 @@ class ThiefAi3 extends Command
                 $lastSavedTime[$thief->id] = microtime(true);
             }
 
-            ThiefAi::useTicket($room, $globalCounter, $timeLapse, $boundaryExtremePointsXY);
+            LibrariesThiefAi::useTicket($room, $globalCounter, $timeLapse, $boundaryExtremePointsXY);
 
             $globalCounter++;
 
