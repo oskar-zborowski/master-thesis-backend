@@ -86,8 +86,9 @@ class ThiefAI
             } while (!self::checkToBeWithinXY($room, $spawnLocationXY));
 
             $spawnLocationLatLng = Geometry::convertXYToLatLng($spawnLocationXY);
+            $spawnLocationLatLngString = "{$spawnLocationLatLng['x']} {$spawnLocationLatLng['y']}";
 
-            $thief->hidden_position = DB::raw("ST_GeomFromText('POINT($spawnLocationLatLng)')");
+            $thief->hidden_position = DB::raw("ST_GeomFromText('POINT($spawnLocationLatLngString)')");
             $thief->save();
         }
 
