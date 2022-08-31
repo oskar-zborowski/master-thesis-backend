@@ -259,7 +259,7 @@ class CheckVoting extends Command
                         shell_exec('php ' . env('APP_ROOT') . "artisan game-course:check $room->id >/dev/null 2>/dev/null &");
 
                         if ($botNumber > 0) {
-                            shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai2:start $room->id >/dev/null 2>/dev/null &");
+                            shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai3:start $room->id >/dev/null 2>/dev/null &");
                             shell_exec('php ' . env('APP_ROOT') . "artisan policeman-ai:start $room->id >/dev/null 2>/dev/null &");
                         }
 
@@ -357,7 +357,7 @@ class CheckVoting extends Command
                         shell_exec('php ' . env('APP_ROOT') . "artisan game-course:check $room->id >/dev/null 2>/dev/null &");
 
                         if ($botExists) {
-                            shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai2:start $room->id >/dev/null 2>/dev/null &");
+                            shell_exec('php ' . env('APP_ROOT') . "artisan thief-ai3:start $room->id >/dev/null 2>/dev/null &");
                             shell_exec('php ' . env('APP_ROOT') . "artisan policeman-ai:start $room->id >/dev/null 2>/dev/null &");
                         }
 
