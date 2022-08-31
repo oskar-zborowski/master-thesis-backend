@@ -39,6 +39,7 @@ return new class extends Migration
             $table->timestamp('crossing_boundary_finished_at')->nullable();
             $table->timestamp('speed_exceeded_at')->nullable(); // Data przekroczenia prędkości przez jakiegoś gracza i trzymana przez SPEED_EXCEEDED_TIMEOUT sekund
             $table->timestamp('next_voting_starts_at')->nullable();
+            $table->timestamp('updated_at_by_player')->default(now()); // Konieczne do sprawdzenia kiedy to użytkownik zmodyfikował swoje dane podczas gry, a nie któryś ze skryptów
             $table->timestamps();
         });
     }

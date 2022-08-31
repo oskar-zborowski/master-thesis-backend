@@ -34,6 +34,7 @@ class Player extends BaseModel
         'crossing_boundary_finished_at',
         'speed_exceeded_at',
         'next_voting_starts_at',
+        'updated_at_by_player',
         'created_at',
         'updated_at',
     ];
@@ -59,6 +60,7 @@ class Player extends BaseModel
         'crossing_boundary_finished_at' => 'string',
         'speed_exceeded_at' => 'string',
         'next_voting_starts_at' => 'string',
+        'updated_at_by_player' => 'string',
         'created_at' => 'string',
         'updated_at' => 'string',
     ];
@@ -176,10 +178,9 @@ class Player extends BaseModel
 
             $failedVotingType = $this->failed_voting_type;
 
-            if ($failedVotingType) {
-                $this->failed_voting_type = null;
-                $this->save();
-            }
+            $this->failed_voting_type = null;
+            $this->updated_at_by_player = now();
+            $this->save();
 
             $expectedTimeAt = date('Y-m-d H:i:s', strtotime($utcTime, strtotime($this->expected_time_at)));
 

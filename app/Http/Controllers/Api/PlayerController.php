@@ -269,7 +269,7 @@ class PlayerController extends Controller
         $user = Auth::user();
 
         /** @var Player $player */
-        $player = $user->players()->orderBy('updated_at', 'desc')->first();
+        $player = $user->players()->orderBy('updated_at_by_player', 'desc')->first();
 
         if (!$player) {
             throw new ApiException(
@@ -279,7 +279,7 @@ class PlayerController extends Controller
             );
         }
 
-        $playerUpdatedAt = $player->updated_at;
+        $playerUpdatedAt = $player->updated_at_by_player;
 
         if ($player->status == 'BANNED') {
             throw new ApiException(
