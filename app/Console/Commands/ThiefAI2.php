@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
-class ThiefAi2 extends Command
+class ThiefAI2 extends Command
 {
     /**
      * The name and signature of the console command.
