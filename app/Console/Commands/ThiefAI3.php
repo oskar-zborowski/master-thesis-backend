@@ -6,6 +6,7 @@ use App\Http\Libraries\Geometry;
 use App\Http\Libraries\ThiefAI;
 use App\Models\Room;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class ThiefAi3 extends Command
@@ -138,6 +139,8 @@ class ThiefAi3 extends Command
                     'y' => $thief->hidden_position->latitude,
                 ];
 
+                $currentPositionXY = Geometry::convertLatLngToXY($currentPositionLatLng);
+
                 $randNewDestination = true;
 
                 if ($lastDestinationLatLng[$thief->id] !== null) {
@@ -153,7 +156,17 @@ class ThiefAi3 extends Command
 
                 if ($randNewDestination) {
 
+                    if (!$isPermanentDisclosure) {
+                        $isDisclosure[$thief->id] = false;
+                    }
+
+                    $i = 0;
+
                     do {
+
+                        if ($i > 0 && $i % 6 == 0) {
+                            $isDisclosure[$thief->id] = true;
+                        }
 
                         $newDestinationXY = ThiefAi::randLocationXY($boundaryExtremePointsXY);
                         $newDestinationLatLng = Geometry::convertXYToLatLng($newDestinationXY);
@@ -162,10 +175,33 @@ class ThiefAi3 extends Command
 
                         $isDisclosure[$thief->id] = $enemiesPosition['isDisclosure'];
 
+                        $i++;
+
                     } while ($enemiesPosition['randNewDestination']);
 
                     $lastDestinationLatLng[$thief->id] = $newDestinationLatLng;
                 }
+
+                $lastDestinationXY = Geometry::convertLatLngToXY($lastDestinationLatLng[$thief->id]);
+
+                $botShift = $room->config['other']['bot_speed'] * (microtime(true) - $lastSavedTime[$thief->id]);
+                $finalPositionXY = Geometry::getShiftedPoint($currentPositionXY, $lastDestinationXY, $botShift);
+                $finalPositionLatLng = Geometry::convertXYToLatLng($finalPositionXY);
+                $finalPositionLatLngString = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
+
+                if (ThiefAi::checkToBeWithinXY($room, $finalPositionXY)) {
+
+                    /** @var \App\Models\Player $appropriateThief */
+                    $appropriateThief = $room->players()->where('id', $thief->id)->first();
+
+                    $appropriateThief->hidden_position = DB::raw("ST_GeomFromText('POINT($finalPositionLatLngString)')");
+                    $appropriateThief->save();
+
+                } else {
+                    $lastDestinationLatLng[$thief->id] = null;
+                }
+
+                $lastSavedTime[$thief->id] = microtime(true);
             }
 
         } while ($room->status == 'GAME_IN_PROGRESS');
