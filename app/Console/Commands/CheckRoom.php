@@ -32,6 +32,10 @@ class CheckRoom extends Command
             /** @var Room $room */
             $room = Room::where('id', $roomId)->first();
 
+            if (!$room) {
+                die;
+            }
+
             /** @var \App\Models\Player $host */
             $host = $room->players()->where('user_id', $room->host_id)->first();
 
