@@ -37,6 +37,8 @@ class ThiefAi3 extends Command
             die;
         }
 
+        $globalCounter = 0;
+
         $isPermanentDisclosure = false;
 
         if ($room->config['actor']['policeman']['visibility_radius'] == -1) {
@@ -118,6 +120,16 @@ class ThiefAi3 extends Command
             if (!$room || $room->status != 'GAME_IN_PROGRESS') {
                 break;
             }
+
+            $timeLapse = (strtotime($room->game_ended_at) - strtotime(now())) / $room->config['duration']['scheduled'];
+
+            if ($timeLapse > 1) {
+                $timeLapse = 1;
+            } else if ($timeLapse < 0) {
+                $timeLapse = 0;
+            }
+
+            $timeLapse = 1 - $timeLapse;
 
             /** @var \App\Models\Player[] $thieves */
             $thieves = $room->players()->where([
@@ -203,6 +215,10 @@ class ThiefAi3 extends Command
 
                 $lastSavedTime[$thief->id] = microtime(true);
             }
+
+            ThiefAi::useTicket($room, $globalCounter, $timeLapse, $boundaryExtremePointsXY);
+
+            $globalCounter++;
 
         } while ($room->status == 'GAME_IN_PROGRESS');
     }
