@@ -4,6 +4,7 @@ namespace App\Http\Libraries;
 
 use App\Models\Room;
 use Illuminate\Support\Facades\DB;
+use MatanYadaev\EloquentSpatial\Objects\Point;
 
 /**
  * Klasa obsługująca grę botów uciekających
