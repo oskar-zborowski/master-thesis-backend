@@ -227,12 +227,6 @@ class ThiefAI3 extends Command
                     }
 
                     $lastSavedTime[$thief->id] = microtime(true);
-
-                } else {
-                    if ($thief->global_position !== null) {
-                        $thief->global_position = null;
-                        $thief->save();
-                    }
                 }
             }
 

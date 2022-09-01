@@ -341,6 +341,7 @@ class CheckGameCourse extends Command
                             if (count($thiefCaughtByPoliceman) + count($thiefCaughtByEagle) + 2 * count($thiefCaughtByFattyMan) >= $room->config['actor']['policeman']['catching']['number']) {
                                 $thief->is_caughting = false;
                                 $thief->caught_at = now();
+                                $thief->global_position = $thief->hidden_position;
                                 $thiefSave = true;
                             } else if (count($thiefCaughtByPoliceman) > 0 || count($thiefCaughtByEagle) > 0 || count($thiefCaughtByFattyMan) > 0) {
 
