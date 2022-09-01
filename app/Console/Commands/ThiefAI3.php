@@ -199,8 +199,6 @@ class ThiefAI3 extends Command
                     $lastDestinationLatLng[$thief->id] = $newDestinationLatLng;
                 }
 
-                echo json_encode($lastDestinationLatLng[$thief->id]);
-
                 $lastDestinationXY = Geometry::convertLatLngToXY($lastDestinationLatLng[$thief->id]);
 
                 $botShift = $room->config['other']['bot_speed'] * (microtime(true) - $lastSavedTime[$thief->id]);
