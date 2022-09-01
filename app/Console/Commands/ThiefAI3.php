@@ -174,6 +174,7 @@ class ThiefAI3 extends Command
 
                     if ($thief->global_position !== null && ($lastDisclosureLatLng[$thief->id]['x'] != $globalPositionLatLon['x'] || $lastDisclosureLatLng[$thief->id]['y'] != $globalPositionLatLon['y'])) {
                         $lastDisclosureLatLng[$thief->id] = $globalPositionLatLon;
+                        $randNewDestination = true;
                     } else if (Geometry::getSphericalDistanceBetweenTwoPoints($currentPositionLatLng, $lastDestinationLatLng[$thief->id]) < 25) {
                         $randNewDestination = true;
                     } else {
