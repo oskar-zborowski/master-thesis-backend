@@ -165,13 +165,14 @@ class ThiefAI
             $isDisclosure = $policemanRadius['isDisclosure'];
 
             $policeman->mergeCasts([
-                'global_position' => Point::class,
+                'hidden_position' => Point::class,
             ]);
 
-            if ($policeman->global_position !== null) {
+            // TODO Zamienić na global position
+            if ($policeman->hidden_position !== null) {
 
-                $policemanPositionLatLng['x'] = $policeman->global_position->longitude;
-                $policemanPositionLatLng['y'] = $policeman->global_position->latitude;
+                $policemanPositionLatLng['x'] = $policeman->hidden_position->longitude;
+                $policemanPositionLatLng['y'] = $policeman->hidden_position->latitude;
                 $policemanPositionXY = Geometry::convertLatLngToXY($policemanPositionLatLng);
 
                 if (Geometry::checkIfPointBelongsToSegment2($policemanPositionXY, $currentPositionXY, $lastDestinationXY)) {
