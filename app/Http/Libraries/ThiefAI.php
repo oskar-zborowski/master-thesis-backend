@@ -174,22 +174,19 @@ class ThiefAI
                 $policemanPositionLatLng['x'] = $policeman->hidden_position->longitude;
                 $policemanPositionLatLng['y'] = $policeman->hidden_position->latitude;
 
-                if ($room->config['actor']['thief']['visibility_radius'] == -1 || Geometry::getSphericalDistanceBetweenTwoPoints($currentPositionLatLng, $policemanPositionLatLng) <= $room->config['actor']['thief']['visibility_radius']) {
+                $policemanPositionXY = Geometry::convertLatLngToXY($policemanPositionLatLng);
 
-                    $policemanPositionXY = Geometry::convertLatLngToXY($policemanPositionLatLng);
+                if (Geometry::checkIfPointBelongsToSegment2($policemanPositionXY, $currentPositionXY, $lastDestinationXY)) {
 
-                    if (Geometry::checkIfPointBelongsToSegment2($policemanPositionXY, $currentPositionXY, $lastDestinationXY)) {
+                    $intersectionPointAndLineXY = Geometry::findIntersectionPointAndLine($policemanPositionXY, $currentPositionXY, $lastDestinationXY);
 
-                        $intersectionPointAndLineXY = Geometry::findIntersectionPointAndLine($policemanPositionXY, $currentPositionXY, $lastDestinationXY);
+                    if ($intersectionPointAndLineXY !== false) {
 
-                        if ($intersectionPointAndLineXY !== false) {
+                        $intersectionPointAndLineLatLng = Geometry::convertXYToLatLng($intersectionPointAndLineXY);
 
-                            $intersectionPointAndLineLatLng = Geometry::convertXYToLatLng($intersectionPointAndLineXY);
-
-                            if (Geometry::getSphericalDistanceBetweenTwoPoints($intersectionPointAndLineLatLng, $policemanPositionLatLng) <= $r + 2 * $room->config['other']['max_speed'] * env('BOT_REFRESH')) {
-                                $randNewDestination = true;
-                                break;
-                            }
+                        if (Geometry::getSphericalDistanceBetweenTwoPoints($intersectionPointAndLineLatLng, $policemanPositionLatLng) <= $r + 2 * $room->config['other']['max_speed'] * env('BOT_REFRESH')) {
+                            $randNewDestination = true;
+                            break;
                         }
                     }
                 }
