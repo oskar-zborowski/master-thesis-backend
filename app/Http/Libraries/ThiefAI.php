@@ -183,7 +183,7 @@ class ThiefAI
 
                         $intersectionPointAndLineLatLng = Geometry::convertXYToLatLng($intersectionPointAndLineXY);
 
-                        if (Geometry::getSphericalDistanceBetweenTwoPoints($intersectionPointAndLineLatLng, $policemanPositionLatLng) <= $r) {
+                        if (Geometry::getSphericalDistanceBetweenTwoPoints($intersectionPointAndLineLatLng, $policemanPositionLatLng) <= $r + 2 * $room->config['actor']['other']['max_speed'] * env('BOT_REFRESH')) {
                             $randNewDestination = true;
                             break;
                         }
