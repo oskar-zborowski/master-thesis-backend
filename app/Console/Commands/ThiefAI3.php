@@ -87,6 +87,7 @@ class ThiefAI3 extends Command
 
         $lastSavedTime = [];
         $lastDestinationLatLng = [];
+        $lastDisclosureLatLng = [];
         $isDisclosure = [];
 
         /** @var \App\Models\Player[] $thieves */
@@ -98,6 +99,7 @@ class ThiefAI3 extends Command
         foreach ($thieves as $thief) {
             $lastSavedTime[$thief->id] = $microtime;
             $lastDestinationLatLng[$thief->id] = null;
+            $lastDisclosureLatLng[$thief->id] = null;
             $isDisclosure[$thief->id] = $isPermanentDisclosure;
         }
 
@@ -144,6 +146,7 @@ class ThiefAI3 extends Command
 
                 $thief->mergeCasts([
                     'hidden_position' => Point::class,
+                    'global_position' => Point::class,
                 ]);
 
                 $currentPositionLatLng = [
@@ -159,7 +162,19 @@ class ThiefAI3 extends Command
 
                     $randNewDestination = false;
 
-                    if (Geometry::getSphericalDistanceBetweenTwoPoints($currentPositionLatLng, $lastDestinationLatLng[$thief->id]) < 25) {
+                    if ($thief->global_position !== null) {
+
+                        $globalPositionLatLon['x'] = $thief->global_position->longitude;
+                        $globalPositionLatLon['y'] = $thief->global_position->latitude;
+
+                        if ($lastDisclosureLatLng[$thief->id] === null) {
+                            $lastDisclosureLatLng[$thief->id] = $globalPositionLatLon;
+                        }
+                    }
+
+                    if ($thief->global_position !== null && ($lastDisclosureLatLng[$thief->id]['x'] != $globalPositionLatLon['x'] || $lastDisclosureLatLng[$thief->id]['y'] != $globalPositionLatLon['y'])) {
+                        $lastDisclosureLatLng[$thief->id] = $globalPositionLatLon;
+                    } else if (Geometry::getSphericalDistanceBetweenTwoPoints($currentPositionLatLng, $lastDestinationLatLng[$thief->id]) < 25) {
                         $randNewDestination = true;
                     } else {
 

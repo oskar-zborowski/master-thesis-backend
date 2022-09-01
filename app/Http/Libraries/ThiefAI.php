@@ -165,24 +165,27 @@ class ThiefAI
             $isDisclosure = $policemanRadius['isDisclosure'];
 
             $policeman->mergeCasts([
-                'hidden_position' => Point::class,
+                'global_position' => Point::class,
             ]);
 
-            $policemanPositionLatLng['x'] = $policeman->hidden_position->longitude;
-            $policemanPositionLatLng['y'] = $policeman->hidden_position->latitude;
-            $policemanPositionXY = Geometry::convertLatLngToXY($policemanPositionLatLng);
+            if ($policeman->global_position !== null) {
 
-            if (Geometry::checkIfPointBelongsToSegment2($policemanPositionXY, $currentPositionXY, $lastDestinationXY)) {
+                $policemanPositionLatLng['x'] = $policeman->global_position->longitude;
+                $policemanPositionLatLng['y'] = $policeman->global_position->latitude;
+                $policemanPositionXY = Geometry::convertLatLngToXY($policemanPositionLatLng);
 
-                $intersectionPointAndLineXY = Geometry::findIntersectionPointAndLine($policemanPositionXY, $currentPositionXY, $lastDestinationXY);
+                if (Geometry::checkIfPointBelongsToSegment2($policemanPositionXY, $currentPositionXY, $lastDestinationXY)) {
 
-                if ($intersectionPointAndLineXY !== false) {
+                    $intersectionPointAndLineXY = Geometry::findIntersectionPointAndLine($policemanPositionXY, $currentPositionXY, $lastDestinationXY);
 
-                    $intersectionPointAndLineLatLng = Geometry::convertXYToLatLng($intersectionPointAndLineXY);
+                    if ($intersectionPointAndLineXY !== false) {
 
-                    if (Geometry::getSphericalDistanceBetweenTwoPoints($intersectionPointAndLineLatLng, $policemanPositionLatLng) <= $r) {
-                        $randNewDestination = true;
-                        break;
+                        $intersectionPointAndLineLatLng = Geometry::convertXYToLatLng($intersectionPointAndLineXY);
+
+                        if (Geometry::getSphericalDistanceBetweenTwoPoints($intersectionPointAndLineLatLng, $policemanPositionLatLng) <= $r) {
+                            $randNewDestination = true;
+                            break;
+                        }
                     }
                 }
             }
