@@ -78,7 +78,7 @@ class ThiefAI3 extends Command
             $allPolicemenWithoutAgentsAndEagles = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN'])->get();
             $allPolicemenWithoutAgentsAndEaglesNumber = count($allPolicemenWithoutAgentsAndEagles);
 
-            $holeDisclosureArea = ($allPolicemenWithoutAgentsAndEaglesNumber + $agentsNumber) * pow($room->config['actor']['policeman']['visibility_radius'] + 2 * $room->config['actor']['other']['max_speed'] * env('BOT_REFRESH'), 2) * PI() + $eaglesNumber * pow($room->config['actor']['policeman']['visibility_radius'] * 2 + 2 * $room->config['actor']['other']['max_speed'] * env('BOT_REFRESH'), 2) * PI();
+            $holeDisclosureArea = ($allPolicemenWithoutAgentsAndEaglesNumber + $agentsNumber) * pow($room->config['actor']['policeman']['visibility_radius'] + 2 * $room->config['other']['max_speed'] * env('BOT_REFRESH'), 2) * PI() + $eaglesNumber * pow($room->config['actor']['policeman']['visibility_radius'] * 2 + 2 * $room->config['other']['max_speed'] * env('BOT_REFRESH'), 2) * PI();
 
             if (2 * $holeDisclosureArea > $area) {
                 $isPermanentDisclosure = true;
