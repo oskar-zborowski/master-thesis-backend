@@ -1240,7 +1240,7 @@ class ThiefAI extends Command
 
                             if ($blackTicketToUsed + $fakePositionToUsed > 0) {
 
-                                $timeLapseRand = round(rand((int) (200 * $timeLapse) - 100, 100) / 100);
+                                $timeLapseRand = round(rand(round(200 * $timeLapse) - 100, 100) / 100);
                                 $timeLapseRand = $timeLapseRand >= 0 ? $timeLapseRand : 0;
 
                                 if ($timeLapseRand == 1) {

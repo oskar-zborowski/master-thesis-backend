@@ -173,19 +173,23 @@ class ThiefAI
 
                 $policemanPositionLatLng['x'] = $policeman->hidden_position->longitude;
                 $policemanPositionLatLng['y'] = $policeman->hidden_position->latitude;
-                $policemanPositionXY = Geometry::convertLatLngToXY($policemanPositionLatLng);
 
-                if (Geometry::checkIfPointBelongsToSegment2($policemanPositionXY, $currentPositionXY, $lastDestinationXY)) {
+                if ($room->config['actor']['thief']['visibility_radius'] == -1 || Geometry::getSphericalDistanceBetweenTwoPoints($currentPositionLatLng, $policemanPositionLatLng) <= $room->config['actor']['thief']['visibility_radius']) {
 
-                    $intersectionPointAndLineXY = Geometry::findIntersectionPointAndLine($policemanPositionXY, $currentPositionXY, $lastDestinationXY);
+                    $policemanPositionXY = Geometry::convertLatLngToXY($policemanPositionLatLng);
 
-                    if ($intersectionPointAndLineXY !== false) {
+                    if (Geometry::checkIfPointBelongsToSegment2($policemanPositionXY, $currentPositionXY, $lastDestinationXY)) {
 
-                        $intersectionPointAndLineLatLng = Geometry::convertXYToLatLng($intersectionPointAndLineXY);
+                        $intersectionPointAndLineXY = Geometry::findIntersectionPointAndLine($policemanPositionXY, $currentPositionXY, $lastDestinationXY);
 
-                        if (Geometry::getSphericalDistanceBetweenTwoPoints($intersectionPointAndLineLatLng, $policemanPositionLatLng) <= $r + 2 * $room->config['other']['max_speed'] * env('BOT_REFRESH')) {
-                            $randNewDestination = true;
-                            break;
+                        if ($intersectionPointAndLineXY !== false) {
+
+                            $intersectionPointAndLineLatLng = Geometry::convertXYToLatLng($intersectionPointAndLineXY);
+
+                            if (Geometry::getSphericalDistanceBetweenTwoPoints($intersectionPointAndLineLatLng, $policemanPositionLatLng) <= $r + 2 * $room->config['other']['max_speed'] * env('BOT_REFRESH')) {
+                                $randNewDestination = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -284,7 +288,7 @@ class ThiefAI
 
                             if ($blackTicketToUsed + $fakePositionToUsed > 0) {
 
-                                $timeLapseRand = round(rand((int) (200 * $timeLapse) - 100, 100) / 100);
+                                $timeLapseRand = round(rand(round(200 * $timeLapse) - 100, 100) / 100);
                                 $timeLapseRand = $timeLapseRand >= 0 ? $timeLapseRand : 0;
 
                                 if ($timeLapseRand == 1) {

@@ -495,7 +495,7 @@ class PlayerController extends Controller
                 }
             }
 
-            if (!in_array($player->role, ['THIEF', 'AGENT']) && $room->config['actor']['thief']['visibility_radius'] == -1) {
+            if (!in_array($player->role, ['THIEF', 'AGENT']) && $room->config['actor']['thief']['visibility_radius'] == -1 && now() >= $room->game_started_at) {
                 $player->global_position = DB::raw("ST_GeomFromText('POINT($request->gps_location)')");
                 $reloadRoom = true;
             }

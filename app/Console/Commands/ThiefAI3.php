@@ -47,24 +47,14 @@ class ThiefAI3 extends Command
 
             $area = LibrariesThiefAi::calcArea($room);
 
-            $agentMayExist = false;
             $eagleMayExist = false;
-
-            if ($room->config['actor']['agent']['number'] > 0 && $room->config['actor']['agent']['probability'] > 0) {
-                $agentMayExist = true;
-            }
 
             if ($room->config['actor']['eagle']['number'] > 0 && $room->config['actor']['eagle']['probability'] > 0) {
                 $eagleMayExist = true;
             }
 
-            if ($agentMayExist && $room->config['actor']['thief']['are_enemies_circles_visible']) {
-                /** @var \App\Models\Player[] $allAgents */
-                $allAgents = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->where('role', 'AGENT')->get();
-                $agentsNumber = count($allAgents);
-            } else {
-                $agentsNumber = round($room->config['actor']['agent']['number'] * $room->config['actor']['agent']['probability']);
-            }
+            $allAgents = $room->players()->whereIn('status', ['CONNECTED', 'DISCONNECTED'])->where('role', 'AGENT')->get();
+            $agentsNumber = count($allAgents);
 
             if ($eagleMayExist && $room->config['actor']['thief']['are_enemies_circles_visible']) {
                 /** @var \App\Models\Player[] $allEagles */

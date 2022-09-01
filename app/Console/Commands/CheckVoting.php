@@ -513,7 +513,7 @@ class CheckVoting extends Command
         } else if ($room->config['actor']['agent']['probability'] == 0) {
             $agentNumber = 0;
         } else {
-            $agentNumberRand = (int) ($room->config['actor']['agent']['number'] * rand((int) (200 * $room->config['actor']['agent']['probability']) - 100, 100) / 100);
+            $agentNumberRand = round($room->config['actor']['agent']['number'] * rand(round(200 * $room->config['actor']['agent']['probability']) - 100, 100) / 100);
             $agentNumber = $agentNumberRand > $agentNumber ? ($agentNumberRand - $agentNumber) : 0;
         }
 
@@ -526,7 +526,7 @@ class CheckVoting extends Command
         } else if ($room->config['actor']['pegasus']['probability'] == 0) {
             $pegasusNumber = 0;
         } else {
-            $pegasusNumberRand = (int) ($room->config['actor']['pegasus']['number'] * rand((int) (200 * $room->config['actor']['pegasus']['probability']) - 100, 100) / 100);
+            $pegasusNumberRand = round($room->config['actor']['pegasus']['number'] * rand(round(200 * $room->config['actor']['pegasus']['probability']) - 100, 100) / 100);
             $pegasusNumber = $pegasusNumberRand > $pegasusNumber ? ($pegasusNumberRand - $pegasusNumber) : 0;
         }
 
@@ -539,7 +539,7 @@ class CheckVoting extends Command
         } else if ($room->config['actor']['fatty_man']['probability'] == 0) {
             $fattyManNumber = 0;
         } else {
-            $fattyManNumberRand = (int) ($room->config['actor']['fatty_man']['number'] * rand((int) (200 * $room->config['actor']['fatty_man']['probability']) - 100, 100) / 100);
+            $fattyManNumberRand = round($room->config['actor']['fatty_man']['number'] * rand(round(200 * $room->config['actor']['fatty_man']['probability']) - 100, 100) / 100);
             $fattyManNumber = $fattyManNumberRand > $fattyManNumber ? ($fattyManNumberRand - $fattyManNumber) : 0;
         }
 
@@ -552,7 +552,7 @@ class CheckVoting extends Command
         } else if ($room->config['actor']['eagle']['probability'] == 0) {
             $eagleNumber = 0;
         } else {
-            $eagleNumberRand = (int) ($room->config['actor']['eagle']['number'] * rand((int) (200 * $room->config['actor']['eagle']['probability']) - 100, 100) / 100);
+            $eagleNumberRand = round($room->config['actor']['eagle']['number'] * rand(round(200 * $room->config['actor']['eagle']['probability']) - 100, 100) / 100);
             $eagleNumber = $eagleNumberRand > $eagleNumber ? ($eagleNumberRand - $eagleNumber) : 0;
         }
 
@@ -568,7 +568,7 @@ class CheckVoting extends Command
             }
         } else {
 
-            $thiefNumberRand = (int) ($room->config['actor']['thief']['number'] * rand((int) (200 * $room->config['actor']['thief']['probability']) - 100, 100) / 100);
+            $thiefNumberRand = round($room->config['actor']['thief']['number'] * rand(round(200 * $room->config['actor']['thief']['probability']) - 100, 100) / 100);
             $thiefNumber2 = $thiefNumberRand > $thiefNumber ? ($thiefNumberRand - $thiefNumber) : 0;
 
             if ($thiefNumber2 < 1 && $thiefNumber < 1) {
@@ -644,7 +644,7 @@ class CheckVoting extends Command
                 } else if ($room->config['actor']['thief']['black_ticket']['probability'] == 0) {
                     $blackTicketRand = 0;
                 } else {
-                    $blackTicketRand = (int) ($room->config['actor']['thief']['black_ticket']['number'] * rand((int) (200 * $room->config['actor']['thief']['black_ticket']['probability']) - 100, 100) / 100);
+                    $blackTicketRand = round($room->config['actor']['thief']['black_ticket']['number'] * rand(round(200 * $room->config['actor']['thief']['black_ticket']['probability']) - 100, 100) / 100);
                     $blackTicketRand = $blackTicketRand >= 0 ? $blackTicketRand : 0;
                 }
 
@@ -653,7 +653,7 @@ class CheckVoting extends Command
                 } else if ($room->config['actor']['thief']['fake_position']['probability'] == 0) {
                     $fakePositionRand = 0;
                 } else {
-                    $fakePositionRand = (int) ($room->config['actor']['thief']['fake_position']['number'] * rand((int) (200 * $room->config['actor']['thief']['fake_position']['probability']) - 100, 100) / 100);
+                    $fakePositionRand = round($room->config['actor']['thief']['fake_position']['number'] * rand(round(200 * $room->config['actor']['thief']['fake_position']['probability']) - 100, 100) / 100);
                     $fakePositionRand = $fakePositionRand >= 0 ? $fakePositionRand : 0;
                 }
 
@@ -670,7 +670,7 @@ class CheckVoting extends Command
                 } else if ($room->config['actor']['pegasus']['white_ticket']['probability'] == 0) {
                     $whiteTicketRand = 0;
                 } else {
-                    $whiteTicketRand = (int) ($room->config['actor']['pegasus']['white_ticket']['number'] * rand((int) (200 * $room->config['actor']['pegasus']['white_ticket']['probability']) - 100, 100) / 100);
+                    $whiteTicketRand = round($room->config['actor']['pegasus']['white_ticket']['number'] * rand(round(200 * $room->config['actor']['pegasus']['white_ticket']['probability']) - 100, 100) / 100);
                     $whiteTicketRand = $whiteTicketRand >= 0 ? $whiteTicketRand : 0;
                 }
 
