@@ -159,10 +159,15 @@ class ThiefAI3 extends Command
 
                     $randNewDestination = false;
 
-                    $enemiesPosition = LibrariesThiefAi::checkEnemiesPosition($room, $policemen, $currentPositionLatLng, $lastDestinationLatLng[$thief->id], $isDisclosure[$thief->id]);
-
-                    if ($enemiesPosition['randNewDestination']) {
+                    if (Geometry::getSphericalDistanceBetweenTwoPoints($currentPositionLatLng, $lastDestinationLatLng[$thief->id]) < 25) {
                         $randNewDestination = true;
+                    } else {
+
+                        $enemiesPosition = LibrariesThiefAi::checkEnemiesPosition($room, $policemen, $currentPositionLatLng, $lastDestinationLatLng[$thief->id], $isDisclosure[$thief->id]);
+
+                        if ($enemiesPosition['randNewDestination']) {
+                            $randNewDestination = true;
+                        }
                     }
                 }
 
