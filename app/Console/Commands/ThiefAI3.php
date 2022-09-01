@@ -144,97 +144,100 @@ class ThiefAI3 extends Command
 
             foreach ($thieves as $thief) {
 
-                $thief->mergeCasts([
-                    'hidden_position' => Point::class,
-                    'global_position' => Point::class,
-                ]);
+                if ($thief->caught_at === null) {
 
-                $currentPositionLatLng = [
-                    'x' => $thief->hidden_position->longitude,
-                    'y' => $thief->hidden_position->latitude,
-                ];
+                    $thief->mergeCasts([
+                        'hidden_position' => Point::class,
+                        'global_position' => Point::class,
+                    ]);
 
-                $currentPositionXY = Geometry::convertLatLngToXY($currentPositionLatLng);
+                    $currentPositionLatLng = [
+                        'x' => $thief->hidden_position->longitude,
+                        'y' => $thief->hidden_position->latitude,
+                    ];
 
-                $randNewDestination = true;
+                    $currentPositionXY = Geometry::convertLatLngToXY($currentPositionLatLng);
 
-                if ($lastDestinationLatLng[$thief->id] !== null) {
+                    $randNewDestination = true;
 
-                    $randNewDestination = false;
+                    if ($lastDestinationLatLng[$thief->id] !== null) {
 
-                    if ($thief->global_position !== null) {
+                        $randNewDestination = false;
 
-                        $globalPositionLatLon['x'] = $thief->global_position->longitude;
-                        $globalPositionLatLon['y'] = $thief->global_position->latitude;
+                        if ($thief->global_position !== null) {
 
-                        if ($lastDisclosureLatLng[$thief->id] === null) {
+                            $globalPositionLatLon['x'] = $thief->global_position->longitude;
+                            $globalPositionLatLon['y'] = $thief->global_position->latitude;
+
+                            if ($lastDisclosureLatLng[$thief->id] === null) {
+                                $lastDisclosureLatLng[$thief->id] = $globalPositionLatLon;
+                            }
+                        }
+
+                        if ($thief->global_position !== null && ($lastDisclosureLatLng[$thief->id]['x'] != $globalPositionLatLon['x'] || $lastDisclosureLatLng[$thief->id]['y'] != $globalPositionLatLon['y'])) {
                             $lastDisclosureLatLng[$thief->id] = $globalPositionLatLon;
-                        }
-                    }
-
-                    if ($thief->global_position !== null && ($lastDisclosureLatLng[$thief->id]['x'] != $globalPositionLatLon['x'] || $lastDisclosureLatLng[$thief->id]['y'] != $globalPositionLatLon['y'])) {
-                        $lastDisclosureLatLng[$thief->id] = $globalPositionLatLon;
-                        $randNewDestination = true;
-                    } else if (Geometry::getSphericalDistanceBetweenTwoPoints($currentPositionLatLng, $lastDestinationLatLng[$thief->id]) < 25) {
-                        $randNewDestination = true;
-                    } else {
-
-                        $enemiesPosition = LibrariesThiefAi::checkEnemiesPosition($room, $policemen, $currentPositionLatLng, $lastDestinationLatLng[$thief->id], $isDisclosure[$thief->id]);
-
-                        if ($enemiesPosition['randNewDestination']) {
                             $randNewDestination = true;
+                        } else if (Geometry::getSphericalDistanceBetweenTwoPoints($currentPositionLatLng, $lastDestinationLatLng[$thief->id]) < 25) {
+                            $randNewDestination = true;
+                        } else {
+
+                            $enemiesPosition = LibrariesThiefAi::checkEnemiesPosition($room, $policemen, $currentPositionLatLng, $lastDestinationLatLng[$thief->id], $isDisclosure[$thief->id]);
+
+                            if ($enemiesPosition['randNewDestination']) {
+                                $randNewDestination = true;
+                            }
                         }
                     }
-                }
 
-                if ($randNewDestination) {
+                    if ($randNewDestination) {
 
-                    if (!$isPermanentDisclosure) {
-                        $isDisclosure[$thief->id] = false;
-                    }
-
-                    $i = 0;
-
-                    do {
-
-                        if ($i > 0 && $i % 6 == 0) {
-                            $isDisclosure[$thief->id] = true;
+                        if (!$isPermanentDisclosure) {
+                            $isDisclosure[$thief->id] = false;
                         }
 
-                        $newDestinationXY = LibrariesThiefAi::randLocationXY($boundaryExtremePointsXY);
-                        $newDestinationLatLng = Geometry::convertXYToLatLng($newDestinationXY);
+                        $i = 0;
 
-                        $enemiesPosition = LibrariesThiefAi::checkEnemiesPosition($room, $policemen, $currentPositionLatLng, $newDestinationLatLng, $isDisclosure[$thief->id]);
+                        do {
 
-                        $isDisclosure[$thief->id] = $enemiesPosition['isDisclosure'];
+                            if ($i > 0 && $i % 6 == 0) {
+                                $isDisclosure[$thief->id] = true;
+                            }
 
-                        $i++;
+                            $newDestinationXY = LibrariesThiefAi::randLocationXY($boundaryExtremePointsXY);
+                            $newDestinationLatLng = Geometry::convertXYToLatLng($newDestinationXY);
 
-                    } while ($enemiesPosition['randNewDestination']);
+                            $enemiesPosition = LibrariesThiefAi::checkEnemiesPosition($room, $policemen, $currentPositionLatLng, $newDestinationLatLng, $isDisclosure[$thief->id]);
 
-                    $lastDestinationLatLng[$thief->id] = $newDestinationLatLng;
+                            $isDisclosure[$thief->id] = $enemiesPosition['isDisclosure'];
+
+                            $i++;
+
+                        } while ($enemiesPosition['randNewDestination']);
+
+                        $lastDestinationLatLng[$thief->id] = $newDestinationLatLng;
+                    }
+
+                    $lastDestinationXY = Geometry::convertLatLngToXY($lastDestinationLatLng[$thief->id]);
+
+                    $botShift = $room->config['other']['bot_speed'] * (microtime(true) - $lastSavedTime[$thief->id]);
+                    $finalPositionXY = Geometry::getShiftedPoint($currentPositionXY, $lastDestinationXY, $botShift);
+                    $finalPositionLatLng = Geometry::convertXYToLatLng($finalPositionXY);
+                    $finalPositionLatLngString = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
+
+                    if (LibrariesThiefAi::checkToBeWithinXY($room, $finalPositionXY)) {
+
+                        /** @var \App\Models\Player $appropriateThief */
+                        $appropriateThief = $room->players()->where('id', $thief->id)->first();
+
+                        $appropriateThief->hidden_position = DB::raw("ST_GeomFromText('POINT($finalPositionLatLngString)')");
+                        $appropriateThief->save();
+
+                    } else {
+                        $lastDestinationLatLng[$thief->id] = null;
+                    }
+
+                    $lastSavedTime[$thief->id] = microtime(true);
                 }
-
-                $lastDestinationXY = Geometry::convertLatLngToXY($lastDestinationLatLng[$thief->id]);
-
-                $botShift = $room->config['other']['bot_speed'] * (microtime(true) - $lastSavedTime[$thief->id]);
-                $finalPositionXY = Geometry::getShiftedPoint($currentPositionXY, $lastDestinationXY, $botShift);
-                $finalPositionLatLng = Geometry::convertXYToLatLng($finalPositionXY);
-                $finalPositionLatLngString = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
-
-                if (LibrariesThiefAi::checkToBeWithinXY($room, $finalPositionXY)) {
-
-                    /** @var \App\Models\Player $appropriateThief */
-                    $appropriateThief = $room->players()->where('id', $thief->id)->first();
-
-                    $appropriateThief->hidden_position = DB::raw("ST_GeomFromText('POINT($finalPositionLatLngString)')");
-                    $appropriateThief->save();
-
-                } else {
-                    $lastDestinationLatLng[$thief->id] = null;
-                }
-
-                $lastSavedTime[$thief->id] = microtime(true);
             }
 
             LibrariesThiefAi::useTicket($room, $globalCounter, $timeLapse, $boundaryExtremePointsXY);

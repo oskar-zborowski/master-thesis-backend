@@ -256,67 +256,70 @@ class ThiefAI
 
             foreach ($thieves as $thief) {
 
-                $thiefAvailableTickets = ($thief->config['black_ticket']['number'] + $thief->config['fake_position']['number']) / 0.625;
+                if ($thief->caught_at === null) {
 
-                if ($thiefAvailableTickets != 0) {
-                    $timeIntervalBetweenTickets = floor($thievesTicketRefresh / $thiefAvailableTickets);
-                }
+                    $thiefAvailableTickets = ($thief->config['black_ticket']['number'] + $thief->config['fake_position']['number']) / 0.625;
 
-                $sumAvailableTickets = ($thief->config['black_ticket']['number'] - $thief->config['black_ticket']['used_number']) * $room->config['actor']['thief']['black_ticket']['duration'] + ($thief->config['fake_position']['number'] - $thief->config['fake_position']['used_number']) * $room->config['actor']['thief']['fake_position']['duration'];
+                    if ($thiefAvailableTickets != 0) {
+                        $timeIntervalBetweenTickets = floor($thievesTicketRefresh / $thiefAvailableTickets);
+                    }
 
-                if (isset($timeIntervalBetweenTickets) && $globalCounter % $timeIntervalBetweenTickets == 0 || $sumAvailableTickets >= $remainingTime) {
+                    $sumAvailableTickets = ($thief->config['black_ticket']['number'] - $thief->config['black_ticket']['used_number']) * $room->config['actor']['thief']['black_ticket']['duration'] + ($thief->config['fake_position']['number'] - $thief->config['fake_position']['used_number']) * $room->config['actor']['thief']['fake_position']['duration'];
 
-                    if (($thief->fake_position_finished_at === null || $now > $thief->fake_position_finished_at) &&
-                        ($thief->black_ticket_finished_at === null || $now > $thief->black_ticket_finished_at))
-                    {
-                        $blackTicketToUsed = 0;
-                        $fakePositionToUsed = 0;
+                    if (isset($timeIntervalBetweenTickets) && $globalCounter % $timeIntervalBetweenTickets == 0 || $sumAvailableTickets >= $remainingTime) {
 
-                        if ($thief->config['black_ticket']['number'] - $thief->config['black_ticket']['used_number'] > 0) {
-                            $blackTicketToUsed = $thief->config['black_ticket']['number'] - $thief->config['black_ticket']['used_number'];
-                        }
+                        if (($thief->fake_position_finished_at === null || $now > $thief->fake_position_finished_at) &&
+                            ($thief->black_ticket_finished_at === null || $now > $thief->black_ticket_finished_at))
+                        {
+                            $blackTicketToUsed = 0;
+                            $fakePositionToUsed = 0;
 
-                        if ($thief->config['fake_position']['number'] - $thief->config['fake_position']['used_number'] > 0) {
-                            $fakePositionToUsed = $thief->config['fake_position']['number'] - $thief->config['fake_position']['used_number'];
-                        }
+                            if ($thief->config['black_ticket']['number'] - $thief->config['black_ticket']['used_number'] > 0) {
+                                $blackTicketToUsed = $thief->config['black_ticket']['number'] - $thief->config['black_ticket']['used_number'];
+                            }
 
-                        if ($blackTicketToUsed + $fakePositionToUsed > 0) {
+                            if ($thief->config['fake_position']['number'] - $thief->config['fake_position']['used_number'] > 0) {
+                                $fakePositionToUsed = $thief->config['fake_position']['number'] - $thief->config['fake_position']['used_number'];
+                            }
 
-                            $timeLapseRand = round(rand((int) (200 * $timeLapse) - 100, 100) / 100);
-                            $timeLapseRand = $timeLapseRand >= 0 ? $timeLapseRand : 0;
+                            if ($blackTicketToUsed + $fakePositionToUsed > 0) {
 
-                            if ($timeLapseRand == 1) {
+                                $timeLapseRand = round(rand((int) (200 * $timeLapse) - 100, 100) / 100);
+                                $timeLapseRand = $timeLapseRand >= 0 ? $timeLapseRand : 0;
 
-                                $randTicket = rand(1, $blackTicketToUsed + $fakePositionToUsed);
+                                if ($timeLapseRand == 1) {
 
-                                if ($blackTicketToUsed - $randTicket < 0) {
+                                    $randTicket = rand(1, $blackTicketToUsed + $fakePositionToUsed);
 
-                                    do {
-                                        // TODO Obsłużyć dystans jaki złodziej mógł pokonać od ostatniego ujawnienia
-                                        // oraz żeby nie znalazł się w polu łapania jakiegoś policjanta,
-                                        // ale korzystne by było gdyby był w zasięgu łapania
-                                        $finalPositionXY = self::randLocationXY($boundaryExtremePointsXY);
-                                    } while (!self::checkToBeWithinXY($room, $finalPositionXY));
+                                    if ($blackTicketToUsed - $randTicket < 0) {
 
-                                    $finalPositionLatLng = Geometry::convertXYToLatLng($finalPositionXY);
-                                    $finalPositionLatLngString = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
+                                        do {
+                                            // TODO Obsłużyć dystans jaki złodziej mógł pokonać od ostatniego ujawnienia
+                                            // oraz żeby nie znalazł się w polu łapania jakiegoś policjanta,
+                                            // ale korzystne by było gdyby był w zasięgu łapania
+                                            $finalPositionXY = self::randLocationXY($boundaryExtremePointsXY);
+                                        } while (!self::checkToBeWithinXY($room, $finalPositionXY));
 
-                                    $tempConfig = $thief->config;
-                                    $tempConfig['fake_position']['used_number'] = $thief->config['fake_position']['used_number'] + 1;
-                                    $thief->config = $tempConfig;
+                                        $finalPositionLatLng = Geometry::convertXYToLatLng($finalPositionXY);
+                                        $finalPositionLatLngString = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
 
-                                    $thief->fake_position = DB::raw("ST_GeomFromText('POINT($finalPositionLatLngString)')");
-                                    $thief->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['fake_position']['duration'] . ' seconds', strtotime($now)));
-                                    $thief->save();
+                                        $tempConfig = $thief->config;
+                                        $tempConfig['fake_position']['used_number'] = $thief->config['fake_position']['used_number'] + 1;
+                                        $thief->config = $tempConfig;
 
-                                } else {
+                                        $thief->fake_position = DB::raw("ST_GeomFromText('POINT($finalPositionLatLngString)')");
+                                        $thief->fake_position_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['fake_position']['duration'] . ' seconds', strtotime($now)));
+                                        $thief->save();
 
-                                    $tempConfig = $thief->config;
-                                    $tempConfig['black_ticket']['used_number'] = $thief->config['black_ticket']['used_number'] + 1;
-                                    $thief->config = $tempConfig;
+                                    } else {
 
-                                    $thief->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['black_ticket']['duration'] . ' seconds', strtotime($now)));
-                                    $thief->save();
+                                        $tempConfig = $thief->config;
+                                        $tempConfig['black_ticket']['used_number'] = $thief->config['black_ticket']['used_number'] + 1;
+                                        $thief->config = $tempConfig;
+
+                                        $thief->black_ticket_finished_at = date('Y-m-d H:i:s', strtotime('+' . $room->config['actor']['thief']['black_ticket']['duration'] . ' seconds', strtotime($now)));
+                                        $thief->save();
+                                    }
                                 }
                             }
                         }

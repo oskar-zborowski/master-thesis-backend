@@ -353,6 +353,23 @@ class PlayerController extends Controller
                 if ($player->user_id == $room->host_id) {
                     Other::setNewHost($room);
                 }
+
+            } else {
+
+                $player->global_position = null;
+                $player->hidden_position = null;
+                $player->fake_position = null;
+                $player->is_catching = false;
+                $player->is_caughting = false;
+                $player->voting_answer = null;
+                $player->failed_voting_type = null;
+                $player->black_ticket_finished_at = null;
+                $player->fake_position_finished_at = null;
+                $player->disconnecting_finished_at = null;
+                $player->crossing_boundary_finished_at = null;
+                $player->speed_exceeded_at = null;
+                $player->next_voting_starts_at = null;
+                $player->save();
             }
 
             $minPause = null;
