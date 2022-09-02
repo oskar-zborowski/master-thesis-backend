@@ -37,8 +37,6 @@ class ThiefAI3 extends Command
             die;
         }
 
-        $globalCounter = 0;
-
         $isPermanentDisclosure = false;
 
         if ($room->config['actor']['policeman']['visibility_radius'] == -1) {
@@ -231,8 +229,6 @@ class ThiefAI3 extends Command
             }
 
             LibrariesThiefAi::useTicket($room, $timeLapse, $boundaryExtremePointsXY);
-
-            $globalCounter++;
 
         } while ($room->status == 'GAME_IN_PROGRESS');
     }

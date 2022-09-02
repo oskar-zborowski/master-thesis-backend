@@ -236,7 +236,7 @@ class ThiefAI
         }
     }
 
-    public static function useTicket(Room $room, float $timeLapse, array $boundaryExtremePointsXY, ) {
+    public static function useTicket(Room $room, float $timeLapse, array $boundaryExtremePointsXY) {
 
         $now = now();
 
@@ -267,48 +267,51 @@ class ThiefAI
 
                     $useTicketCondition = false;
 
-                    if ($room->config['actor']['thief']['black_ticket']['duration'] < $room->config['actor']['thief']['fake_position']['duration']) {
-                        $blackOrFake = $room->config['actor']['thief']['black_ticket']['duration'];
-                    } else {
-                        $blackOrFake = $room->config['actor']['thief']['fake_position']['duration'];
-                    }
+                    if ($sumAvailableTickets < $remainingTime) {
 
-                    $thiefPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
-
-                    $singlePolicemanVisibilityRadius = 1 * $room->config['actor']['policeman']['visibility_radius'];
-                    $doublePolicemanVisibilityRadius = 2 * $room->config['actor']['policeman']['visibility_radius'];
-
-                    if ($room->config['actor']['thief']['are_enemies_circles_visible']) {
-                        $thiefVisibleByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $singlePolicemanVisibilityRadius"));
-                        $thiefVisibleByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanVisibilityRadius"));
-                    } else {
-                        $thiefVisibleByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanVisibilityRadius"));
-                        $thiefVisibleByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanVisibilityRadius"));
-                    }
-
-                    if (count($thiefVisibleByPoliceman) + count($thiefVisibleByEagle) > 0 || $room->config['actor']['policeman']['visibility_radius'] == -1) {
-                        $useTicketCondition = true;
-                    }
-
-                    if ($useTicketCondition) {
-
-                        $singlePolicemanCatchingRadius = 1 * $room->config['actor']['policeman']['catching']['radius'] + 4 * $room->config['other']['max_speed'] * env('BOT_REFRESH');
-                        $doublePolicemanCatchingRadius = 2 * $room->config['actor']['policeman']['catching']['radius'] + 4 * $room->config['other']['max_speed'] * env('BOT_REFRESH');
-
-                        if ($room->config['actor']['thief']['are_enemies_circles_visible']) {
-                            $thiefCaughtByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $singlePolicemanCatchingRadius"));
-                            $thiefCaughtByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanCatchingRadius"));
+                        if ($room->config['actor']['thief']['black_ticket']['duration'] < $room->config['actor']['thief']['fake_position']['duration']) {
+                            $blackOrFake = $room->config['actor']['thief']['black_ticket']['duration'];
                         } else {
-                            $thiefCaughtByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanCatchingRadius"));
-                            $thiefCaughtByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanCatchingRadius"));
+                            $blackOrFake = $room->config['actor']['thief']['fake_position']['duration'];
                         }
 
-                        if ((strtotime($room->next_disclosure_at) - strtotime($now) < $blackOrFake && strtotime($room->next_disclosure_at) - strtotime($now) > env('BOT_REFRESH')) ||
-                            (count($thiefCaughtByPoliceman) + count($thiefCaughtByEagle) > 0))
-                        {
-                            $useTicketCondition = true;
+                        $thiefPosition = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
+
+                        $singlePolicemanVisibilityRadius = 1 * $room->config['actor']['policeman']['visibility_radius'];
+                        $doublePolicemanVisibilityRadius = 2 * $room->config['actor']['policeman']['visibility_radius'];
+
+                        if ($room->config['actor']['thief']['are_enemies_circles_visible']) {
+                            $thiefVisibleByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $singlePolicemanVisibilityRadius"));
+                            $thiefVisibleByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanVisibilityRadius"));
                         } else {
-                            $useTicketCondition = false;
+                            $thiefVisibleByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanVisibilityRadius"));
+                            $thiefVisibleByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanVisibilityRadius"));
+                        }
+
+                        if (count($thiefVisibleByPoliceman) + count($thiefVisibleByEagle) > 0 || $room->config['actor']['policeman']['visibility_radius'] == -1) {
+                            $useTicketCondition = true;
+                        }
+
+                        if ($useTicketCondition) {
+
+                            $singlePolicemanCatchingRadius = 1 * $room->config['actor']['policeman']['catching']['radius'] + 4 * $room->config['other']['max_speed'] * env('BOT_REFRESH');
+                            $doublePolicemanCatchingRadius = 2 * $room->config['actor']['policeman']['catching']['radius'] + 4 * $room->config['other']['max_speed'] * env('BOT_REFRESH');
+
+                            if ($room->config['actor']['thief']['are_enemies_circles_visible']) {
+                                $thiefCaughtByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $singlePolicemanCatchingRadius"));
+                                $thiefCaughtByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanCatchingRadius"));
+                            } else {
+                                $thiefCaughtByPoliceman = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role <> 'THIEF' AND role <> 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanCatchingRadius"));
+                                $thiefCaughtByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanCatchingRadius"));
+                            }
+
+                            if ((strtotime($room->next_disclosure_at) - strtotime($now) < $blackOrFake && strtotime($room->next_disclosure_at) - strtotime($now) > env('BOT_REFRESH')) ||
+                                (count($thiefCaughtByPoliceman) + count($thiefCaughtByEagle) > 0))
+                            {
+                                $useTicketCondition = true;
+                            } else {
+                                $useTicketCondition = false;
+                            }
                         }
                     }
 
@@ -333,7 +336,7 @@ class ThiefAI
                                 $timeLapseRand = round(rand(round(200 * $timeLapse) - 100, 100) / 100);
                                 $timeLapseRand = $timeLapseRand >= 0 ? $timeLapseRand : 0;
 
-                                if ($timeLapseRand == 1) {
+                                if ($timeLapseRand == 1 && ($sumAvailableTickets >= $remainingTime || rand(1, 100) > 95)) {
 
                                     $randTicket = rand(1, $blackTicketToUsed + $fakePositionToUsed);
 
