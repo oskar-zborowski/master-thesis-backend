@@ -305,7 +305,7 @@ class ThiefAI
                                 $thiefCaughtByEagle = DB::select(DB::raw("SELECT id FROM players WHERE room_id = $room->id AND (status = 'CONNECTED' OR status = 'DISCONNECTED') AND role = 'EAGLE' AND ST_Distance_Sphere(ST_GeomFromText('POINT($thiefPosition)'), hidden_position) <= $doublePolicemanCatchingRadius"));
                             }
 
-                            if ((strtotime($room->next_disclosure_at) - strtotime($now) < $blackOrFake && strtotime($room->next_disclosure_at) - strtotime($now) > env('BOT_REFRESH')) ||
+                            if ((rand(1, 30) == 30 && strtotime($room->next_disclosure_at) - strtotime($now) < $blackOrFake && strtotime($room->next_disclosure_at) - strtotime($now) > env('BOT_REFRESH')) ||
                                 (count($thiefCaughtByPoliceman) + count($thiefCaughtByEagle) > 0))
                             {
                                 $useTicketCondition = true;
@@ -336,7 +336,7 @@ class ThiefAI
                                 $timeLapseRand = round(rand(round(200 * $timeLapse) - 100, 100) / 100);
                                 $timeLapseRand = $timeLapseRand >= 0 ? $timeLapseRand : 0;
 
-                                if ($timeLapseRand == 1 && ($sumAvailableTickets >= $remainingTime || rand(1, 100) > 95)) {
+                                if ($timeLapseRand == 1 && ($sumAvailableTickets >= $remainingTime || rand(1, 20) == 20)) {
 
                                     $randTicket = rand(1, $blackTicketToUsed + $fakePositionToUsed);
 
