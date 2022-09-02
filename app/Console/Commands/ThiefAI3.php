@@ -230,7 +230,7 @@ class ThiefAI3 extends Command
                 }
             }
 
-            LibrariesThiefAi::useTicket($room, $globalCounter, $timeLapse, $boundaryExtremePointsXY);
+            LibrariesThiefAi::useTicket($room, $timeLapse, $boundaryExtremePointsXY);
 
             $globalCounter++;
 

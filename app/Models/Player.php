@@ -35,6 +35,7 @@ class Player extends BaseModel
         'speed_exceeded_at',
         'next_voting_starts_at',
         'updated_at_by_player',
+        'last_disclosure_at',
         'created_at',
         'updated_at',
     ];
@@ -61,6 +62,7 @@ class Player extends BaseModel
         'speed_exceeded_at' => 'string',
         'next_voting_starts_at' => 'string',
         'updated_at_by_player' => 'string',
+        'last_disclosure_at' => 'string',
         'created_at' => 'string',
         'updated_at' => 'string',
     ];

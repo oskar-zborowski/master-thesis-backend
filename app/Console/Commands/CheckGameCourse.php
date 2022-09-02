@@ -252,11 +252,13 @@ class CheckGameCourse extends Command
 
                                         if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                             $thief->global_position = $thief->fake_position;
+                                            $thief->last_disclosure_at = now();
                                             $thiefSave = true;
                                         }
 
                                     } else {
                                         $thief->global_position = $thief->fake_position;
+                                        $thief->last_disclosure_at = now();
                                         $thiefSave = true;
                                     }
 
@@ -282,12 +284,14 @@ class CheckGameCourse extends Command
 
                                             if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                                 $thief->global_position = $thief->hidden_position;
+                                                $thief->last_disclosure_at = now();
                                                 $thiefSave = true;
                                             }
                                         }
 
                                     } else {
                                         $thief->global_position = $thief->hidden_position;
+                                        $thief->last_disclosure_at = now();
                                         $thiefSave = true;
                                     }
                                 }

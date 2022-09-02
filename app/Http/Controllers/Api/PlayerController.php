@@ -627,10 +627,12 @@ class PlayerController extends Controller
 
                                 if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                     $thief->global_position = $thief->fake_position;
+                                    $thief->last_disclosure_at = now();
                                 }
 
                             } else {
                                 $thief->global_position = $thief->fake_position;
+                                $thief->last_disclosure_at = now();
                             }
                         }
 
@@ -656,10 +658,12 @@ class PlayerController extends Controller
 
                                 if (count($disclosureThiefByPoliceman) > 0 || count($disclosureThiefByEagle) > 0) {
                                     $thief->global_position = $thief->hidden_position;
+                                    $thief->last_disclosure_at = now();
                                 }
 
                             } else {
                                 $thief->global_position = $thief->hidden_position;
+                                $thief->last_disclosure_at = now();
                             }
                         }
                     }
