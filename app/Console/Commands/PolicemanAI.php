@@ -200,7 +200,7 @@ class PolicemanAI extends Command
     {
         $targetPositions = [];
 
-        $rangeRadius = $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
+        $rangeRadius = 0.5 * $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
         $catchingRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
 
@@ -222,7 +222,7 @@ class PolicemanAI extends Command
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
 
-            $rangePoints = $this->getPointsOnCircle($targetThief, $rangeRadius, count($policemenObject), false, false);
+            $rangePoints = $this->getPointsOnCircle($targetThief, $rangeRadius, count($policemenObject));
             $halfWayPoints = $this->getPointsOnCircle($targetThief, $halfWayRadius, count($policemenObject));
             $catchingPoints = $this->getPointsOnCircle($targetThief, $catchingRadius, count($policemenObject));
             $catchingEvenlySpreadPoints = $this->getPointsOnCircle($targetThief, $catchingRadius, count($policemenObject), true);
