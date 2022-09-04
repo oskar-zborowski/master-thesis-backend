@@ -200,9 +200,10 @@ class PolicemanAI extends Command
     {
         $targetPositions = [];
 
-        $rangeRadius = 0.5 * $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
+//        $rangeRadius = 0.5 * $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
         $catchingRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
+        $rangeRadius = 5 * $catchingRadius;
 
         $policemen = $this->room
             ->players()
@@ -217,11 +218,16 @@ class PolicemanAI extends Command
         $policemen[2]->save();
 
         $goToHalfWay = $catchingRadius < $halfWayRadius;
+        $goToRange = $rangeRadius < $halfWayRadius;
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
+        $catchingLocation = $this->getCatchingLocation($policemenObject);
+        if (null !== $catchingLocation) {
+            $targetThief = $catchingLocation;
+        }
+
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
-
             $rangePoints = $this->getPointsOnCircle($targetThief, $rangeRadius, count($policemenObject));
             $halfWayPoints = $this->getPointsOnCircle($targetThief, $halfWayRadius, count($policemenObject));
             $catchingPoints = $this->getPointsOnCircle($targetThief, $catchingRadius, count($policemenObject));
@@ -233,11 +239,10 @@ class PolicemanAI extends Command
                 $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
                 $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
 
-//                if ($rangeRadius < $policeCenterToThiefDistance || $rangeRadius < $distanceToThief) {
-                if (true) {
+                if ($goToRange || $rangeRadius < $policeCenterToThiefDistance || $rangeRadius < $distanceToThief) {
                     // go to range
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[$key], $catchingPoints[$key], $targetThief);
-                } else if ($goToHalfWay && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
+                } elseif ($goToHalfWay && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
                     // go to half way
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($halfWayPoints[$key], $catchingPoints[$key], $targetThief);
                 } elseif (self::CLOSE_DISTANCE_DELTA < $distanceToUneven) {
@@ -273,6 +278,7 @@ class PolicemanAI extends Command
                 'order' => $distance * sin($angle),
                 'position' => $policemanPosition,
                 'playerId' => $policeman->id,
+                'isCatching' => $policeman->is_catching,
             ];
         }
 
@@ -288,6 +294,32 @@ class PolicemanAI extends Command
         }
 
         return $policeArray;
+    }
+
+    private function getCatchingLocation(array $policemenObject): ?array
+    {
+        $target = [
+            'x' => 0.0,
+            'y' => 0.0,
+        ];
+        $catchingLocations = [];
+        foreach ($policemenObject as $policemanObject) {
+            if ($policemanObject['isCatching']) {
+                $catchingLocations[] = Geometry::convertLatLngToXY($policemanObject['position']);
+            }
+        }
+
+        $n = count($catchingLocations);
+        if (0 === $n) {
+            return null;
+        }
+
+        foreach ($catchingLocations as $catchingLocation) {
+            $target['x'] += $catchingLocation['x'] / $n;
+            $target['y'] += $catchingLocation['y'] / $n;
+        }
+
+        return $target;
     }
 
     private function getPointsOnCircle(array $center, float $radius, int $n, bool $isEvenlySpread = false, bool $check = true, array $reference = [], $maxAngle = null): array
