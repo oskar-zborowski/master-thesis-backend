@@ -63,6 +63,25 @@ class PolicemanAI extends Command
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
 
+    private function test()
+    {
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
+
+        $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
+//        $point = "{$target1['x']} {$target1['y']}";
+        $point = "0.0 0.0";
+        $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
+        if ($isInside[0]->isIntersects) {
+            $policemen[0]->warning_number = 1;
+        } else {
+            $policemen[0]->warning_number = 2;
+        }
+    }
+
     private function getArrayWithTarget($target)
     {
         $array = [];
@@ -121,12 +140,6 @@ class PolicemanAI extends Command
 
     private function updateThievesPosition(): void
     {
-        if ($this->lastDisclosure >= $this->room->next_disclosure_at) {
-            return;
-        }
-
-        $positions = [];
-        $this->lastDisclosure = $this->room->next_disclosure_at;
         $thieves = $this->room
             ->players()
             ->where(['role' => 'THIEF'])
@@ -137,37 +150,65 @@ class PolicemanAI extends Command
                     ->orWhere(['status' => 'DISCONNECTED']);
             })
             ->get();
-        $policemen = $this->room
-            ->players()
-            ->where(['is_bot' => true])
-            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-            ->get();
-        $visibilityRadius = $this->room->config['actor']['policeman']['visibility_radius'];
+        $positionos = [];
         foreach ($thieves as $thief) {
             $thief->mergeCasts(['hidden_position' => Point::class]);
             $thiefPosition = [
                 'x' => $thief->hidden_position->longitude,
                 'y' => $thief->hidden_position->latitude,
             ];
-            if (-1 === $visibilityRadius) {
-                $positions[$thief->id] = $thiefPosition;
-            } else {
-                foreach ($policemen as $policeman) {
-                    $policeman->mergeCasts(['hidden_position' => Point::class]);
-                    $multiplier = 'EAGLE' === $policeman->role ? 2 : 1;
-                    $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thiefPosition, [
-                        'x' => $policeman->hidden_position->longitude,
-                        'y' => $policeman->hidden_position->latitude,
-                    ]);
-                    if ($visibilityRadius * $multiplier > $distance) {
-                        $positions[$thief->id] = $thiefPosition;
-                        break;
-                    }
-                }
-            }
+            $positions[$thief->id] = $thiefPosition;
         }
 
         $this->thievesPositions = $positions;
+
+//        if ($this->lastDisclosure >= $this->room->next_disclosure_at) {
+//            return;
+//        }
+//
+//        $positions = [];
+//        $this->lastDisclosure = $this->room->next_disclosure_at;
+//        $thieves = $this->room
+//            ->players()
+//            ->where(['role' => 'THIEF'])
+//            ->whereNotNull('hidden_position')
+//            ->whereNull('caught_at')
+//            ->where(function ($query) {
+//                $query->where(['status' => 'CONNECTED'])
+//                    ->orWhere(['status' => 'DISCONNECTED']);
+//            })
+//            ->get();
+//        $policemen = $this->room
+//            ->players()
+//            ->where(['is_bot' => true])
+//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+//            ->get();
+//        $visibilityRadius = $this->room->config['actor']['policeman']['visibility_radius'];
+//        foreach ($thieves as $thief) {
+//            $thief->mergeCasts(['hidden_position' => Point::class]);
+//            $thiefPosition = [
+//                'x' => $thief->hidden_position->longitude,
+//                'y' => $thief->hidden_position->latitude,
+//            ];
+//            if (-1 === $visibilityRadius) {
+//                $positions[$thief->id] = $thiefPosition;
+//            } else {
+//                foreach ($policemen as $policeman) {
+//                    $policeman->mergeCasts(['hidden_position' => Point::class]);
+//                    $multiplier = 'EAGLE' === $policeman->role ? 2 : 1;
+//                    $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thiefPosition, [
+//                        'x' => $policeman->hidden_position->longitude,
+//                        'y' => $policeman->hidden_position->latitude,
+//                    ]);
+//                    if ($visibilityRadius * $multiplier > $distance) {
+//                        $positions[$thief->id] = $thiefPosition;
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//
+//        $this->thievesPositions = $positions;
     }
 
     private function getNearestThief(array $thievesPositions): int
