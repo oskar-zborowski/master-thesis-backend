@@ -74,7 +74,7 @@ class PolicemanAI extends Command
 
         $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
 //        $point = "{$target1['x']} {$target1['y']}";
-        $point = "0.0 0.0";
+        $point = "16.78689 52.39329";
         $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
         if ($isInside[0]->isIntersects) {
             $policemen[0]->warning_number = 1;
