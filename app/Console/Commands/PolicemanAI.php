@@ -81,6 +81,8 @@ class PolicemanAI extends Command
         } else {
             $policemen[0]->warning_number = 2;
         }
+
+        $policemen[0]->save();
     }
 
     private function getArrayWithTarget($target)
@@ -151,9 +153,9 @@ class PolicemanAI extends Command
                     ->orWhere(['status' => 'DISCONNECTED']);
             })
             ->get();
-        $positionos = [];
+        $positions = [];
         foreach ($thieves as $thief) {
-            $thief->mergeCasts(['hidden_position' => Point::class]);
+            $thief->mergeCasts(['global_position' => Point::class]);
             $thiefPosition = [
                 'x' => $thief->hidden_position->longitude,
                 'y' => $thief->hidden_position->latitude,
