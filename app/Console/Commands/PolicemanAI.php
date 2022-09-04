@@ -26,7 +26,7 @@ class PolicemanAI extends Command
 
     private array $thievesPositions = [];
 
-    private $lastDisclosure;
+//    private $lastDisclosure;
 
     private array $catchingDirectionPoint;
 
@@ -54,76 +54,76 @@ class PolicemanAI extends Command
                 ->where(['is_bot' => true])
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
-            $this->testGlobalPosition();
-//            $this->updateThievesPosition();
-//            $this->updatePoliceCenter();
-//            if (0 < count($this->thievesPositions)) {
-//                $targetThiefId = $this->getNearestThief($this->thievesPositions);
-//                $this->goToThief($this->thievesPositions[$targetThiefId]);
-//            }
+//            $this->testGlobalPosition();
+            $this->updateThievesPosition();
+            $this->updatePoliceCenter();
+            if (0 < count($this->thievesPositions)) {
+                $targetThiefId = $this->getNearestThief();
+                $this->goToThief($this->thievesPositions[$targetThiefId]);
+            }
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
 
-    private function testGlobalPosition()
-    {
-        $policemen = $this->room
-            ->players()
-            ->where(['is_bot' => true])
-            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-            ->get();
+//    private function testGlobalPosition()
+//    {
+//        $policemen = $this->room
+//            ->players()
+//            ->where(['is_bot' => true])
+//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+//            ->get();
+//
+//        $thieves = $this->room
+//            ->players()
+//            ->where(['role' => 'THIEF'])
+//            ->whereNotNull('global_position')
+//            ->whereNull('caught_at')
+//            ->where(function ($query) {
+//                $query->where(['status' => 'CONNECTED'])
+//                    ->orWhere(['status' => 'DISCONNECTED']);
+//            })
+//            ->get();
+//        $positions = [];
+//        if (0 < count($thieves)) {
+//            $policemen[0]->ping = 1;
+//            $policemen[0]->save();
+//            $thieves[0]->mergeCasts(['global_position' => Point::class]);
+//            $thiefPosition = [
+//                'x' => $thieves[0]->global_position->longitude,
+//                'y' => $thieves[0]->global_position->latitude,
+//            ];
+//            $this->goToPoints($this->getArrayWithTarget($thiefPosition));
+//        } else {
+//            $policemen[0]->ping = 2;
+//            $policemen[0]->save();
+//        }
+//    }
 
-        $thieves = $this->room
-            ->players()
-            ->where(['role' => 'THIEF'])
-            ->whereNotNull('global_position')
-            ->whereNull('caught_at')
-            ->where(function ($query) {
-                $query->where(['status' => 'CONNECTED'])
-                    ->orWhere(['status' => 'DISCONNECTED']);
-            })
-            ->get();
-        $positions = [];
-        if (0 < count($thieves)) {
-            $policemen[0]->ping = 1;
-            $policemen[0]->save();
-            $thieves[0]->mergeCasts(['global_position' => Point::class]);
-            $thiefPosition = [
-                'x' => $thieves[0]->global_position->longitude,
-                'y' => $thieves[0]->global_position->latitude,
-            ];
-            $this->goToPoints($this->getArrayWithTarget($thiefPosition));
-        } else {
-            $policemen[0]->ping = 2;
-            $policemen[0]->save();
-        }
-    }
-
-    private function test()
-    {
-        $policemen = $this->room
-            ->players()
-            ->where(['is_bot' => true])
-            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-            ->get();
-
-        $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
-//        $point = "{$target1['x']} {$target1['y']}";
-        $pointLatLng = [
-            'x' => 16.7847,
-            'y' => 52.39229,
-        ];
-        $pointXY = Geometry::convertLatLngToXY($pointLatLng);
-        $point = "{$pointXY['x']} {$pointXY['y']}";
-        $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
-        if ($isInside[0]->isIntersects) {
-            $policemen[0]->warning_number = 1;
-        } else {
-            $policemen[0]->warning_number = 2;
-        }
-
-        $policemen[0]->save();
-    }
+//    private function test()
+//    {
+//        $policemen = $this->room
+//            ->players()
+//            ->where(['is_bot' => true])
+//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+//            ->get();
+//
+//        $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
+////        $point = "{$target1['x']} {$target1['y']}";
+//        $pointLatLng = [
+//            'x' => 16.7847,
+//            'y' => 52.39229,
+//        ];
+//        $pointXY = Geometry::convertLatLngToXY($pointLatLng);
+//        $point = "{$pointXY['x']} {$pointXY['y']}";
+//        $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
+//        if ($isInside[0]->isIntersects) {
+//            $policemen[0]->warning_number = 1;
+//        } else {
+//            $policemen[0]->warning_number = 2;
+//        }
+//
+//        $policemen[0]->save();
+//    }
 
     private function getArrayWithTarget($target)
     {
@@ -197,8 +197,8 @@ class PolicemanAI extends Command
         foreach ($thieves as $thief) {
             $thief->mergeCasts(['global_position' => Point::class]);
             $thiefPosition = [
-                'x' => $thief->hidden_position->longitude,
-                'y' => $thief->hidden_position->latitude,
+                'x' => $thief->global_position->longitude,
+                'y' => $thief->global_position->latitude,
             ];
             $positions[$thief->id] = $thiefPosition;
         }
@@ -254,11 +254,11 @@ class PolicemanAI extends Command
 //        $this->thievesPositions = $positions;
     }
 
-    private function getNearestThief(array $thievesPositions): int
+    private function getNearestThief(): int
     {
         $closestThiefId = null;
         $closestThiefDistance = null;
-        foreach ($thievesPositions as $playerId => $thief) {
+        foreach ($this->thievesPositions as $playerId => $thief) {
             $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thief, $this->policeCenter);
             if (null === $closestThiefDistance || $closestThiefDistance > $distance) {
                 $closestThiefDistance = $distance;
@@ -304,18 +304,18 @@ class PolicemanAI extends Command
 
     private function goToThief(array $targetThief): void
     {
-        $policemen = $this->room
-            ->players()
-            ->where(['is_bot' => true])
-            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-            ->get();
+//        $policemen = $this->room
+//            ->players()
+//            ->where(['is_bot' => true])
+//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+//            ->get();
         $targetPositions = [];
         $catchingSmallRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
-        $policemen[0]->ping = $halfWayRadius;
-        $policemen[0]->save();
-        $policemen[1]->ping = $catchingSmallRadius;
-        $policemen[1]->save();
+//        $policemen[0]->ping = $halfWayRadius;
+//        $policemen[0]->save();
+//        $policemen[1]->ping = $catchingSmallRadius;
+//        $policemen[1]->save();
 
         $goToCatching = $catchingSmallRadius > $halfWayRadius;
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
@@ -415,15 +415,18 @@ class PolicemanAI extends Command
     private function preventFromGoingOutside(array $target1, array $target2, array $target3): array
     {
         $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
-        $point = "{$target1['x']} {$target1['y']}";
-        $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
-        if (!$isInside[0]->isIntersects) {
+
+        $target1XY = Geometry::convertLatLngToXY($target1);
+        $point = "{$target1XY['x']} {$target1XY['y']}";
+        $intersection = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isInside"));
+        if ($intersection[0]->isInside) {
             return $target1;
         } else {
-            $point = "{$target2['x']} {$target2['y']}";
-            $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
+            $target2XY = Geometry::convertLatLngToXY($target2);
+            $point = "{$target2XY['x']} {$target2XY['y']}";
+            $intersection = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isInside"));
 
-            return $isInside[0]->isIntersects ? $target3 : $target2;
+            return $intersection[0]->isInside ? $target2 : $target3;
         }
     }
 
