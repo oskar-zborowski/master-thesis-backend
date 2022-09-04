@@ -26,8 +26,6 @@ class PolicemanAI extends Command
 
     private array $thievesPositions = [];
 
-//    private $lastDisclosure;
-
     private array $catchingDirectionPoint;
 
     /** Execute the console command. */
@@ -66,66 +64,6 @@ class PolicemanAI extends Command
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
-
-//    private function testGlobalPosition()
-//    {
-//        $policemen = $this->room
-//            ->players()
-//            ->where(['is_bot' => true])
-//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-//            ->get();
-//
-//        $thieves = $this->room
-//            ->players()
-//            ->where(['role' => 'THIEF'])
-//            ->whereNotNull('global_position')
-//            ->whereNull('caught_at')
-//            ->where(function ($query) {
-//                $query->where(['status' => 'CONNECTED'])
-//                    ->orWhere(['status' => 'DISCONNECTED']);
-//            })
-//            ->get();
-//        $positions = [];
-//        if (0 < count($thieves)) {
-//            $policemen[0]->ping = 1;
-//            $policemen[0]->save();
-//            $thieves[0]->mergeCasts(['global_position' => Point::class]);
-//            $thiefPosition = [
-//                'x' => $thieves[0]->global_position->longitude,
-//                'y' => $thieves[0]->global_position->latitude,
-//            ];
-//            $this->goToPoints($this->getArrayWithTarget($thiefPosition));
-//        } else {
-//            $policemen[0]->ping = 2;
-//            $policemen[0]->save();
-//        }
-//    }
-
-//    private function test()
-//    {
-//        $policemen = $this->room
-//            ->players()
-//            ->where(['is_bot' => true])
-//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-//            ->get();
-//
-//        $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
-////        $point = "{$target1['x']} {$target1['y']}";
-//        $pointLatLng = [
-//            'x' => 16.7847,
-//            'y' => 52.39229,
-//        ];
-//        $pointXY = Geometry::convertLatLngToXY($pointLatLng);
-//        $point = "{$pointXY['x']} {$pointXY['y']}";
-//        $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
-//        if ($isInside[0]->isIntersects) {
-//            $policemen[0]->warning_number = 1;
-//        } else {
-//            $policemen[0]->warning_number = 2;
-//        }
-//
-//        $policemen[0]->save();
-//    }
 
     private function getArrayWithTarget($target)
     {
@@ -206,54 +144,6 @@ class PolicemanAI extends Command
         }
 
         $this->thievesPositions = $positions;
-
-//        if ($this->lastDisclosure >= $this->room->next_disclosure_at) {
-//            return;
-//        }
-//
-//        $positions = [];
-//        $this->lastDisclosure = $this->room->next_disclosure_at;
-//        $thieves = $this->room
-//            ->players()
-//            ->where(['role' => 'THIEF'])
-//            ->whereNotNull('hidden_position')
-//            ->whereNull('caught_at')
-//            ->where(function ($query) {
-//                $query->where(['status' => 'CONNECTED'])
-//                    ->orWhere(['status' => 'DISCONNECTED']);
-//            })
-//            ->get();
-//        $policemen = $this->room
-//            ->players()
-//            ->where(['is_bot' => true])
-//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-//            ->get();
-//        $visibilityRadius = $this->room->config['actor']['policeman']['visibility_radius'];
-//        foreach ($thieves as $thief) {
-//            $thief->mergeCasts(['hidden_position' => Point::class]);
-//            $thiefPosition = [
-//                'x' => $thief->hidden_position->longitude,
-//                'y' => $thief->hidden_position->latitude,
-//            ];
-//            if (-1 === $visibilityRadius) {
-//                $positions[$thief->id] = $thiefPosition;
-//            } else {
-//                foreach ($policemen as $policeman) {
-//                    $policeman->mergeCasts(['hidden_position' => Point::class]);
-//                    $multiplier = 'EAGLE' === $policeman->role ? 2 : 1;
-//                    $distance = Geometry::getSphericalDistanceBetweenTwoPoints($thiefPosition, [
-//                        'x' => $policeman->hidden_position->longitude,
-//                        'y' => $policeman->hidden_position->latitude,
-//                    ]);
-//                    if ($visibilityRadius * $multiplier > $distance) {
-//                        $positions[$thief->id] = $thiefPosition;
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-//
-//        $this->thievesPositions = $positions;
     }
 
     private function getNearestThief(): int
@@ -306,32 +196,32 @@ class PolicemanAI extends Command
 
     private function goToThief(array $targetThief): void
     {
-        $policemen = $this->room
-            ->players()
-            ->where(['is_bot' => true])
-            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-            ->get();
         $targetPositions = [];
-        $catchingSmallRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
-        $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
-//        $policemen[0]->ping = $halfWayRadius;
-//        $policemen[0]->save();
-//        $policemen[1]->ping = $catchingSmallRadius;
-//        $policemen[1]->save();
 
-        $goToCatching = $catchingSmallRadius > $halfWayRadius;
+        $rangeRadius = $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
+        $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
+        $catchingRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
+
+        $goToHalfWay = $catchingRadius < $halfWayRadius;
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
+            $rangePoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $rangeRadius, count($policemenObject));
             $halfWayPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $halfWayRadius, count($policemenObject));
-            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingSmallRadius, count($policemenObject));
-            $catchingEvenlySpreadPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingSmallRadius, count($policemenObject), true);
+            $catchingPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingRadius, count($policemenObject));
+            $catchingEvenlySpreadPoints = $this->getPointsOnCircle($targetThief, $this->policeCenter, $catchingRadius, count($policemenObject), true);
+
+            $policeCenterToThiefDistance = Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
             foreach ($policemenObject as $key => $policemanObject) {
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
                 $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
                 $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
-                if (!$goToCatching && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
+
+                if ($rangeRadius < $policeCenterToThiefDistance || $rangeRadius < $distanceToThief) {
+                    // go to range
+                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[$key], $halfWayPoints[$key], $targetThief);
+                } else if ($goToHalfWay && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
                     // go to half way
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($halfWayPoints[$key], $catchingPoints[$key], $targetThief);
                 } elseif (self::CLOSE_DISTANCE_DELTA < $distanceToUneven) {
