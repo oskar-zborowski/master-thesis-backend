@@ -6,13 +6,14 @@ use App\Http\Libraries\Geometry;
 use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class PolicemanAI extends Command
 {
     private const CLOSE_DISTANCE_DELTA = 20;
+
+    private const FAR_DISTANCE_DELTA = 60;
 
     private const CHECK_POINTS_NUMBER = 12;
 
@@ -35,7 +36,6 @@ class PolicemanAI extends Command
     {
         $roomId = $this->argument('roomId');
         $this->room = Room::where('id', $roomId)->first();
-        $this->lastDisclosure = now();
         $this->handleSettingStartPositions();
         $this->updatePoliceCenter();
         $this->catchingDirectionPoint = $this->policeCenter;
@@ -213,7 +213,7 @@ class PolicemanAI extends Command
         $policemen[0]->save();
         $policemen[1]->ping = $halfWayRadius;
         $policemen[1]->save();
-        $policemen[2]->ping = $halfWayRadius;
+        $policemen[2]->ping = $catchingRadius;
         $policemen[2]->save();
 
         $goToHalfWay = $catchingRadius < $halfWayRadius;
@@ -233,7 +233,8 @@ class PolicemanAI extends Command
                 $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
                 $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
 
-                if ($rangeRadius < $policeCenterToThiefDistance || $rangeRadius < $distanceToThief) {
+//                if ($rangeRadius < $policeCenterToThiefDistance || $rangeRadius < $distanceToThief) {
+                if (true) {
                     // go to range
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[$key], $catchingPoints[$key], $targetThief);
                 } else if ($goToHalfWay && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
