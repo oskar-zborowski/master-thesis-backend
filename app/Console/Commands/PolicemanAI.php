@@ -59,11 +59,10 @@ class PolicemanAI extends Command
             if (0 < count($this->thievesPositions)) {
                 $targetThiefId = $this->getNearestThief();
                 $this->goToThief($this->thievesPositions[$targetThiefId]);
+
+                $policemen[0]->warning_number = 1;
+                $policemen[0]->save();
             }
-
-            $policemen[0]->warning_number = 1;
-            $policemen[0]->save();
-
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
 
@@ -290,6 +289,7 @@ class PolicemanAI extends Command
             $policeArray[] = [
                 'position' => $value['position'],
                 'playerId' => $value['playerId'],
+                'isCatching' => $value['isCatching'],
             ];
         }
 
@@ -319,7 +319,7 @@ class PolicemanAI extends Command
             $target['y'] += $catchingLocation['y'] / $n;
         }
 
-        return $target;
+        return Geometry::convertXYToLatLng($target);
     }
 
     private function getPointsOnCircle(array $center, float $radius, int $n, bool $isEvenlySpread = false, bool $check = true, array $reference = [], $maxAngle = null): array
