@@ -41,6 +41,7 @@ class PolicemanAI extends Command
         $this->catchingDirectionPoint = $this->policeCenter;
 
         do {
+            $this->test();
             sleep(env('BOT_REFRESH'));
             /** @var Room $room */
             $this->room = Room::where('id', $roomId)->first();
