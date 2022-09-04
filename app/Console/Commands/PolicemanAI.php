@@ -248,7 +248,7 @@ class PolicemanAI extends Command
                 $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
                 $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
 
-                if ($distanceToThief < $this->room->config['actor']['policeman']['catching']['radius'] && $policemanObject['isCatching']) {
+                if ($distanceToThief < $this->room->config['actor']['policeman']['catching']['radius'] && !$policemanObject['isCatching']) {
                     $this->split = true;
                 }
 
