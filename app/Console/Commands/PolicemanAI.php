@@ -31,6 +31,10 @@ class PolicemanAI extends Command
 
     private array $catchingDirectionPoint;
 
+    private $lastDisclosure;
+
+    private bool $split = false;
+
     /** Execute the console command. */
     public function handle()
     {
@@ -39,6 +43,7 @@ class PolicemanAI extends Command
         $this->handleSettingStartPositions();
         $this->updatePoliceCenter();
         $this->catchingDirectionPoint = $this->policeCenter;
+        $this->lastDisclosure = $this->room->next_disclosure_at;
 
         do {
             sleep(env('BOT_REFRESH'));
@@ -46,6 +51,11 @@ class PolicemanAI extends Command
             $this->room = Room::where('id', $roomId)->first();
             if ($this->room->game_started_at > now()) {
                 continue;
+            }
+
+            if ($this->room->next_disclosure_at > $this->lastDisclosure) {
+                $this->lastDisclosure = $this->room->next_disclosure_at;
+                $this->split = false;
             }
 
             $policemen = $this->room
@@ -202,7 +212,7 @@ class PolicemanAI extends Command
 //        $rangeRadius = 0.5 * $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
         $catchingRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
-        $rangeRadius = 4 * $catchingRadius;
+        $rangeRadius = 3.5 * $catchingRadius;
 
         $policemen = $this->room
             ->players()
@@ -238,7 +248,11 @@ class PolicemanAI extends Command
                 $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
                 $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
 
-                if ($goToRange || $rangeRadius < $policeCenterToThiefDistance || $rangeRadius < $distanceToThief) {
+                if ($distanceToThief < $this->room->config['actor']['policeman']['catching']['radius'] && $policemanObject['isCatching']) {
+                    $this->split = true;
+                }
+
+                if ($this->split || $goToRange || $rangeRadius < $policeCenterToThiefDistance || $rangeRadius < $distanceToThief) {
                     // go to range
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[$key], $catchingPoints[$key], $targetThief);
                 } elseif ($goToHalfWay && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
