@@ -54,7 +54,7 @@ class PolicemanAI extends Command
                 ->where(['is_bot' => true])
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
-
+            $this->testGlobalPosition();
 //            $this->updateThievesPosition();
 //            $this->updatePoliceCenter();
 //            if (0 < count($this->thievesPositions)) {
@@ -109,7 +109,11 @@ class PolicemanAI extends Command
 
         $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
 //        $point = "{$target1['x']} {$target1['y']}";
-        $point = "16.78253 52.3963";
+        $pointLatLng = [
+            'x' => 16.7847,
+            'y' => 52.39229,
+        ];
+        $point = Geometry::convertLatLngToXY($pointLatLng);
         $isInside = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isIntersects"));
         if ($isInside[0]->isIntersects) {
             $policemen[0]->warning_number = 1;
