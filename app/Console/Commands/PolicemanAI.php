@@ -202,7 +202,7 @@ class PolicemanAI extends Command
 //        $rangeRadius = 0.5 * $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
         $catchingRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
-        $rangeRadius = 5 * $catchingRadius;
+        $rangeRadius = 4 * $catchingRadius;
 
         $policemen = $this->room
             ->players()
@@ -217,7 +217,7 @@ class PolicemanAI extends Command
         $policemen[2]->save();
 
         $goToHalfWay = $catchingRadius < $halfWayRadius;
-        $goToRange = $rangeRadius < $halfWayRadius;
+        $goToRange = $rangeRadius < $halfWayRadius * 2;
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
         $catchingLocation = $this->getCatchingLocation($policemenObject);
         if (null !== $catchingLocation) {
