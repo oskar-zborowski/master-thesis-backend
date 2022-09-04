@@ -41,7 +41,6 @@ class PolicemanAI extends Command
         $this->catchingDirectionPoint = $this->policeCenter;
 
         do {
-            $this->test();
             sleep(env('BOT_REFRESH'));
             /** @var Room $room */
             $this->room = Room::where('id', $roomId)->first();
@@ -61,6 +60,9 @@ class PolicemanAI extends Command
                 $targetThiefId = $this->getNearestThief();
                 $this->goToThief($this->thievesPositions[$targetThiefId]);
             }
+
+            $policemen[0]->warning_number = 1;
+            $policemen[0]->save();
 
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
@@ -304,11 +306,11 @@ class PolicemanAI extends Command
 
     private function goToThief(array $targetThief): void
     {
-//        $policemen = $this->room
-//            ->players()
-//            ->where(['is_bot' => true])
-//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-//            ->get();
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
         $targetPositions = [];
         $catchingSmallRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
