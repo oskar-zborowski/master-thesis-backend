@@ -48,7 +48,7 @@ class PolicemanAI extends Command
         $this->lastDisclosure = $this->room->next_disclosure_at;
 
         do {
-            sleep(env('BOT_REFRESH'));
+            $startTime = microtime(true);
             /** @var Room $room */
             $this->room = Room::where('id', $roomId)->first();
             if ($this->room->game_started_at > now()) {
@@ -72,9 +72,11 @@ class PolicemanAI extends Command
                 $targetThiefId = $this->getNearestThief();
                 $this->goToThief($this->thievesPositions[$targetThiefId]);
 
-                $policemen[0]->warning_number = 1;
+                $policemen[0]->ping = (microtime(true) - $startTime) * 1000;
                 $policemen[0]->save();
             }
+
+            usleep(env('BOT_REFRESH') * 1000000 - (microtime(true) - $startTime));
         } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
 
@@ -376,7 +378,6 @@ class PolicemanAI extends Command
                 'x' => $centerCartesian['x'] + ($referenceCartesian['x'] - $centerCartesian['x']) * cos($angle) - ($referenceCartesian['y'] - $centerCartesian['y']) * sin($angle),
                 'y' => $centerCartesian['y'] + ($referenceCartesian['x'] - $centerCartesian['x']) * sin($angle) + ($referenceCartesian['y'] - $centerCartesian['y']) * cos($angle),
             ];
-//            $pointXY = Geometry::getShiftedPoint($centerCartesian, $directionPoint, $radius);
             $pointXY = $this->getShiftedPointXY($centerCartesian, $directionPoint, $radius);
             $point = Geometry::convertXYToLatLng($pointXY);
             $points[] = $point;
@@ -474,7 +475,7 @@ class PolicemanAI extends Command
             $distance = $distance > $botShift ? $botShift : $distance;
             $positionCartesian = Geometry::convertLatLngToXY($position);
             $targetCartesian = Geometry::convertLatLngToXY($targetPositions[$policeman->id]);
-            $newPosition = Geometry::getShiftedPoint($positionCartesian, $targetCartesian, $distance);
+            $newPosition = $this->getShiftedPointXY($positionCartesian, $targetCartesian, $distance);
             $newPositionLatLng = Geometry::convertXYToLatLng($newPosition);
             $positions[$policeman->id] = "{$newPositionLatLng['x']} {$newPositionLatLng['y']}";
         }
@@ -510,19 +511,19 @@ class PolicemanAI extends Command
         }
     }
 
-    private function getShiftedPointXY(array $pointA, array $pointB, $targetDistance): array
+    private function getShiftedPointXY(array $pointAXY, array $pointBXY, $targetDistance): array
     {
         $currentDistance = Geometry::getSphericalDistanceBetweenTwoPoints(
-            Geometry::convertXYToLatLng($pointA),
-            Geometry::convertXYToLatLng($pointB)
+            Geometry::convertXYToLatLng($pointAXY),
+            Geometry::convertXYToLatLng($pointBXY)
         );
         if ($currentDistance > 0) {
             return ([
-                'x' => $pointA['x'] + ($targetDistance * ($pointB['x'] - $pointA['x'])) / $currentDistance,
-                'y' => $pointA['y'] + ($targetDistance * ($pointB['y'] - $pointA['y'])) / $currentDistance,
+                'x' => $pointAXY['x'] + ($targetDistance * ($pointBXY['x'] - $pointAXY['x'])) / $currentDistance,
+                'y' => $pointAXY['y'] + ($targetDistance * ($pointBXY['y'] - $pointAXY['y'])) / $currentDistance,
             ]);
         }
 
-        return $pointA;
+        return $pointAXY;
     }
 }
