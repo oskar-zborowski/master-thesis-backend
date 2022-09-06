@@ -209,6 +209,8 @@ class PolicemanAI extends Command
 
     private function goToThief(array $targetThief): void
     {
+        $targetThief = $this->getTargetOnTheWall(2);
+
         $targetPositions = [];
 
 //        $rangeRadius = 0.5 * $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
@@ -275,7 +277,8 @@ class PolicemanAI extends Command
             }
         }
 
-        $this->makeAStep($targetPositions);
+//        $this->makeAStep($targetPositions);
+        $this->goToPoints($targetPositions);
     }
 
     private function getReorderedPoliceLocation(array $thief): array
