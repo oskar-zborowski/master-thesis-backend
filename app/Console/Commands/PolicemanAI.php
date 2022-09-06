@@ -222,17 +222,17 @@ class PolicemanAI extends Command
         $catchingRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
         $rangeRadius = 3.5 * $catchingRadius;
 
-        $policemen = $this->room
-            ->players()
-            ->where(['is_bot' => true])
-            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-            ->get();
-        $policemen[0]->ping = $rangeRadius;
-        $policemen[0]->save();
-        $policemen[1]->ping = $halfWayRadius;
-        $policemen[1]->save();
-        $policemen[2]->ping = $catchingRadius;
-        $policemen[2]->save();
+//        $policemen = $this->room
+//            ->players()
+//            ->where(['is_bot' => true])
+//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+//            ->get();
+//        $policemen[0]->ping = $rangeRadius;
+//        $policemen[0]->save();
+//        $policemen[1]->ping = $halfWayRadius;
+//        $policemen[1]->save();
+//        $policemen[2]->ping = $catchingRadius;
+//        $policemen[2]->save();
 
         $goToHalfWay = $catchingRadius < $halfWayRadius;
         $goToRange = $rangeRadius < $halfWayRadius * 2;
@@ -280,8 +280,7 @@ class PolicemanAI extends Command
             }
         }
 
-//        $this->makeAStep($targetPositions);
-        $this->goToPoints($targetPositions);
+        $this->makeAStep($targetPositions);
     }
 
     private function getReorderedPoliceLocation(array $thief): array
