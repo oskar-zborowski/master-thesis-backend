@@ -47,35 +47,35 @@ class PolicemanAI extends Command
         $this->catchingDirectionPoint = $this->policeCenter;
         $this->lastDisclosure = $this->room->next_disclosure_at;
 
-//        do {
-//            sleep(env('BOT_REFRESH'));
-//            /** @var Room $room */
-//            $this->room = Room::where('id', $roomId)->first();
-//            if ($this->room->game_started_at > now()) {
-//                continue;
-//            }
-//
-//            if ($this->room->next_disclosure_at > $this->lastDisclosure) {
-//                $this->lastDisclosure = $this->room->next_disclosure_at;
-//                $this->split = false;
-//            }
-//
-//            $policemen = $this->room
-//                ->players()
-//                ->where(['is_bot' => true])
-//                ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-//                ->get();
-////            $this->testGlobalPosition();
-//            $this->updateThievesPosition();
-//            $this->updatePoliceCenter();
-//            if (0 < count($this->thievesPositions)) {
-//                $targetThiefId = $this->getNearestThief();
-//                $this->goToThief($this->thievesPositions[$targetThiefId]);
-//
-//                $policemen[0]->warning_number = 1;
-//                $policemen[0]->save();
-//            }
-//        } while ('GAME_IN_PROGRESS' === $this->room->status);
+        do {
+            sleep(env('BOT_REFRESH'));
+            /** @var Room $room */
+            $this->room = Room::where('id', $roomId)->first();
+            if ($this->room->game_started_at > now()) {
+                continue;
+            }
+
+            if ($this->room->next_disclosure_at > $this->lastDisclosure) {
+                $this->lastDisclosure = $this->room->next_disclosure_at;
+                $this->split = false;
+            }
+
+            $policemen = $this->room
+                ->players()
+                ->where(['is_bot' => true])
+                ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+                ->get();
+//            $this->testGlobalPosition();
+            $this->updateThievesPosition();
+            $this->updatePoliceCenter();
+            if (0 < count($this->thievesPositions)) {
+                $targetThiefId = $this->getNearestThief();
+                $this->goToThief($this->thievesPositions[$targetThiefId]);
+
+                $policemen[0]->warning_number = 1;
+                $policemen[0]->save();
+            }
+        } while ('GAME_IN_PROGRESS' === $this->room->status);
     }
 
     private function getArrayWithTarget($target)
