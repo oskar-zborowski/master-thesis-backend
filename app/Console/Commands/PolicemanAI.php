@@ -243,7 +243,7 @@ class PolicemanAI extends Command
         }
 
         if (null !== $this->thiefCatchingPosition) {
-            $targetThief = $catchingLocation;
+            $targetThief = $this->thiefCatchingPosition;
         }
 
         if (1 === count($policemenObject)) {
