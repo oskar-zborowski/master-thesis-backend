@@ -55,16 +55,21 @@ class PolicemanAI extends Command
                 continue;
             }
 
-            if ($this->room->next_disclosure_at > $this->lastDisclosure) {
-                $this->lastDisclosure = $this->room->next_disclosure_at;
-                $this->split = false;
-            }
-
             $policemen = $this->room
                 ->players()
                 ->where(['is_bot' => true])
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
+
+            if ($this->room->next_disclosure_at > $this->lastDisclosure) {
+                $this->lastDisclosure = $this->room->next_disclosure_at;
+                $this->split = false;
+                $this->thiefCatchingPosition = null;
+
+                $policemen[0]->ping = $policemen[0]->ping + 1;
+                $policemen[0]->save();
+            }
+
             $this->updateThievesPosition();
             $this->updatePoliceCenter();
             if (0 < count($this->thievesPositions)) {
@@ -234,6 +239,10 @@ class PolicemanAI extends Command
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
         $catchingLocation = $this->getCatchingLocation($policemenObject);
         if (null !== $catchingLocation) {
+            $this->thiefCatchingPosition = $catchingLocation;
+        }
+
+        if (null !== $this->thiefCatchingPosition) {
             $targetThief = $catchingLocation;
         }
 
