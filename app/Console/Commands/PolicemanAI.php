@@ -15,7 +15,7 @@ class PolicemanAI extends Command
 
     private const FAR_DISTANCE_DELTA = 60;
 
-    private const CHECK_POINTS_NUMBER = 24;
+    private const CHECK_POINTS_NUMBER = 16;
 
     /** The name and signature of the console command.*/
     protected $signature = 'policeman-ai:start {roomId}';
@@ -65,14 +65,13 @@ class PolicemanAI extends Command
                 ->where(['is_bot' => true])
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
-//            $this->testGlobalPosition();
             $this->updateThievesPosition();
             $this->updatePoliceCenter();
             if (0 < count($this->thievesPositions)) {
                 $targetThiefId = $this->getNearestThief();
                 $this->goToThief($this->thievesPositions[$targetThiefId]);
 
-                $policemen[0]->ping = (microtime(true) - $startTime) * 1000;
+                $policemen[0]->warning_number = 1;
                 $policemen[0]->save();
             }
 
@@ -211,8 +210,6 @@ class PolicemanAI extends Command
 
     private function goToThief(array $targetThief): void
     {
-        $targetThief = $this->getTargetOnTheWall(2);
-
         $targetPositions = [];
 
 //        $rangeRadius = 0.5 * $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
@@ -248,16 +245,11 @@ class PolicemanAI extends Command
             $catchingPoints = $this->getPointsOnCircle($targetThief, $catchingRadius, count($policemenObject));
             $catchingEvenlySpreadPoints = $this->getPointsOnCircle($targetThief, $catchingRadius, count($policemenObject), true);
 
-            $points = $this->getPointsOnCircle($this->getTargetOnTheWall(2), 200, count($policemen), true);
-
             $policeCenterToThiefDistance = Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
             foreach ($policemenObject as $key => $policemanObject) {
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
                 $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
                 $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
-
-                $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($points[$key], $points[$key], $points[$key]);
-                continue;
 
                 if ($distanceToThief < $this->room->config['actor']['policeman']['catching']['radius'] && !$policemanObject['isCatching']) {
                     $this->split = true;
@@ -428,7 +420,8 @@ class PolicemanAI extends Command
         } else {
             $point1 = $checkPoints[intval($right + $diff / 2 - 0.5)];
             $point2 = $checkPoints[intval($right + $diff / 2 + 0.5)];
-            $reference = Geometry::findSegmentMiddle($point1, $point2);
+            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($point1, $point2);
+            $reference = $this->getShiftedPointXY($point1, $point2, 0.5 * $distance);
         }
 
         return $this->getPointsOnCircle($center, $radius, $n, $isEvenlySpread, false, $reference, $maxAngle);
