@@ -35,6 +35,8 @@ class PolicemanAI extends Command
 
     private bool $split = false;
 
+    private ?array $thiefCatchingPosition = null;
+
     /** Execute the console command. */
     public function handle()
     {
@@ -242,11 +244,16 @@ class PolicemanAI extends Command
             $catchingPoints = $this->getPointsOnCircle($targetThief, $catchingRadius, count($policemenObject));
             $catchingEvenlySpreadPoints = $this->getPointsOnCircle($targetThief, $catchingRadius, count($policemenObject), true);
 
+            $points = $this->getPointsOnCircle($this->getTargetOnTheWall(2), 200, count($policemen), true);
+
             $policeCenterToThiefDistance = Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
             foreach ($policemenObject as $key => $policemanObject) {
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
                 $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
                 $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
+
+                $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($points[$key], $points[$key], $points[$key]);
+                continue;
 
                 if ($distanceToThief < $this->room->config['actor']['policeman']['catching']['radius'] && !$policemanObject['isCatching']) {
                     $this->split = true;
