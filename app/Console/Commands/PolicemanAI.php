@@ -524,4 +524,5 @@ class PolicemanAI extends Command
         }
 
         return $pointA;
+    }
 }
