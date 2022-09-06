@@ -376,7 +376,8 @@ class PolicemanAI extends Command
                 'x' => $centerCartesian['x'] + ($referenceCartesian['x'] - $centerCartesian['x']) * cos($angle) - ($referenceCartesian['y'] - $centerCartesian['y']) * sin($angle),
                 'y' => $centerCartesian['y'] + ($referenceCartesian['x'] - $centerCartesian['x']) * sin($angle) + ($referenceCartesian['y'] - $centerCartesian['y']) * cos($angle),
             ];
-            $pointXY = Geometry::getShiftedPoint($centerCartesian, $directionPoint, $radius);
+//            $pointXY = Geometry::getShiftedPoint($centerCartesian, $directionPoint, $radius);
+            $pointXY = $this->getShiftedPointXY($centerCartesian, $directionPoint, $radius);
             $point = Geometry::convertXYToLatLng($pointXY);
             $points[] = $point;
         }
@@ -508,4 +509,19 @@ class PolicemanAI extends Command
             $policeman->save();
         }
     }
+
+    private function getShiftedPointXY(array $pointA, array $pointB, $targetDistance): array
+    {
+        $currentDistance = Geometry::getSphericalDistanceBetweenTwoPoints(
+            Geometry::convertXYToLatLng($pointA),
+            Geometry::convertXYToLatLng($pointB)
+        );
+        if ($currentDistance > 0) {
+            return ([
+                'x' => $pointA['x'] + ($targetDistance * ($pointB['x'] - $pointA['x'])) / $currentDistance,
+                'y' => $pointA['y'] + ($targetDistance * ($pointB['y'] - $pointA['y'])) / $currentDistance,
+            ]);
+        }
+
+        return $pointA;
 }
