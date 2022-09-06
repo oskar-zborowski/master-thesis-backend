@@ -15,7 +15,7 @@ class PolicemanAI extends Command
 
     private const FAR_DISTANCE_DELTA = 60;
 
-    private const CHECK_POINTS_NUMBER = 12;
+    private const CHECK_POINTS_NUMBER = 24;
 
     /** The name and signature of the console command.*/
     protected $signature = 'policeman-ai:start {roomId}';
