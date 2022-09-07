@@ -222,11 +222,11 @@ class PolicemanAI extends Command
         $catchingRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
 //        $rangeRadius = 4 * $catchingRadius;
 
-//        $policemen = $this->room
-//            ->players()
-//            ->where(['is_bot' => true])
-//            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
-//            ->get();
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
 //        $policemen[0]->ping = $rangeRadius;
 //        $policemen[0]->save();
 //        $policemen[1]->ping = $halfWayRadius;
@@ -262,7 +262,11 @@ class PolicemanAI extends Command
 
             // 2 special
             $edgeOfficerRId = $this->getNearestPoliceman($rangePoints[0]);
+            $policemen[0]->ping = $edgeOfficerRId;
+            $policemen[0]->save();
             $edgeOfficerLId = $this->getNearestPoliceman($rangePoints[count($policemenObject) - 1]);
+            $policemen[1]->ping = $edgeOfficerLId;
+            $policemen[1]->save();
 
             foreach ($policemenObject as $key => $policemanObject) {
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
@@ -384,7 +388,7 @@ class PolicemanAI extends Command
     }
 
     /** returns indexes of policemen nearest to 'edge' point */
-    private function getNearestPoliceman(array $point)
+    private function getNearestPoliceman(array $point): int
     {
         $policemen = $this->room
             ->players()
