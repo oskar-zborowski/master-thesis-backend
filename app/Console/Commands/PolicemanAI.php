@@ -265,7 +265,7 @@ class PolicemanAI extends Command
             $policemen[0]->ping = $edgeOfficerRId;
             $policemen[0]->save();
             $edgeOfficerLId = $this->getNearestPoliceman($rangePoints[count($policemenObject) - 1]);
-            $policemen[1]->ping = $edgeOfficerLId;
+            $policemen[1]->ping = $edgeOfficerRId;
             $policemen[1]->save();
 
             foreach ($policemenObject as $key => $policemanObject) {
@@ -398,7 +398,12 @@ class PolicemanAI extends Command
         $closestPolicemanId = null;
         $closestPolicemanDistance = null;
         foreach ($policemen as $policeman) {
-            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($point, $policeman);
+            $policeman->mergeCasts(['hidden_position' => Point::class]);
+            $position = [
+                'x' => $policeman->hidden_position->longitude,
+                'y' => $policeman->hidden_position->latitude,
+            ];
+            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($point, $position);
             if (null === $closestPolicemanDistance || $closestPolicemanDistance > $distance) {
                 $closestPolicemanDistance = $distance;
                 $closestPolicemanId = $policeman->id;
