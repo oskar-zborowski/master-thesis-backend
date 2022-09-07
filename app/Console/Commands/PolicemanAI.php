@@ -260,7 +260,10 @@ class PolicemanAI extends Command
             $sphere3Points = $this->getPointsOnCircle($targetThief, 3 * $catchingRadius, count($policemenObject));
             $sphere2Points = $this->getPointsOnCircle($targetThief, 2 * $catchingRadius, count($policemenObject));
 
-            $policeCenterToThiefDistance = Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
+            // 2 special
+            $edgeOfficerRId = $this->getNearestPoliceman($rangePoints[0]);
+            $edgeOfficerLId = $this->getNearestPoliceman($rangePoints[count($policemenObject) - 1]);
+
             foreach ($policemenObject as $key => $policemanObject) {
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
                 $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
@@ -275,6 +278,14 @@ class PolicemanAI extends Command
 //                    $this->split = true;
 //                }
 
+                if ($policemanObject['playerId'] === $edgeOfficerRId) {
+                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[0], $catchingPoints[$key], $targetThief);
+                    continue;
+                } elseif ($policemanObject['playerId'] === $edgeOfficerLId) {
+                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[count($policemenObject) - 1], $catchingPoints[$key], $targetThief);
+                    continue;
+                }
+
                 // depending on policeman distance: go to: range, s4, s3, s2, ce
                 if ($this->split || $rangeRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToRange) {
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[$key], $catchingPoints[$key], $targetThief);
@@ -288,7 +299,7 @@ class PolicemanAI extends Command
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingEvenlySpreadPoints[$key], $catchingPoints[$key], $targetThief);
                 }
 
-//                if ($this->split || $goToRange || $rangeRadius < $policeCenterToThiefDistance || $rangeRadius < $distanceToThief) {
+//                if ($this->split || $goToRange || $rangeRadius < $distanceToThief) {
 //                    // go to range
 //                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[$key], $catchingPoints[$key], $targetThief);
 //                } elseif ($goToHalfWay && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
@@ -370,6 +381,27 @@ class PolicemanAI extends Command
         }
 
         return Geometry::convertXYToLatLng($target);
+    }
+
+    /** returns indexes of policemen nearest to 'edge' point */
+    private function getNearestPoliceman(array $point)
+    {
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
+        $closestPolicemanId = null;
+        $closestPolicemanDistance = null;
+        foreach ($policemen as $policeman) {
+            $distance = Geometry::getSphericalDistanceBetweenTwoPoints($point, $policeman);
+            if (null === $closestPolicemanDistance || $closestPolicemanDistance > $distance) {
+                $closestPolicemanDistance = $distance;
+                $closestPolicemanId = $policeman->id;
+            }
+        }
+
+        return $closestPolicemanId;
     }
 
     private function getPointsOnCircle(array $center, float $radius, int $n, bool $isEvenlySpread = false, bool $check = true, array $reference = [], $maxAngle = null): array
