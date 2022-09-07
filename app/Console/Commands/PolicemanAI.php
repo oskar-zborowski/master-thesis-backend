@@ -217,10 +217,10 @@ class PolicemanAI extends Command
     {
         $targetPositions = [];
 
-        $rangeRadius = 0.5 * $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
+        $rangeRadius = $this->room->config['other']['bot_speed'] * $this->room->config['actor']['thief']['disclosure_interval'];
         $halfWayRadius = 0.5 * Geometry::getSphericalDistanceBetweenTwoPoints($this->policeCenter, $targetThief);
         $catchingRadius = 0.8 * $this->room->config['actor']['policeman']['catching']['radius'];
-        $rangeRadius = 4 * $catchingRadius;
+//        $rangeRadius = 4 * $catchingRadius;
 
 //        $policemen = $this->room
 //            ->players()
@@ -276,31 +276,31 @@ class PolicemanAI extends Command
 //                }
 
                 // depending on policeman distance: go to: range, s4, s3, s2, ce
-//                if ($this->split || $rangeRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToRange) {
-//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[$key], $catchingPoints[$key], $targetThief);
-//                } elseif (4 * $catchingRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToSphere4) {
-//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($sphere4Points[$key], $catchingPoints[$key], $targetThief);
-//                } elseif (3 * $catchingRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToSphere3) {
-//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($sphere3Points[$key], $catchingPoints[$key], $targetThief);
-//                } elseif (2 * $catchingRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToSphere2) {
-//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($sphere2Points[$key], $catchingPoints[$key], $targetThief);
-//                } else {
-//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingEvenlySpreadPoints[$key], $catchingPoints[$key], $targetThief);
-//                }
-
-                if ($this->split || $goToRange || $rangeRadius < $policeCenterToThiefDistance || $rangeRadius < $distanceToThief) {
-                    // go to range
+                if ($this->split || $rangeRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToRange) {
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[$key], $catchingPoints[$key], $targetThief);
-                } elseif ($goToHalfWay && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
-                    // go to half way
-                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($halfWayPoints[$key], $catchingPoints[$key], $targetThief);
-                } elseif (self::CLOSE_DISTANCE_DELTA < $distanceToUneven) {
-                    // go to uneven catch
-                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingPoints[$key], $targetThief, $targetThief);
+                } elseif (4 * $catchingRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToSphere4) {
+                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($sphere4Points[$key], $catchingPoints[$key], $targetThief);
+                } elseif (3 * $catchingRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToSphere3) {
+                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($sphere3Points[$key], $catchingPoints[$key], $targetThief);
+                } elseif (2 * $catchingRadius < $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToSphere2) {
+                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($sphere2Points[$key], $catchingPoints[$key], $targetThief);
                 } else {
-                    // go to even catch
-                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingEvenlySpreadPoints[$key], $catchingPoints, $targetThief);
+                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingEvenlySpreadPoints[$key], $catchingPoints[$key], $targetThief);
                 }
+
+//                if ($this->split || $goToRange || $rangeRadius < $policeCenterToThiefDistance || $rangeRadius < $distanceToThief) {
+//                    // go to range
+//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[$key], $catchingPoints[$key], $targetThief);
+//                } elseif ($goToHalfWay && $distanceToThief > $halfWayRadius && self::CLOSE_DISTANCE_DELTA < $distanceToHalfWay) {
+//                    // go to half way
+//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($halfWayPoints[$key], $catchingPoints[$key], $targetThief);
+//                } elseif (self::CLOSE_DISTANCE_DELTA < $distanceToUneven) {
+//                    // go to uneven catch
+//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingPoints[$key], $targetThief, $targetThief);
+//                } else {
+//                    // go to even catch
+//                    $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingEvenlySpreadPoints[$key], $catchingPoints, $targetThief);
+//                }
             }
         }
 
