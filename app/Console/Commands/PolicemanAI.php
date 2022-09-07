@@ -384,7 +384,8 @@ class PolicemanAI extends Command
 
         $angleDelta = $maxAngle / $n;
         if (!$isEvenlySpread) {
-            $angleDelta *= 1 - pow(1.7, -$n);
+//            $angleDelta *= 1 - pow(1.7, -$n);
+            $angleDelta *= (1 - pow(1.5, -$n - 1.25)) * $n / 2 / ($n - 1);
         }
 
         for ($i = 0; $i < $n; $i++) {
