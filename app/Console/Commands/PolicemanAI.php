@@ -37,6 +37,8 @@ class PolicemanAI extends Command
 
     private ?array $thiefCatchingPosition = null;
 
+    private int $caughtThieves = 0;
+
     private int $officerLId = 0;
     private int $officerRId = 0;
     private int $officerRStatus = 0;
@@ -158,6 +160,7 @@ class PolicemanAI extends Command
             })
             ->get();
         $positions = [];
+        $caughtThieves = 0;
         foreach ($thieves as $thief) {
             $thief->mergeCasts(['global_position' => Point::class]);
             $thiefPosition = [
@@ -165,6 +168,17 @@ class PolicemanAI extends Command
                 'y' => $thief->global_position->latitude,
             ];
             $positions[$thief->id] = $thiefPosition;
+            if (null !== $thief->caught_at) {
+                $caughtThieves++;
+            }
+        }
+
+        if ($caughtThieves > $this->caughtThieves) {
+            $this->caughtThieves = $caughtThieves;
+            $this->split = false;
+            $this->thiefCatchingPosition = null;
+            $this->officerLStatus = 0;
+            $this->officerRStatus = 0;
         }
 
         $this->thievesPositions = $positions;
