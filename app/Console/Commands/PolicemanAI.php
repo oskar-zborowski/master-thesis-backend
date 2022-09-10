@@ -325,7 +325,7 @@ class PolicemanAI extends Command
                     $directionXY = $this->getDirectionVectorXY($this->earlyChasePoliceCenter, $policemanObject['position']);
                     $policemen[1]->ping = 1;
                     $policemen[1]->save();
-                    $policemanPositionXY = Geometry::convertLatLngToXY($policemenObject['position']);
+                    $policemanPositionXY = Geometry::convertLatLngToXY($policemanObject['position']);
                     $policemen[1]->ping = 2;
                     $policemen[1]->save();
                     $targetDirectionXY = [
