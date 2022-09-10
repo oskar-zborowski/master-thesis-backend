@@ -322,12 +322,13 @@ class PolicemanAI extends Command
 
                 // continue attack
                 if ($this->goForward) {
-                    $direction = $this->getDirectionVectorXY($this->earlyChasePoliceCenter, $policemanObject['position']);
-                    $policemenPositionXY = Geometry::convertLatLngToXY($policemenObject['position']);
-                    $targetXY = [
-                        'x' => $policemenPositionXY['x'] + $direction['x'],
-                        'y' => $policemenPositionXY['y'] + $direction['y'],
+                    $directionXY = $this->getDirectionVectorXY($this->earlyChasePoliceCenter, $policemanObject['position']);
+                    $policemanPositionXY = Geometry::convertLatLngToXY($policemenObject['position']);
+                    $targetDirectionXY = [
+                        'x' => $policemanPositionXY['x'] + $directionXY['x'],
+                        'y' => $policemanPositionXY['y'] + $directionXY['y'],
                     ];
+                    $targetXY = $this->getShiftedPointXY($policemanPositionXY, $targetDirectionXY, $this->room->config['other']['bot_speed'] * env('BOT_REFRESH'));
                     $targetLatLng = Geometry::convertXYToLatLng($targetXY);
                     if ($this->isInside($targetLatLng)) {
                         $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($targetLatLng, $targetThief, $targetThief);
@@ -684,16 +685,10 @@ class PolicemanAI extends Command
     {
         $startPointXY = Geometry::convertLatLngToXY($startPointLatLng);
         $endPointXY = Geometry::convertLatLngToXY($endPointLatLng);
-        $vectorLength = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
-        $distance = Geometry::getSphericalDistanceBetweenTwoPoints($startPointLatLng, $endPointLatLng);
-        if (5 > $distance) {
-            $this->goForward = false;
-            return ['x' => 0.0, 'y' => 0.0];
-        }
 
         return [
-            'x' => ($endPointXY['x'] - $startPointXY['x']) * $vectorLength / $distance,
-            'y' => ($endPointXY['y'] - $startPointXY['y']) * $vectorLength / $distance,
+            'x' => ($endPointXY['x'] - $startPointXY['x']),
+            'y' => ($endPointXY['y'] - $startPointXY['y']),
         ];
     }
 }
