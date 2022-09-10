@@ -82,8 +82,8 @@ class PolicemanAI extends Command
                 $targetThiefId = $this->getNearestThief();
                 $this->goToThief($this->thievesPositions[$targetThiefId]);
 
-                $policemen[0]->warning_number = 2;
-                $policemen[0]->save();
+                $policemen[1]->warning_number = 2;
+                $policemen[1]->save();
             }
 
             $time = env('BOT_REFRESH') * 1000000 - (microtime(true) - $startTime);
@@ -328,7 +328,7 @@ class PolicemanAI extends Command
                     } elseif (4 * $catchingRadius > $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToSphere4EvenlySpread) {
                         $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($sphere4EvenlySpreadPoints[$key], $sphere4Points[$key], $targetThief);
                     } else {
-                        $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[$key], $partRangePoints[$key], $targetThief);
+                        $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangeEvenlySpreadPoints[$key], $partRangePoints[$key], $targetThief);
                     }
 
                     continue;
