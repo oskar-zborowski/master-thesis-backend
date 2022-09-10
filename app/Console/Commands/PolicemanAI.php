@@ -153,7 +153,6 @@ class PolicemanAI extends Command
             ->players()
             ->where(['role' => 'THIEF'])
             ->whereNotNull('global_position')
-            ->whereNull('caught_at')
             ->where(function ($query) {
                 $query->where(['status' => 'CONNECTED'])
                     ->orWhere(['status' => 'DISCONNECTED']);
@@ -162,13 +161,14 @@ class PolicemanAI extends Command
         $positions = [];
         $caughtThieves = 0;
         foreach ($thieves as $thief) {
-            $thief->mergeCasts(['global_position' => Point::class]);
-            $thiefPosition = [
-                'x' => $thief->global_position->longitude,
-                'y' => $thief->global_position->latitude,
-            ];
-            $positions[$thief->id] = $thiefPosition;
-            if (null !== $thief->caught_at) {
+            if (null === $thief->caught_at) {
+                $thief->mergeCasts(['global_position' => Point::class]);
+                $thiefPosition = [
+                    'x' => $thief->global_position->longitude,
+                    'y' => $thief->global_position->latitude,
+                ];
+                $positions[$thief->id] = $thiefPosition;
+            } else {
                 $caughtThieves++;
             }
         }
@@ -270,6 +270,7 @@ class PolicemanAI extends Command
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
             $rangePoints = $this->getPointsOnCircle($targetThief, $rangeRadius, count($policemenObject));
+            $rangeEvenlySpreadPoints = $this->getPointsOnCircle($targetThief, $rangeRadius, count($policemenObject), true);
             $halfWayPoints = $this->getPointsOnCircle($targetThief, $halfWayRadius, count($policemenObject));
             $catchingPoints = $this->getPointsOnCircle($targetThief, $catchingRadius, count($policemenObject));
             $catchingEvenlySpreadPoints = $this->getPointsOnCircle($targetThief, $catchingRadius, count($policemenObject), true);
@@ -317,13 +318,14 @@ class PolicemanAI extends Command
                     continue;
                 }
 
-                //split
+                // SETTING POSITIONS
+                //split:        s2es, s3es, s4es, r
                 if ($this->split) {
-                    if (2 * $catchingRadius > $distanceToThief) {
+                    if (2 * $catchingRadius > $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToSphere2EvenlySpread) {
                         $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($sphere2EvenlySpreadPoints[$key], $sphere2Points[$key], $targetThief);
-                    } elseif (3 * $catchingRadius > $distanceToThief) {
+                    } elseif (3 * $catchingRadius > $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToSphere3EvenlySpread) {
                         $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($sphere3EvenlySpreadPoints[$key], $sphere3Points[$key], $targetThief);
-                    } elseif (4 * $catchingRadius > $distanceToThief) {
+                    } elseif (4 * $catchingRadius > $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToSphere4EvenlySpread) {
                         $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($sphere4EvenlySpreadPoints[$key], $sphere4Points[$key], $targetThief);
                     } else {
                         $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($rangePoints[$key], $partRangePoints[$key], $targetThief);
@@ -332,9 +334,9 @@ class PolicemanAI extends Command
                     continue;
                 }
 
-                // może jak są blisko (policeCenter blisko & każdy policjant blisko) to od razy catchEven
+                // może jak są blisko (policeCenter blisko & każdy policjant blisko & może jak krótko po disclosure) to od razy catchEven
 
-                // 2 special
+                // 2 special:   halfRange, sphere3EvenlySpread, catchingEvenlySpread
                 if ($policemanObject['playerId'] === $edgeOfficerRId) {
                     $distanceToHalfRange = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $partRangePoints[0]);
                     if (0 === $this->officerRStatus && self::CLOSE_DISTANCE_DELTA < $distanceToHalfRange) {
