@@ -39,6 +39,10 @@ class PolicemanAI extends Command
 
     private int $caughtThieves = 0;
 
+    private array $earlyChasePoliceCenter;
+
+    private bool $goForward = false;
+
     private int $officerLId = 0;
     private int $officerRId = 0;
     private int $officerRStatus = 0;
@@ -51,6 +55,7 @@ class PolicemanAI extends Command
         $this->room = Room::where('id', $roomId)->first();
         $this->handleSettingStartPositions();
         $this->updatePoliceCenter();
+        $this->earlyChasePoliceCenter = $this->policeCenter;
         $this->catchingDirectionPoint = $this->policeCenter;
         $this->lastDisclosure = $this->room->next_disclosure_at;
 
@@ -70,10 +75,7 @@ class PolicemanAI extends Command
 
             if ($this->room->next_disclosure_at > $this->lastDisclosure) {
                 $this->lastDisclosure = $this->room->next_disclosure_at;
-                $this->split = false;
-                $this->thiefCatchingPosition = null;
-                $this->officerLStatus = 0;
-                $this->officerRStatus = 0;
+                $this->clearParameters();
             }
 
             $this->updateThievesPosition();
@@ -82,8 +84,8 @@ class PolicemanAI extends Command
                 $targetThiefId = $this->getNearestThief();
                 $this->goToThief($this->thievesPositions[$targetThiefId]);
 
-                $policemen[1]->warning_number = 2;
-                $policemen[1]->save();
+                $policemen[0]->warning_number = 1;
+                $policemen[0]->save();
             }
 
             $time = env('BOT_REFRESH') * 1000000 - (microtime(true) - $startTime);
@@ -175,10 +177,7 @@ class PolicemanAI extends Command
 
         if ($caughtThieves > $this->caughtThieves) {
             $this->caughtThieves = $caughtThieves;
-            $this->split = false;
-            $this->thiefCatchingPosition = null;
-            $this->officerLStatus = 0;
-            $this->officerRStatus = 0;
+            $this->clearParameters();
         }
 
         $this->thievesPositions = $positions;
@@ -259,6 +258,7 @@ class PolicemanAI extends Command
         $catchingLocation = $this->getCatchingLocation($policemenObject);
         if (null !== $catchingLocation) {
             $this->thiefCatchingPosition = $catchingLocation;
+            $this->goForward = false;
             $targetThief = $this->thiefCatchingPosition;
         } elseif (null !== $this->thiefCatchingPosition) {
             // był łapany i uciekł -> może split even po coraz większych okręgach
@@ -309,16 +309,32 @@ class PolicemanAI extends Command
                 $distanceToSphere2EvenlySpread = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $sphere2EvenlySpreadPoints[$key]);
 
                 if ($distanceToThief < $this->room->config['actor']['policeman']['catching']['radius'] && !$policemanObject['isCatching']) {
-                    $this->split = true;
+                    // continue attack
+                    $this->goForward = true;
                 }
 
+                // SETTING POSITIONS
                 // someone is catching
                 if (null !== $catchingLocation) {
                     $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($catchingLocation, $catchingEvenlySpreadPoints[0], $targetThief);
                     continue;
                 }
 
-                // SETTING POSITIONS
+                // continue attack
+                if ($this->goForward) {
+                    $direction = $this->getDirectionVectorXY($this->earlyChasePoliceCenter, $policemanObject['position']);
+                    $policemenPositionXY = Geometry::convertLatLngToXY($policemenObject['position']);
+                    $targetXY = [
+                        'x' => $policemenPositionXY['x'] + $direction['x'],
+                        'y' => $policemenPositionXY['y'] + $direction['y'],
+                    ];
+                    $targetLatLng = Geometry::convertXYToLatLng($targetXY);
+                    if ($this->isInside($targetLatLng)) {
+                        $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($targetLatLng, $targetThief, $targetThief);
+                        continue;
+                    }
+                }
+
                 //split:        s2es, s3es, s4es, r
                 if ($this->split) {
                     if (2 * $catchingRadius > $distanceToThief && self::CLOSE_DISTANCE_DELTA < $distanceToSphere2EvenlySpread) {
@@ -522,7 +538,7 @@ class PolicemanAI extends Command
     {
         $isInside = true;
         foreach ($points as $point) {
-            if (false === $this->preventFromGoingOutside($point, [])) {
+            if (!$this->isInside($point)) {
                 $isInside = false;
                 break;
             }
@@ -537,11 +553,11 @@ class PolicemanAI extends Command
         $left = null;
         foreach ($checkPoints as $key => $checkPoint) {
             if (null === $right) {
-                if (false !== $this->preventFromGoingOutside($checkPoint, [])) {
+                if ($this->isInside($checkPoint)) {
                     $right = $key;
                 }
             } else {
-                if (false === $this->preventFromGoingOutside($checkPoint, [])) {
+                if (!$this->isInside($checkPoint)) {
                     break;
                 }
 
@@ -563,24 +579,22 @@ class PolicemanAI extends Command
         return $this->getPointsOnCircle($center, $radius, $n, $isEvenlySpread, false, $reference, $maxAngle);
     }
 
-    private function preventFromGoingOutside(array $target1, array $target2, array $target3 = ['x' => 0.0, 'y' => 0.0]): array|bool
+    private function preventFromGoingOutside(array $target1, array $target2, array $target3 = ['x' => 0.0, 'y' => 0.0]): array
     {
-        $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
-
-        $target1XY = Geometry::convertLatLngToXY($target1);
-        $point = "{$target1XY['x']} {$target1XY['y']}";
-        $intersection = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isInside"));
-        if ($intersection[0]->isInside) {
+        if ($this->isInside($target1)) {
             return $target1;
-        } elseif (empty($target2)) {
-            return false;
         } else {
-            $target2XY = Geometry::convertLatLngToXY($target2);
-            $point = "{$target2XY['x']} {$target2XY['y']}";
-            $intersection = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isInside"));
-
-            return $intersection[0]->isInside ? $target2 : $target3;
+            return $this->isInside($target2) ? $target2 : $target3;
         }
+    }
+
+    private function isInside(array $pointLatLng): bool
+    {
+        $pointXY = Geometry::convertLatLngToXY($pointLatLng);
+        $point = "{$pointXY['x']} {$pointXY['y']}";
+        $boundary = Geometry::convertGeometryLatLngToXY($this->room->boundary_points);
+        $intersection = DB::select(DB::raw("SELECT ST_Intersects(ST_GeomFromText('POLYGON(($boundary))'), ST_GeomFromText('POINT($point)')) AS isInside"));
+        return $intersection[0]->isInside;
     }
 
     private function makeAStep(array $targetPositions)
@@ -640,6 +654,16 @@ class PolicemanAI extends Command
         }
     }
 
+    private function clearParameters()
+    {
+        $this->split = false;
+        $this->thiefCatchingPosition = null;
+        $this->earlyChasePoliceCenter = $this->policeCenter;
+        $this->goForward = false;
+        $this->officerLStatus = 0;
+        $this->officerRStatus = 0;
+    }
+
     private function getShiftedPointXY(array $pointAXY, array $pointBXY, $targetDistance): array
     {
         $currentDistance = Geometry::getSphericalDistanceBetweenTwoPoints(
@@ -654,5 +678,22 @@ class PolicemanAI extends Command
         }
 
         return $pointAXY;
+    }
+
+    private function getDirectionVectorXY(array $startPointLatLng, array $endPointLatLng): array
+    {
+        $startPointXY = Geometry::convertLatLngToXY($startPointLatLng);
+        $endPointXY = Geometry::convertLatLngToXY($endPointLatLng);
+        $vectorLength = $this->room->config['other']['bot_speed'] * env('BOT_REFRESH');
+        $distance = Geometry::getSphericalDistanceBetweenTwoPoints($startPointLatLng, $endPointLatLng);
+        if (5 > $distance) {
+            $this->goForward = false;
+            return ['x' => 0.0, 'y' => 0.0];
+        }
+
+        return [
+            'x' => ($endPointXY['x'] - $startPointXY['x']) * $vectorLength / $distance,
+            'y' => ($endPointXY['y'] - $startPointXY['y']) * $vectorLength / $distance,
+        ];
     }
 }
