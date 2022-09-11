@@ -706,6 +706,8 @@ class PolicemanAI extends Command
                     ->orWhere(['status' => 'DISCONNECTED']);
             })
             ->get();
+        $thieves[0]->ping = 5;
+        $thieves[0]->save();
         foreach ($thieves as $thief) {
             $thief->mergeCasts([
                 'hidden_position' => Point::class,
@@ -715,7 +717,11 @@ class PolicemanAI extends Command
                 $thief->global_position = "{$thief->fake_position->longitude} {$thief->fake_position->latitude}";
                 $thief->save();
             } elseif (null === $thief->black_ticket_finished_at || now() > $thief->black_ticket_finished_at) {
+                $thief->ping = 1;
+                $thief->save();
                 $thief->global_position = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
+                $thief->save();
+                $thief->ping = 2;
                 $thief->save();
             }
         }
