@@ -446,21 +446,34 @@ class PolicemanAI extends Command
             'x' => 0.0,
             'y' => 0.0,
         ];
-        $catchingLocations = [];
-        foreach ($policemenObject as $policemanObject) {
-            if ($policemanObject['isCatching']) {
-                $catchingLocations[] = Geometry::convertLatLngToXY($policemanObject['position']);
+        $catchingRadius = $this->room->config['actor']['policeman']['catching']['radius'];
+        $catchingLocationsXY = [];
+        $catchingLocationsLatLng = [];
+        foreach ($policemenObject as $key => $policemanObject) {
+            if (!$policemanObject['isCatching']) {
+                continue;
             }
+
+            $nLatLng = count($catchingLocationsLatLng);
+            if (!empty($catchingLocations) && 0 < $nLatLng) {
+                $distance = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingLocationsLatLng[$nLatLng - 1]);
+                if (2 * $catchingRadius < $distance) {
+                    continue;
+                }
+            }
+
+            $catchingLocationsLatLng[] = $policemanObject['position'];
+            $catchingLocationsXY[] = Geometry::convertLatLngToXY($policemanObject['position']);
         }
 
-        $n = count($catchingLocations);
-        if (0 === $n) {
+        $nXY = count($catchingLocationsXY);
+        if (0 === $nXY) {
             return null;
         }
 
-        foreach ($catchingLocations as $catchingLocation) {
-            $target['x'] += $catchingLocation['x'] / $n;
-            $target['y'] += $catchingLocation['y'] / $n;
+        foreach ($catchingLocationsXY as $catchingLocation) {
+            $target['x'] += $catchingLocation['x'] / $nXY;
+            $target['y'] += $catchingLocation['y'] / $nXY;
         }
 
         return Geometry::convertXYToLatLng($target);
