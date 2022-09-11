@@ -267,7 +267,7 @@ class PolicemanAI extends Command
             // był łapany i uciekł -> może split even po coraz większych okręgach
             $targetThief = $this->thiefCatchingPosition;
             $this->split = true;
-//            $this->tryToUseWhiteTicket();
+            $this->tryToUseWhiteTicket();
         }
 
         if (1 === count($policemenObject)) {
