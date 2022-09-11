@@ -7,7 +7,6 @@ use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use JetBrains\PhpStorm\ArrayShape;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class PolicemanAI extends Command
@@ -268,6 +267,7 @@ class PolicemanAI extends Command
             // był łapany i uciekł -> może split even po coraz większych okręgach
             $targetThief = $this->thiefCatchingPosition;
             $this->split = true;
+//            $this->tryToUseWhiteTicket();
         }
 
         if (1 === count($policemenObject)) {
@@ -674,6 +674,7 @@ class PolicemanAI extends Command
 
     private function tryToUseWhiteTicket()
     {
+        // TODO: refactor / use visibility radius (now assume is -1)
         $activePegasus = null;
         /** @var Player[] $pegasuses */
         $pegasuses = $this->room
@@ -693,13 +694,37 @@ class PolicemanAI extends Command
             }
         }
 
-        if (null !== $activePegasus) {
-            $config =  $activePegasus->config;
-            $config['white_ticket']['used_number']++;
-            $activePegasus->config = $config;
-            $activePegasus->save();
-
+        if (null === $activePegasus) {
+            return;
         }
+
+        $thieves = $this->room
+            ->players()
+            ->where(['role' => 'THIEF'])
+            ->where(function ($query) {
+                $query->where(['status' => 'CONNECTED'])
+                    ->orWhere(['status' => 'DISCONNECTED']);
+            })
+            ->get();
+        foreach ($thieves as $thief) {
+            if (null !== $thief->fake_position_finished_at && now() < $thief->fake_position_finished_at) {
+                $this->thievesPositions[$thief->id] = [
+                    'x' => $thief->fake_position->longitude,
+                    'y' => $thief->fake_position->latitude,
+                ];
+            } elseif (null === $thief->black_ticket_finished_at || now() > $thief->black_ticket_finished_at) {
+                $this->thievesPositions[$thief->id] = [
+                    'x' => $thief->hidden_position->longitude,
+                    'y' => $thief->hidden_position->latitude,
+                ];
+            }
+        }
+
+        $config = $activePegasus->config;
+        $config['white_ticket']['used_number']++;
+        $activePegasus->config = $config;
+        $activePegasus->save();
+        $this->clearParameters();
     }
 
     private function clearParameters()
