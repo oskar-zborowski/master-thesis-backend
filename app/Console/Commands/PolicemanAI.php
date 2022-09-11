@@ -708,6 +708,7 @@ class PolicemanAI extends Command
             ->get();
         foreach ($thieves as $thief) {
             $thief->mergeCasts([
+                'global_position' => Point::class,
                 'hidden_position' => Point::class,
                 'fake_position' => Point::class,
             ]);
