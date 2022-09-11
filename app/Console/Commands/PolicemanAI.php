@@ -7,6 +7,7 @@ use App\Models\Player;
 use App\Models\Room;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use JetBrains\PhpStorm\ArrayShape;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 
 class PolicemanAI extends Command
@@ -86,6 +87,9 @@ class PolicemanAI extends Command
 
                 $policemen[0]->warning_number = 1;
                 $policemen[0]->save();
+            } else {
+                // search for thieves
+                $this->tryToUseWhiteTicket();
             }
 
             $time = env('BOT_REFRESH') * 1000000 - (microtime(true) - $startTime);
@@ -665,6 +669,36 @@ class PolicemanAI extends Command
             $position = "{$position['x']} {$position['y']}";
             $policeman->hidden_position = DB::raw("ST_GeomFromText('POINT($position)')");
             $policeman->save();
+        }
+    }
+
+    private function tryToUseWhiteTicket()
+    {
+        $activePegasus = null;
+        /** @var Player[] $pegasuses */
+        $pegasuses = $this->room
+            ->players()
+            ->where([
+                'is_bot' => true,
+                'role' => 'PEGASUS',
+            ])
+            ->whereNotNull('config')
+            ->get();
+        $number = $pegasuses[0]->config['white_ticket']['number'];
+        foreach ($pegasuses as $pegasus) {
+            $usedNumber = $pegasus->config['white_ticket']['used_number'];
+            if ($usedNumber < $number) {
+                $activePegasus = $pegasus;
+                break;
+            }
+        }
+
+        if (null !== $activePegasus) {
+            $config =  $activePegasus->config;
+            $config['white_ticket']['used_number']++;
+            $activePegasus->config = $config;
+            $activePegasus->save();
+
         }
     }
 
