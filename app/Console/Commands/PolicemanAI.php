@@ -322,30 +322,16 @@ class PolicemanAI extends Command
 
                 // continue attack
                 if ($this->goForward) {
-                    $directionXY = $this->getDirectionVectorXY($this->earlyChasePoliceCenter, $policemanObject['position']);
-                    $policemen[1]->ping = 1;
-                    $policemen[1]->save();
+                    $directionXY = $this->getDirectionVectorXY($this->earlyChasePoliceCenter, $targetThief);
                     $policemanPositionXY = Geometry::convertLatLngToXY($policemanObject['position']);
-                    $policemen[1]->ping = 2;
-                    $policemen[1]->save();
                     $targetDirectionXY = [
                         'x' => $policemanPositionXY['x'] + $directionXY['x'],
                         'y' => $policemanPositionXY['y'] + $directionXY['y'],
                     ];
-                    $policemen[1]->ping = 3;
-                    $policemen[1]->save();
                     $targetXY = $this->getShiftedPointXY($policemanPositionXY, $targetDirectionXY, $this->room->config['other']['bot_speed'] * env('BOT_REFRESH'));
-                    $policemen[1]->ping = 4;
-                    $policemen[1]->save();
                     $targetLatLng = Geometry::convertXYToLatLng($targetXY);
-                    $policemen[1]->ping = 5;
-                    $policemen[1]->save();
                     if ($this->isInside($targetLatLng)) {
-                        $policemen[1]->ping = 6;
-                        $policemen[1]->save();
                         $targetPositions[$policemanObject['playerId']] = $this->preventFromGoingOutside($targetLatLng, $targetThief, $targetThief);
-                        $policemen[1]->ping = 7;
-                        $policemen[1]->save();
                         continue;
                     }
                 }
