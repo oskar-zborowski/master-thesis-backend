@@ -707,16 +707,16 @@ class PolicemanAI extends Command
             })
             ->get();
         foreach ($thieves as $thief) {
+            $thief->mergeCasts([
+                'hidden_position' => Point::class,
+                'fake_position' => Point::class,
+            ]);
             if (null !== $thief->fake_position_finished_at && now() < $thief->fake_position_finished_at) {
-                $this->thievesPositions[$thief->id] = [
-                    'x' => $thief->fake_position->longitude,
-                    'y' => $thief->fake_position->latitude,
-                ];
+                $thief->global_position = "{$thief->fake_position->longitude} {$thief->fake_position->latitude}";
+                $thief->save();
             } elseif (null === $thief->black_ticket_finished_at || now() > $thief->black_ticket_finished_at) {
-                $this->thievesPositions[$thief->id] = [
-                    'x' => $thief->hidden_position->longitude,
-                    'y' => $thief->hidden_position->latitude,
-                ];
+                $thief->global_position = "{$thief->hidden_position->longitude} {$thief->hidden_position->latitude}";
+                $thief->save();
             }
         }
 
