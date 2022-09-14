@@ -88,7 +88,7 @@ class PolicemanAI extends Command
                 $policemen[0]->save();
             } else {
                 // search for thieves
-                $this->tryToUseWhiteTicket();
+//                $this->tryToUseWhiteTicket();
             }
 
             $time = env('BOT_REFRESH') * 1000000 - (microtime(true) - $startTime);
@@ -267,7 +267,7 @@ class PolicemanAI extends Command
             // był łapany i uciekł -> może split even po coraz większych okręgach
             $targetThief = $this->thiefCatchingPosition;
             $this->split = true;
-            $this->tryToUseWhiteTicket();
+//            $this->tryToUseWhiteTicket();
         }
 
         if (1 === count($policemenObject)) {
@@ -483,7 +483,7 @@ class PolicemanAI extends Command
         return Geometry::convertXYToLatLng($target);
     }
 
-    /** returns indexes of policemen nearest to 'edge' point */
+    /** returns index of policeman nearest to 'edge' point */
     private function getNearestPoliceman(array $point, int $excludedId = 0): int
     {
         $policemen = $this->room
@@ -685,9 +685,9 @@ class PolicemanAI extends Command
             ])
             ->whereNotNull('config')
             ->get();
-        $number = $pegasuses[0]->config['white_ticket']['number'];
         foreach ($pegasuses as $pegasus) {
             $usedNumber = $pegasus->config['white_ticket']['used_number'];
+            $number = $pegasus->config['white_ticket']['number'];
             if ($usedNumber < $number) {
                 $activePegasus = $pegasus;
                 break;
