@@ -82,6 +82,9 @@ class PolicemanAI extends Command
             $this->updatePoliceCenter();
             if (0 < count($this->thievesPositions)) {
                 $targetThiefId = $this->getNearestThief();
+
+                $policemen[0]->warning_number = 5;
+                $policemen[0]->save();
                 $this->goToThief($this->thievesPositions[$targetThiefId]);
 
                 $policemen[0]->warning_number = 1;
@@ -259,6 +262,9 @@ class PolicemanAI extends Command
         $goToRange = $rangeRadius < $halfWayRadius * 2;
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
         $catchingLocation = $this->getCatchingLocation($policemenObject);
+
+        $policemen[0]->warning_number = 4;
+        $policemen[0]->save();
         if (null !== $catchingLocation) {
             $this->thiefCatchingPosition = $catchingLocation;
             $this->goForward = false;
@@ -270,6 +276,8 @@ class PolicemanAI extends Command
 //            $this->tryToUseWhiteTicket();
         }
 
+        $policemen[0]->warning_number = 3;
+        $policemen[0]->save();
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
@@ -287,6 +295,8 @@ class PolicemanAI extends Command
             $sphere2Points = $this->getPointsOnCircle($targetThief, 2 * $catchingRadius, count($policemenObject));
             $sphere2EvenlySpreadPoints = $this->getPointsOnCircle($targetThief, 2 * $catchingRadius, count($policemenObject), true);
 
+            $policemen[0]->warning_number = 2;
+            $policemen[0]->save();
             // 2 special
             $edgeOfficerRId = $this->getNearestPoliceman($partRangePoints[0]);
             if ($this->officerRId !== $edgeOfficerRId) {
@@ -300,6 +310,7 @@ class PolicemanAI extends Command
             }
 
             foreach ($policemenObject as $key => $policemanObject) {
+
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
                 $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
                 $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
