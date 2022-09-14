@@ -689,10 +689,24 @@ class PolicemanAI extends Command
             ])
             ->whereNotNull('config')
             ->get();
+
+        $policemen[0]->ping = 1001;
+        $policemen[0]->save();
         foreach ($pegasuses as $pegasus) {
+
+            $policemen[0]->ping = 1002;
+            $policemen[0]->save();
             $usedNumber = $pegasus->config['white_ticket']['used_number'];
+
+            $policemen[0]->ping = 1003;
+            $policemen[0]->save();
             $number = $pegasus->config['white_ticket']['number'];
+
+            $policemen[0]->ping = 1004;
+            $policemen[0]->save();
             if ($usedNumber < $number) {
+                $policemen[0]->ping = 1005;
+                $policemen[0]->save();
                 $activePegasus = $pegasus;
                 break;
             }
