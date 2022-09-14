@@ -72,33 +72,22 @@ class PolicemanAI extends Command
                 ->where(['is_bot' => true])
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
-
-            $policemen[0]->warning_number = 8;
-            $policemen[0]->save();
             if ($this->room->next_disclosure_at > $this->lastDisclosure) {
                 $this->lastDisclosure = $this->room->next_disclosure_at;
                 $this->clearParameters();
             }
 
             $this->updateThievesPosition();
-
-            $policemen[0]->warning_number =7;
-            $policemen[0]->save();
             $this->updatePoliceCenter();
             if (0 < count($this->thievesPositions)) {
-                $policemen[0]->warning_number = 6;
-                $policemen[0]->save();
                 $targetThiefId = $this->getNearestThief();
-
-                $policemen[0]->warning_number = 5;
-                $policemen[0]->save();
                 $this->goToThief($this->thievesPositions[$targetThiefId]);
 
                 $policemen[0]->warning_number = 1;
                 $policemen[0]->save();
             } else {
                 // search for thieves
-//                $this->tryToUseWhiteTicket();
+                $this->tryToUseWhiteTicket();
             }
 
             $time = env('BOT_REFRESH') * 1000000 - (microtime(true) - $startTime);
@@ -269,9 +258,6 @@ class PolicemanAI extends Command
         $goToRange = $rangeRadius < $halfWayRadius * 2;
         $policemenObject = $this->getReorderedPoliceLocation($targetThief);
         $catchingLocation = $this->getCatchingLocation($policemenObject);
-
-        $policemen[0]->warning_number = 4;
-        $policemen[0]->save();
         if (null !== $catchingLocation) {
             $this->thiefCatchingPosition = $catchingLocation;
             $this->goForward = false;
@@ -283,8 +269,6 @@ class PolicemanAI extends Command
 //            $this->tryToUseWhiteTicket();
         }
 
-        $policemen[0]->warning_number = 3;
-        $policemen[0]->save();
         if (1 === count($policemenObject)) {
             $targetPositions[$policemenObject[0]['playerId']] = $targetThief;
         } else {
@@ -302,8 +286,6 @@ class PolicemanAI extends Command
             $sphere2Points = $this->getPointsOnCircle($targetThief, 2 * $catchingRadius, count($policemenObject));
             $sphere2EvenlySpreadPoints = $this->getPointsOnCircle($targetThief, 2 * $catchingRadius, count($policemenObject), true);
 
-            $policemen[0]->warning_number = 2;
-            $policemen[0]->save();
             // 2 special
             $edgeOfficerRId = $this->getNearestPoliceman($partRangePoints[0]);
             if ($this->officerRId !== $edgeOfficerRId) {
@@ -317,7 +299,6 @@ class PolicemanAI extends Command
             }
 
             foreach ($policemenObject as $key => $policemanObject) {
-
                 $distanceToThief = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $targetThief);
                 $distanceToHalfWay = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $halfWayPoints[$key]);
                 $distanceToUneven = Geometry::getSphericalDistanceBetweenTwoPoints($policemanObject['position'], $catchingPoints[$key]);
@@ -692,6 +673,11 @@ class PolicemanAI extends Command
 
     private function tryToUseWhiteTicket()
     {
+        $policemen = $this->room
+            ->players()
+            ->where(['is_bot' => true])
+            ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
+            ->get();
         // TODO: refactor / use visibility radius (now assume is -1)
         $activePegasus = null;
         /** @var Player[] $pegasuses */
@@ -716,6 +702,8 @@ class PolicemanAI extends Command
             return;
         }
 
+        $policemen[0]->ping = 1;
+        $policemen[0]->save();
         $thieves = $this->room
             ->players()
             ->where(['role' => 'THIEF'])
@@ -730,23 +718,29 @@ class PolicemanAI extends Command
                 'hidden_position' => Point::class,
                 'fake_position' => Point::class,
             ]);
+            $policemen[0]->ping = 2;
+            $policemen[0]->save();
             if (null !== $thief->fake_position_finished_at && now() < $thief->fake_position_finished_at) {
+                $policemen[0]->ping = 31;
+                $policemen[0]->save();
                 $thief->global_position = $thief->fake_position;
                 $thief->save();
             } elseif (null === $thief->black_ticket_finished_at || now() > $thief->black_ticket_finished_at) {
-                $thief->ping = 1;
-                $thief->save();
+                $policemen[0]->ping = 32;
+                $policemen[0]->save();
                 $thief->global_position = $thief->hidden_position;
-                $thief->save();
-                $thief->ping = 2;
                 $thief->save();
             }
         }
 
+        $policemen[0]->ping = 4;
+        $policemen[0]->save();
         $config = $activePegasus->config;
         $config['white_ticket']['used_number']++;
         $activePegasus->config = $config;
         $activePegasus->save();
+        $policemen[0]->ping = 5;
+        $policemen[0]->save();
         $this->clearParameters();
     }
 
