@@ -208,7 +208,8 @@ class ThiefAI3 extends Command
                     $lastDestinationXY = Geometry::convertLatLngToXY($lastDestinationLatLng[$thief->id]);
 
                     $botShift = $room->config['other']['bot_speed'] * (microtime(true) - $lastSavedTime[$thief->id]);
-                    $finalPositionXY = Geometry::getShiftedPoint($currentPositionXY, $lastDestinationXY, $botShift);
+                    $finalPositionXY = $this->getShiftedPointXY($currentPositionXY, $lastDestinationXY, $botShift);
+                    // $finalPositionXY = Geometry::getShiftedPoint($currentPositionXY, $lastDestinationXY, $botShift);
                     $finalPositionLatLng = Geometry::convertXYToLatLng($finalPositionXY);
                     $finalPositionLatLngString = "{$finalPositionLatLng['x']} {$finalPositionLatLng['y']}";
 
@@ -231,5 +232,22 @@ class ThiefAI3 extends Command
             LibrariesThiefAi::useTicket($room, $timeLapse, $boundaryExtremePointsXY);
 
         } while ($room->status == 'GAME_IN_PROGRESS');
+    }
+
+    private function getShiftedPointXY(array $pointAXY, array $pointBXY, $targetDistance) {
+
+        $currentDistance = Geometry::getSphericalDistanceBetweenTwoPoints(
+            Geometry::convertXYToLatLng($pointAXY),
+            Geometry::convertXYToLatLng($pointBXY)
+        );
+
+        if ($currentDistance > 0) {
+            return ([
+                'x' => $pointAXY['x'] + ($targetDistance * ($pointBXY['x'] - $pointAXY['x'])) / $currentDistance,
+                'y' => $pointAXY['y'] + ($targetDistance * ($pointBXY['y'] - $pointAXY['y'])) / $currentDistance,
+            ]);
+        }
+
+        return $pointAXY;
     }
 }
