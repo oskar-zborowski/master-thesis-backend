@@ -73,14 +73,21 @@ class PolicemanAI extends Command
                 ->whereIn('role', ['POLICEMAN', 'PEGASUS', 'FATTY_MAN', 'EAGLE', 'AGENT'])
                 ->get();
 
+            $policemen[0]->warning_number = 8;
+            $policemen[0]->save();
             if ($this->room->next_disclosure_at > $this->lastDisclosure) {
                 $this->lastDisclosure = $this->room->next_disclosure_at;
                 $this->clearParameters();
             }
 
             $this->updateThievesPosition();
+
+            $policemen[0]->warning_number =7;
+            $policemen[0]->save();
             $this->updatePoliceCenter();
             if (0 < count($this->thievesPositions)) {
+                $policemen[0]->warning_number = 6;
+                $policemen[0]->save();
                 $targetThiefId = $this->getNearestThief();
 
                 $policemen[0]->warning_number = 5;
