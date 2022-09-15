@@ -23,12 +23,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/v1/ip-address', function (Request $request) {
 
-    $worldTimeApi = json_decode(file_get_contents('http://worldtimeapi.org/api/ip'));
+    $worldTimeApi = json_decode(file_get_contents('https://api.ipify.org/?format=json'));
 
-    if ($worldTimeApi !== null && $worldTimeApi->client_ip !== null) {
+    if ($worldTimeApi !== null && $worldTimeApi->ip !== null) {
 
         JsonResponse::sendSuccess($request, [
-            'ip_address' => $worldTimeApi->client_ip,
+            'ip_address' => $worldTimeApi->ip,
         ]);
 
     } else {
